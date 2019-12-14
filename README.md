@@ -1,6 +1,6 @@
 # OFP Game Schedule
 
-Website for organizing Operation Flashpoint / ArmA: Cold War Assault multiplayer sessions. Built on [UserSpice](https://userspice.com/) PHP framework. Made by [Faguss](https://ofp-faguss.com)
+Website for organizing [Operation Flashpoint](https://en.wikipedia.org/wiki/Operation_Flashpoint:_Cold_War_Crisis) / [ArmA: Cold War Assault](https://store.steampowered.com/app/65790/ARMA_Cold_War_Assault/) multiplayer sessions. Built with [UserSpice](https://userspice.com/) PHP framework. Made by [Faguss](https://ofp-faguss.com)
 
 [Live version](https://ofp-faguss.com/schedule/)
 
