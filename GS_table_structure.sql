@@ -1,4 +1,5 @@
-ALTER TABLE `users` ADD `timezone` VARCHAR(255) NOT NULL DEFAULT 'Europe/Warsaw'
+ALTER TABLE `users` ADD `timezone` VARCHAR(255) NOT NULL DEFAULT 'Europe/Warsaw';
+UPDATE `settings` SET `us_css3` = '../usersc/css/custom.css' WHERE `settings`.`id` = 1;
 
 -- phpMyAdmin SQL Dump
 -- version 4.8.4

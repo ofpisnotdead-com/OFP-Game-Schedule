@@ -1,0 +1,16 @@
+Options -Multiviews
+
+RewriteEngine On
+RewriteBase /schedule/
+RewriteRule ^sqf$ sqf.php [QSA,L]
+RewriteRule ^mods$ mods.php [QSA,L]
+RewriteRule ^menu$ menu.php [QSA,L]
+RewriteRule ^quickstart$ quickstart.php [QSA,L]
+RewriteRule ^quickstart_ru$ quickstart?lang=ru [QSA,L]
+RewriteRule ^privacy_policy$ privacy_policy.php [QSA,L]
+RewriteRule ^install_scripts$ installationscripts.php [QSA,L]
+RewriteRule ^dedicated_server$ installdedicated.php [QSA,L]
+RewriteRule ^api$ api.php [QSA,L]
+RewriteRule ^api_documentation$ api_documentation.php [QSA,L]
+RewriteRule ^recent_activity$ recent_activity.php [QSA,L]
+RewriteRule ^rss$ rss.php [QSA,L]
