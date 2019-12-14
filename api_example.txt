@@ -1,0 +1,196 @@
+<?php 
+function url_get_contents ($Url) {
+    if (!function_exists('curl_init')){ 
+        die('CURL is not installed!');
+    }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $Url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $output = curl_exec($ch);
+    curl_close($ch);
+    return $output;
+}
+
+function GS_convert_size_in_bytes($bytes, $output_type) {
+	if ($bytes == "")
+		return "";
+	
+	$bytes     = intval($bytes);
+	$kilobytes = 0;
+	$megabytes = 0;
+	
+	if ($bytes > 1048576) {
+		$megabytes  = $bytes / 1048576;
+		$megabytes -= fmod($megabytes, 1);
+		$bytes     -= $megabytes * 1048576;
+	}
+	
+	if ($bytes > 1024) {
+		$kilobytes  = $bytes / 1024;
+		$kilobytes -= fmod($kilobytes, 1);
+		$bytes     -= $kilobytes * 1024;
+	}
+	
+	if ($output_type == "game")
+		return "[$bytes, $kilobytes, $megabytes]";
+	
+	if ($output_type == "website") {
+		$array = [$bytes, $kilobytes, $megabytes];
+		$index = 2;
+		
+		if ($array[2] == 0) 
+			$index = 1;
+		
+		if ($array[1] == 0) 
+			$index = 0;
+		
+		$size = $array[$index];
+
+		if ($index > 0) 
+			$size += $array[$index-1] / 1024;
+		
+		return (round($size, 2) . " " . ["B","KB","M"][$index]);
+	}
+	
+	return "";
+}
+
+		
+// Download info
+$download = json_decode(url_get_contents("http://ofp-faguss.com/schedule/api?server=4abc47b3"));
+$schedule = json_decode(json_encode($download),true);	//https://stackoverflow.com/questions/10333016/how-to-access-object-properties-with-names-like-integers
+
+
+
+$server_properties_to_display = [
+	"version"           => "Version",
+	"modfolders"        => "Mods",
+	"maxcustomfilesize" => "Max Custom File Size",
+	"game time"         => "Events",
+	"languages"         => "Language",
+	"location"          => "Location", 
+	"voice"				=> "VOIP",
+	"website"           => "URL", 
+	"message"           => "Info",
+	"access"            => "Schedule Password"
+];
+
+// Show servers
+foreach($schedule["servers"] as $server) {
+	echo "<h2>" . ($server["name"]!="" ? $server["name"] : $server["uniqueid"]) ."</h2><dl>";
+	
+	foreach($server_properties_to_display as $key=>$name) {
+		$value = "";
+		
+		switch($key) {
+			case "maxcustomfilesize" : {
+				if (intval($server[$key]) < 102400)
+					$value = GS_convert_size_in_bytes($server[$key], "website");
+			} break;
+			
+			case "website" : {
+				if (!empty($value)) {
+					$domain = parse_url($server[$key])["host"];
+					
+					if (substr($domain,0,4) == "www." )
+						$domain = substr($domain,4);
+					
+					$value = "<a href=\"$value\" target=\"_blank\">$domain</a>";
+				}
+			} break;
+			
+			case "modfolders" : {
+				$mod_list_links = [];
+				
+				foreach ($server["mods"] as $id) {
+					$version          = $schedule["mods"][$id]["version"]!=1 ? " &nbsp; v{$schedule["mods"][$id]["version"]}" : "";
+					$mod_list_links[] = "<a href=\"https://ofp-faguss.com/schedule/show.php?mod=$id\" target=\"_blank\">{$schedule["mods"][$id]["name"]}</a> &nbsp; <span style=\"font-size:70%;\">{$schedule["mods"][$id]["size"]}{$version}</span>";
+				}
+				
+				$value = implode("<br>",$mod_list_links);
+			} break;
+			
+			case "game time" : {
+				foreach ($server["events"] as $event)
+					$value .= (empty($value) ? "" : "<br>") . $event["description"];
+			} break;
+			
+			case "voice" : {
+				$value = "<a href=\"{$schedule["info"]["voice"][$server[$key]]["download"]}\">{$server[$key]}</a>";
+			} break;
+			
+			default: $value=$server[$key];
+		}
+		
+		if (!empty($value))
+			echo "<dt>{$name}:</dt><dd>{$value}</dd>";
+	}
+	
+	echo "</dl><br><hr>";
+}
+
+
+
+
+$mod_properties_to_display = [
+		"description" => "Description",
+		"type"        => "Type",
+		"version"     => "Version",
+		"size"        => "Download Size"
+];
+
+// Show mods
+foreach($schedule["mods"] as $id=>$mod) {
+	echo "<h2>{$mod["name"]}</h2><dl>";
+	
+	foreach ($mod_properties_to_display as $key=>$name) {
+		$value = "";
+		
+		switch($key) {
+			case "type" : $value=$schedule["info"]["mod_types"][$mod["type"]]; break;
+			default: $value=$mod[$key];
+		}
+		
+		if (!empty($value))
+			echo "<dt>{$name}:</dt><dd>{$value}</dd>";
+	}
+	
+	echo "</dl>";
+	
+	echo "<p>Preview <a target=\"_blank\" href=\"https://ofp-faguss.com/schedule/install_scripts\">Installation</a>:</p>";
+
+	foreach($mod["updates"] as $update_index=>$update) {
+		echo "<strong>{$update["version"]}<span style=\"font-size:10px;float:right;\">".date(DATE_RFC2822,$update["date"])."</span></strong>
+		<pre style=\"margin:0;border:0;\"><code>{$update["script"]}</code></pre>";
+		
+		$number_of_notes = 0;
+		foreach ($update["note"] as $note)
+			if (!empty($note)) {
+				$number_of_notes = count($update["note"]);
+				break;
+			}
+		
+		if ($number_of_notes > 0) {
+			echo "<div style=\"background-color:#fdffe1;\">";
+			
+			foreach($update["note"] as $note_index=>$note) {
+				echo "<p>";
+
+				if ($number_of_notes > 1)
+					echo "
+					<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}
+						<span style=\"float:right;\">".date(DATE_RFC2822,$update["note_date"][$note_index])."</span>
+					</span>
+					<br>
+					";
+				
+				echo "$note</p>";
+			}
+			
+			echo "</div>";
+		}
+	}
+
+	echo "<br><hr>";
+}
+?>

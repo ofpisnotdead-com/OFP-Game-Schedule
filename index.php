@@ -1,0 +1,308 @@
+<?php
+
+if(file_exists("install/index.php")){
+	//perform redirect if installer files exist
+	//this if{} block may be deleted once installed
+	header("Location: install/index.php");
+}
+
+require_once 'users/init.php';
+require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
+
+?>
+<div id="page-wrapper">
+	<div class="container">
+<?php
+require_once "common.php";
+$csrf = Token::generate();
+
+if(isset($user) && $user->isLoggedIn()){
+	$uid          = $user->data()->id;
+	$record_types = ["server","mod"];
+
+	foreach ($record_types as $record_type) 
+	{
+		// Build a query and run it
+		$record_table  = $record_type=="server" ? "serv"   : "mods";
+		$record_column = $record_type=="server" ? "server" : "mod";
+		$sql           = "
+			SELECT 
+				gs_{$record_table}.uniqueid,
+				gs_{$record_table}.name,
+				gs_{$record_table}_admins.*
+				
+			FROM 
+				gs_{$record_table}, 
+				gs_{$record_table}_admins 
+				
+			WHERE 
+				gs_{$record_table}.removed       = 0 AND
+				gs_{$record_table}_admins.userid = ? AND 
+				gs_{$record_table}.id            = gs_{$record_table}_admins.{$record_column}id	
+		";
+		
+		if ($gs_my_permission_level == GS_PERM_ADMIN)
+			$sql = "
+			SELECT 
+				gs_{$record_table}.uniqueid,
+				gs_{$record_table}.name
+				
+			FROM 
+				gs_{$record_table}
+				
+			WHERE 
+				gs_{$record_table}.removed = 0";
+	
+		if ($db->query($sql,[$uid])->error()) {
+			if ($gs_my_permission_level == GS_PERM_ADMIN)
+				echo $sql . $db->errorString();
+			die("Failed to load {$record_type}s");
+		}
+		
+		$items         = $db->results(true);
+		$permission_to = [];
+		$my_item_count = 0;	
+		
+		foreach (GS_FORM_ACTIONS_BY_PAGE[$record_type] as $action)
+			if ($action != "Add New")
+				$permission_to[$action] = false;
+			
+		$display_my    = "
+		<div class=\"col-lg-6\">
+			<div class=\"page-header\"><h2>" .lang($record_type=="server" ? "GS_STR_INDEX_MYSERVERS" : "GS_STR_INDEX_MYMODS"). ":</h2></div>
+			<div class=\"panel panel-default\">
+				<div class=\"panel-body {$record_type}s_background\">";
+			
+		$display_shared = "<div class=\"col-lg-6\">";
+		$button_class   = $record_type == "server" ? "primary" : "mods";
+		$php_script     = "edit_{$record_type}.php";
+		
+
+		// Go through results and create forms
+		foreach ($items as $item) {
+			$form    = new Generated_Form([], $csrf, $php_script, false);
+			$display = "";
+			$label   = $item["name"]!="" ? $item["name"] : $item["uniqueid"];
+			$owner   = $gs_my_permission_level == GS_PERM_ADMIN  ||  $item["isowner"] == "1";
+			
+			$form->hidden["uniqueid"]     = $item["uniqueid"];
+			$form->hidden["display_name"] = $label;
+			
+			foreach ($permission_to as $key=>$value)
+				if ($owner || isset($item[$key]) &&  $item[$key] && !in_array($key,$gs_form_action_non_shareable)) {
+					$form->add_button("display_form", $key, lang(GS_FORM_ACTIONS[$key]), "btn-$button_class btn-xs");
+					$form->change_control(-1, ["Label"=>$label, "Inline"=>-1, "LabelClass"=>" "]);
+				}
+			
+			if (count($form->controls) > 0) {
+				$form->change_control(-1, ["CloseInline"=>true]);
+			
+				if ($owner) {
+					$display_my .= $display . $form->display();
+					$my_item_count++;
+				} else {
+					if (strpos($display_shared,"<h2>") === false)
+						$display .= "
+							<div class=\"page-header\"><h2>".lang($record_type=="server" ? "GS_STR_INDEX_OURSERVERS" : "GS_STR_INDEX_OURMODS").":</h2></div>
+							<div class=\"panel panel-default\">
+								<div class=\"panel-body {$record_type}s_background\">";
+					
+					$display_shared .= $display . $form->display();
+				}
+			}
+		}
+	
+		$limit = $record_type=="server" ? GS_PERMISSION_MAX_SERVERS[$gs_my_permission_level] : GS_PERMISSION_MAX_MODS[$gs_my_permission_level];
+		
+		if ($gs_my_permission_level != GS_PERM_ADMIN  &&  $my_item_count < $limit) {
+			$form = new Generated_Form([], $csrf, $php_script, false, "form-inline");
+			$form->add_button("display_form", "Add New", lang("GS_STR_INDEX_ADDNEW"), "btn-$button_class btn-sm");
+			$display_my .= $form->display();
+		}
+		
+		
+		
+		$display_my .= "
+				</div><!-- end panel body -->
+			</div><!-- end panel -->
+		</div><!-- end column -->\n";
+
+		if (strpos($display_shared,"<h2>") !== false)
+			$display_shared .= "
+				</div><!-- end panel body -->
+			</div><!-- end panel -->";
+
+		$display_shared .= "
+		</div><!-- end column -->\n";
+
+		echo "<div CLASS=\"row\">" . $display_my . $display_shared . "</div><!-- end row -->\n\n<hr style=\"margin-bottom: 40px;\">";
+	}
+} else {
+	echo "
+	<div class=\"jumbotron\">
+		<h1 align=\"center\">".lang("GS_STR_INDEX_WELCOME")."</h1>
+		<p align=\"center\" class=\"text-muted\">".lang("GS_STR_INDEX_DESCRIPTION")."</p>
+		<h3 align=\"center\"><a href=\"quickstart\">".lang("GS_STR_INDEX_QUICKSTART")."</a></h3>
+	</div>
+	<div class=\"jumbotron\">
+		<h2>".lang("GS_STR_INDEX_UPCOMING")."</h2>
+	</div>
+	";
+}
+	
+
+// Get servers and mods
+$servers = GS_list_servers(["current"], [], "website", 0);
+$mods    = GS_list_mods($servers["mods"], [], [], [], "website", $servers["lastmodified"]);
+
+// Show servers
+echo "<div class=\"row\">" . GS_format_server_info($servers, $mods, 12) . "</div>";
+
+if (isset($user) && $user->isLoggedIn()) {
+	echo "<hr style=\"margin-bottom: 40px;\">";
+} else {
+	echo "<br>
+	<div class=\"jumbotron\">
+		<h2>".lang("GS_STR_INDEX_ALLMODS")."</h2>
+	</div>";
+}
+	
+$sql = "
+	SELECT 
+		gs_mods.name,
+		gs_mods.uniqueid,
+		gs_mods.removed,
+		gs_mods.access
+		
+	FROM
+		gs_mods
+		
+	WHERE
+		gs_mods.removed = 0 AND gs_mods.access = 1
+		
+	ORDER BY 
+		gs_mods.name ASC
+";
+
+$db = DB::getInstance();
+if ($db->query($sql)->error()) {
+	if ($gs_my_permission_level == GS_PERM_ADMIN)
+		echo $sql . $db->errorString();
+	die("Failed to load {$record_type}s");
+}
+
+$items             = $db->results(true);
+$number_of_columns = 4;
+$number_of_rows    = count($items) / $number_of_columns;
+$columns_id        = [];
+$columns_name      = [];
+
+for ($i=0; $i<$number_of_columns; $i++) {
+	$columns_id[$i]   = [];
+	$columns_name[$i] = [];
+}
+
+$i = 0;
+foreach ($items as $item) {
+	$columns_id[$i][]   = $item["uniqueid"];
+	$columns_name[$i][] = $item["name"];
+	
+	if (count($columns_id[$i]) >= $number_of_rows)
+		$i++;
+}
+
+echo "
+<div class=\"panel panel-default\">
+<div class=\"panel-body mods_background\">
+<table style=\"table-layout:fixed;width:100%\">";
+
+$current_column = 0;
+$current_row    = 0;
+
+for ($current_row=0; $current_row<$number_of_rows; $current_row++) {
+	echo "<tr>";
+
+	for($current_column=0; $current_column<$number_of_columns; $current_column++)
+		echo "<td><a href=\"show.php?mod={$columns_id[$current_column][$current_row]}\" target=\"_blank\">{$columns_name[$current_column][$current_row]}</a></td>";
+
+	echo "</tr>";
+}
+
+echo "</table>
+</div>
+</div>";
+
+if (isset($user) && $user->isLoggedIn()) {
+	echo "<hr style=\"margin-bottom: 40px;\">";
+} else {
+	echo "<br>
+	<div class=\"jumbotron\">
+		<h2>".lang("GS_STR_INDEX_RECENT")."</h2>
+	</div>";
+}
+
+$exclude_list = [
+	GS_LOG_SERVER_UPDATED,
+	GS_LOG_SERVER_REVOKE_ACCESS,
+	GS_LOG_MOD_REVOKE_ACCESS,
+	GS_LOG_SERVER_SHARE_ACCESS,
+	GS_LOG_MOD_SHARE_ACCESS,
+	GS_LOG_SERVER_TRANSFER_ADMIN,
+	GS_LOG_MOD_TRANSFER_ADMIN,
+	GS_LOG_MOD_UPDATED,
+	GS_LOG_MOD_SCRIPT_UPDATED,
+	GS_LOG_MOD_SCRIPT_ADDED,
+	GS_LOG_MOD_VERSION_UPDATED,
+	GS_LOG_MOD_LINK_ADDED,
+	GS_LOG_MOD_LINK_UPDATED,
+	GS_LOG_MOD_LINK_DELETED
+];
+
+
+echo "	<div class=\"row\">		
+			<div class=\"col-lg-12\">
+				<div class=\"panel panel-default\">
+					<div class=\"panel-body servers_background\" style=\"display:flex;\">
+					<table style=\"width:100%\">
+";
+
+$table = GS_get_activity_log(5, $exclude_list, false);
+
+foreach($table as $row) {
+	$description = $row["description"];
+
+	if (isset($row["server_id"]))
+		$description = str_replace($row["server_name"], "<a href=\"show.php?server={$row["server_id"]}\">{$row["server_name"]}</a>", $description);
+
+	if (isset($row["mod_id"]))
+		$description = str_replace($row["mod_name"], "<a href=\"show.php?mod={$row["mod_id"]}\">{$row["mod_name"]}</a>", $description);
+
+	echo "<tr>
+	<td>".date("l, jS F Y", $row["date"])."</td>
+	<td>$description</td>
+	</tr>";
+}
+
+echo "
+</table>
+
+<div>
+	<a href=\"recent_activity\"><span class=\"glyphicon glyphicon-link\"></span></a>
+	<br>
+	<a href=\"rss\"><span class=\"fa fa-rss\"></span></a>
+</div>
+
+</div></div></div></div>";
+
+echo "<br><br>";
+if (isset($user) && $user->isLoggedIn())
+	languageSwitcher();
+?>
+
+	</div>
+</div>
+
+<!-- Place any per-page javascript here -->
+
+
+<?php require_once $abs_us_root . $us_url_root . 'usersc/templates/' . $settings->template . '/footer.php'; //custom template footer ?>
