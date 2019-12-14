@@ -1,0 +1,333 @@
+.table-striped > tbody > tr:nth-of-type(2n+1) {
+	background: rgb(241, 255, 244);
+}
+
+.table-striped > tbody > tr:nth-of-type(2n) {
+	background: #ffffff;
+}
+
+.table-striped > tbody > tr:nth-of-type(1) {
+	background: linear-gradient(to bottom, rgba(220, 246, 218, 0.5) 0%, rgba(183, 227, 188, 0.5) 100%);
+	background-repeat: repeat-x;
+}
+
+.table-striped > tbody > tr:hover {
+	background: rgb(173, 219, 183);
+	background-repeat: repeat-x;
+}
+
+
+dl {
+	display: flex;
+	flex-flow: row wrap;
+}
+dt {
+	flex-basis: 20%;
+	padding: 2px 4px;
+	text-align: right;
+}
+dd {
+	flex-basis: 70%;
+	flex-grow: 1;
+	margin: 0;
+	padding: 2px 4px;
+}
+  
+.download_filename {
+	color: red;
+}
+
+.fake_link {
+	color: blue;
+}
+
+#page-wrapper {
+	padding-bottom: 10px;
+	padding-top: 10px;
+}
+
+.betweencommands {
+	margin-top: 3em;
+	margin-bottom: 2em;
+}
+
+.commandtitle {
+	margin-bottom: 1em;
+}
+
+.courier {
+	font-family: "Courier New",monospace;
+}
+
+.blackborder {
+	border: 2px solid #000;
+}
+
+/* code examples */
+pre {
+	margin: 1em 3em 1em;
+	border: 2px dotted #ccc;
+	font-family: "Courier New",monospace;
+}
+
+/* For inline form controls
+.no_vertical_margin {
+	margin-top: 0;
+	margin-bottom: 0;
+}*/
+
+/* Larger glyphs
+.glyphicon_larger {
+	font-size: 16px;
+}*/
+.glyphicon {
+	line-height:0;	/* fix glyphicon being larger than container*/
+}
+
+
+/* Make footer text white and links gray*/
+footer {
+	color:white
+}
+
+footer a {
+	color: gray;
+}
+
+
+/* Add option to center content */
+.col-center-block {
+    float: none;
+    display: block;
+    margin: 0 auto;
+    /* margin-left: auto; margin-right: auto; */
+}
+
+
+/* Make form descriptions faint blue colour */
+.help-block{
+	color: #b8bfe3;
+}
+
+
+/* Change input placeholder text into very light blue */
+.form-control::-moz-placeholder{color:#b8bfe3;opacity:1}
+.form-control:-ms-input-placeholder{color:#b8bfe3}
+.form-control::-webkit-input-placeholder{color:#b8bfe3}
+
+
+/* Form buttons should be normal length and not entire page */
+.btn {width:auto}
+
+
+/* This is to replace blue backgrounds of some elements back into gray*/
+.jumbotron{padding-top:30px;padding-bottom:30px;margin-bottom:30px;background-color:#ecf0f1}
+.form-control[disabled],.form-control[readonly],fieldset[disabled] .form-control {
+	background-color:#ecf0f1;
+	opacity:1
+}
+.input-group-addon {
+	padding:10px 15px;
+	font-size:15px;
+	font-weight:400;
+	line-height:1;
+	color:#2c3e50;
+	text-align:center;
+	background-color:#ecf0f1;
+	border:1px solid #dce4ec;
+	border-radius:4px
+}
+
+/*.jumbotron,.jumbotron .h1,.jumbotron h1{color:inherit}
+.list-group-item>.badge{float:right}.list-group-item>.badge+.badge{margin-right:5px}.nav-pills>li>a>.badge{margin-left:3px}
+.jumbotron p{margin-bottom:15px;font-size:23px;font-weight:200}.alert,.thumbnail{margin-bottom:21px}.alert .alert-link,.close{font-weight:700}.jumbotron>hr{border-top-color:#cfd9db}.container .jumbotron,.container-fluid .jumbotron{border-radius:6px;padding-left:15px;padding-right:15px}.jumbotron .container{max-width:100%}@media screen and (min-width:768px){.jumbotron{padding-top:48px;padding-bottom:48px}.container .jumbotron,.container-fluid .jumbotron{padding-left:60px;padding-right:60px}.jumbotron .h1,.jumbotron h1{font-size:68px}}*/
+
+
+/* Make alerts have gradient backgrounds */
+.alert-success {
+	background-image: linear-gradient(to bottom,#dff0d8 0,#c8e5bc 100%);
+	background-repeat: repeat-x;
+	border-color: #b2dba1;
+}
+
+.alert-info {
+	background-image: linear-gradient(to bottom,#d9edf7 0,#b9def0 100%);
+	background-repeat: repeat-x;
+	border-color: #9acfea;
+}
+
+.alert-warning {
+	background-image: linear-gradient(to bottom,#fcf8e3 0,#f8efc0 100%);
+	background-repeat: repeat-x;
+	border-color: #f5e79e;
+}
+
+.alert-danger {
+	background-image: linear-gradient(to bottom,#f2dede 0,#e7c3c3 100%);
+	background-repeat: repeat-x;
+	border-color: #dca7a7;
+}
+
+.panel-default > .panel-heading {
+	background-image: linear-gradient(to bottom,#f5f5f5 0,#e8e8e8 100%);
+	background-repeat: repeat-x;
+}
+
+
+/* Custom backgrounds */
+.servers_background {
+	/*background-image: linear-gradient(to bottom,#f5f5f5 0,#e8e8e8 100%);*/
+	background: linear-gradient(to bottom, rgba(233,246,253,0.5) 0%,rgba(211,238,251,0.5) 100%);
+	background-repeat: repeat-x;
+	/*border: 1px solid #345578;*/
+}
+
+.mods_background {
+	background: linear-gradient(to bottom, rgba(220, 246, 218, 0.5) 0%, rgba(183, 227, 188, 0.5) 100%);
+	background-repeat: repeat-x;
+}
+
+
+
+/* Make a green button */
+ .btn-mods.active,
+ .btn-mods:active,
+ .open>.dropdown-toggle.btn-danger,.open>.dropdown-toggle .btn-mods,.open>.dropdown-toggle.btn-info,.open>.dropdown-toggle.btn-primary,.open>.dropdown-toggle.btn-warning{background-image:none} 
+ 
+ .btn-mods{color:#fff;background-color:#474949}	/*normal font color*/
+ 
+ .btn-mods.focus,
+ .btn-mods:focus{color:#fff;background-color:#2e2f2f;border-color:#080808} /* clicked and released font and border color */
+ 
+ .btn-mods.active,
+ .btn-mods:active,
+ .btn-mods:hover,
+ .open>.dropdown-toggle.btn-mods{color:#fff;background-color:#56601D;border-color:#68780c} /* hover font color */
+ 
+ .btn-mods.active.focus,
+ .btn-mods.active:focus,
+ .btn-mods.active:hover,
+ .btn-mods:active.focus,
+ .btn-mods:active:focus,
+ .btn-mods:active:hover,
+ .open>.dropdown-toggle.btn-mods.focus,
+ .open>.dropdown-toggle.btn-mods:focus,
+ .open>.dropdown-toggle.btn-mods:hover
+ {
+	background-image: -webkit-linear-gradient(top, rgba(73,87,5,1) 0%, rgba(73,87,5,1) 100%);
+	background-image: -o-linear-gradient(top, rgba(73,87,5,1) 0%, rgba(73,87,5,1) 100%);
+	background-image: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(73,87,5,1)), color-stop(100%, rgba(73,87,5,1)));
+	background-image: linear-gradient(to bottom, rgba(73,87,5,1) 0%, rgba(73,87,5,1) 100%);
+	                  
+	filter:none;
+	border:1px solid #68780c;
+	/*color:#fff;background-color:#74890C;border-color:#68780c*/
+} /* clicked and held color */
+ 
+ .btn-mods.disabled.focus,
+ .btn-mods.disabled:focus,
+ .btn-mods.disabled:hover,
+ .btn-mods[disabled].focus,
+ .btn-mods[disabled]:focus,
+ .btn-mods[disabled]:hover,
+ fieldset[disabled] .btn-mods.focus,
+ fieldset[disabled] .btn-mods:focus,
+ fieldset[disabled] .btn-mods:hover{background-color:#474949;border-color:#474949}
+ 
+ .btn-mods .badge{color:#474949;background-color:#fff}
+ .btn-mods,
+ .navbar-inverse{background-repeat:no-repeat;-webkit-filter:none}
+ 
+	.btn-mods 
+	{
+		background-image: -webkit-linear-gradient(top, rgba(164,179,87,1) 0%, rgba(116,137,12,1) 100%);
+		background-image: -o-linear-gradient(top, rgba(164,179,87,1) 0%, rgba(116,137,12,1) 100%);
+		background-image: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(164,179,87,1)), color-stop(100%, rgba(116,137,12,1)));
+		background-image: linear-gradient(to bottom, rgba(164,179,87,1) 0%, rgba(117,137,12,1) 100%);
+		filter: none;
+		border:1px solid #68780c
+	}
+	/* 
+	#A4B357
+	#75890C
+	*/
+
+	.btn-mods:hover,.btn-primary{background-repeat:no-repeat;-webkit-filter:none}
+	.btn-mods:hover 
+	{
+		
+		
+		
+		/*color:#fff;
+		background-color:#345578;
+		border-color:#315070;*/
+		
+		
+		/*
+		#6d94bf,	diff:E A 6
+		#446e9b
+		#3e648d		diff:6 A E
+		
+		#5f8ab9
+		#3e648d
+		#385a7f
+		
+		new colors:
+		#96A951
+		#6F7F00
+		*/
+		
+
+
+		background-image:-webkit-gradient(left top, left bottom, color-stop(0%, rgba(150,169,81,1)), color-stop(100%, rgba(110,127,0,1)));
+		background-image:-o-linear-gradient(top, rgba(150,169,81,1) 0%, rgba(110,127,0,1) 100%);
+		background-image:-webkit-gradient(left top, left bottom, color-stop(0%, rgba(150,169,81,1)), color-stop(100%, rgba(110,127,0,1)));
+		background-image: linear-gradient(to bottom, rgba(150,169,81,1) 0%, rgba(110,127,0,1) 100%);
+		filter: none;
+		border:1px solid #68780c;
+		
+		/*background-image:-webkit-linear-gradient(#636565,#3d3f3f 50%,#333434);
+		background-image:-o-linear-gradient(#636565,#3d3f3f 50%,#333434);
+		background-image:-webkit-gradient(linear,left top,left bottom,from(#636565),color-stop(50%,#3d3f3f),to(#333434));
+		background-image:linear-gradient(#636565,#3d3f3f 50%,#333434);*/
+	}
+
+
+
+  /* The Modal (background) */
+.schedule_modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.schedule_modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.schedule_modal_close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.schedule_modal_close:hover,
+.schedule_modal_close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+} 
