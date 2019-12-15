@@ -52,7 +52,7 @@ if(isset($user) && $user->isLoggedIn()){
 				
 			WHERE 
 				gs_{$record_table}.removed = 0";
-	
+
 		if ($db->query($sql,[$uid])->error()) {
 			if ($gs_my_permission_level == GS_PERM_ADMIN)
 				echo $sql . $db->errorString();
@@ -87,10 +87,10 @@ if(isset($user) && $user->isLoggedIn()){
 			
 			$form->hidden["uniqueid"]     = $item["uniqueid"];
 			$form->hidden["display_name"] = $label;
-			
-			foreach ($permission_to as $key=>$value)
-				if ($owner || isset($item[$key]) &&  $item[$key] && !in_array($key,$gs_form_action_non_shareable)) {
-					$form->add_button("display_form", $key, lang(GS_FORM_ACTIONS[$key]), "btn-$button_class btn-xs");
+
+			foreach ($permission_to as $permission=>$value)
+				if ($owner || isset($item["right_".strtolower($permission)]) &&  $item["right_".strtolower($permission)] && !in_array($permission,GS_FORM_ACTIONS_NON_SHAREABLE)) {
+					$form->add_button("display_form", $permission, lang(GS_FORM_ACTIONS[$permission]), "btn-$button_class btn-xs");
 					$form->change_control(-1, ["Label"=>$label, "Inline"=>-1, "LabelClass"=>" "]);
 				}
 			
