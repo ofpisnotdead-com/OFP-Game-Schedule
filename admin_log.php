@@ -15,7 +15,7 @@ $uid = $user->data()->id;
 require_once "common.php";
 
 if ($gs_my_permission_level != GS_PERM_ADMIN)
-	;#Redirect::to('index.php');
+	Redirect::to('index.php');
 ?>
 
 <DIV ID="page-wrapper">
