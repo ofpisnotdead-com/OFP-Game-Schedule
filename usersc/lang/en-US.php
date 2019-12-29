@@ -289,6 +289,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_LOG_SERVER_EVENT_ADDED" => "%m1% added a new event %m2% to the server %m3%",
 	"GS_STR_LOG_SERVER_MOD_REMOVED" => "%m1% removed mod %m2% from the server %m3%",
 	"GS_STR_LOG_SERVER_MOD_ADDED" => "%m1% added mod %m2% to the server %m3%",
+	"GS_STR_LOG_SERVER_MOD_CHANGED" => "%m1% changed mods on the server %m3%",
 	"GS_STR_LOG_SERVER_REVOKE_ACCESS" => "%m1% revoked server %m2% access for %m3%",
 	"GS_STR_LOG_MOD_REVOKE_ACCESS" => "%m1% revoked mod %m2% access for %m3%",
 	"GS_STR_LOG_SERVER_SHARE_ACCESS" => "%m1% gave server %m2% access to %m3%",
