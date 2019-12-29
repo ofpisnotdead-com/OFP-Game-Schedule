@@ -1,9 +1,9 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2019,12,15,0,23,1,13,609,60,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2019,12,16,1,0,30,54,741,60,FALSE]");
 define("GS_VERSION", 0.5);
-define("GS_ENCRYPT_KEY", 0);
-define("GS_MODULUS_KEY", 0);
-define("GS_DECRYPT_KEY", 0);
+define("GS_ENCRYPT_KEY", 2997);
+define("GS_MODULUS_KEY", 20131);
+define("GS_DECRYPT_KEY", 10333);
 define("GS_LOGO_FOLDER", "logo");	// Folder to save uploaded images in
 define("GS_OTHER_URL", []);			// Links to other schedule websites
 define("GS_SIZE_TYPES", ["KB", "MB", "GB"]);
@@ -73,6 +73,7 @@ define("GS_LOG_MOD_VERSION_UPDATED"  , 21);
 define("GS_LOG_MOD_LINK_ADDED"       , 22);
 define("GS_LOG_MOD_LINK_UPDATED"     , 23);
 define("GS_LOG_MOD_LINK_DELETED"     , 24);
+define("GS_LOG_SERVER_MOD_CHANGED"   , 25);
 
 // User permissions
 define("GS_PERM_NOUSER",0);
@@ -1205,6 +1206,12 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 	$mods_updates    = [];
 	$where_condition = "";
 	$argument_list   = [];
+	$add_description = false;
+	
+	if ($request_type == "game_download_mods") {
+		$request_type    = "game";
+		$add_description = true;
+	}
 
 	if (!empty($mods_id_list)) {
 		$argument_list    = $mods_id_list;
@@ -1212,8 +1219,12 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 	}
 	
 	if (!empty($mods_uniqueid_list)) {
-		$argument_list    = array_merge($argument_list, $mods_uniqueid_list);
-		$where_condition .= ($where_condition!="" ? " OR " : "") . "gs_mods.uniqueid IN (".substr( str_repeat(",?",count($mods_uniqueid_list)), 1).")";
+		if ($mods_uniqueid_list[0] == "all")
+			$where_condition = "gs_mods.removed=0";
+		else {
+			$argument_list    = array_merge($argument_list, $mods_uniqueid_list);
+			$where_condition .= ($where_condition!="" ? " OR " : "") . "gs_mods.uniqueid IN (".substr( str_repeat(",?",count($mods_uniqueid_list)), 1).")";
+		}
 	}
 	
 	if (!empty($where_condition)) {
@@ -1240,9 +1251,9 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				gs_mods_scripts.modified AS modified3,
 				gs_mods_links.fromver,
 				gs_mods_links.removed,
-				scripts2.id     AS scriptid2,
-				scripts2.size   AS size2,
-				scripts2.script AS script2,
+				scripts2.id       AS scriptid2,
+				scripts2.size     AS size2,
+				scripts2.script   AS script2,
 				scripts2.modified AS modified4
 
 			FROM
@@ -1320,6 +1331,9 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					if ($request_type == "game") {
 						$output["info"][$id]["sqf"]    = "_mod_name=\"\"{$row["name"]}\"\";_mod_forcename=".($row["forcename"]=="1" ? "true" : "false").";";
 						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]}";
+						
+						if ($add_description)
+							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".strip_tags($row["description"])."\"\";";
 					}
 
 					$output["id"][$id] = $row["uniqueid"];
@@ -1653,6 +1667,8 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 		<div>
 			
 			<a href=\"show.php?server={$server["uniqueid"]}\"><span class=\"glyphicon glyphicon-link\"></span></a>
+			<br>
+			<a href=\"rss.php?server={$server["uniqueid"]}\"><span class=\"fa fa-rss\"></span></a>
 		</div>
 		
 		</div></div></div>";
@@ -1692,12 +1708,15 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 }
 
 // Get and format data from the log table
-function GS_get_activity_log($limit, $exclude_type, $show_private) {
-	$db     = DB::getInstance();
-	$max    = $db->cell("gs_log.count(*)");
-	$offset = 0;
-	$buffer = 100;
-	$output = [];
+function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
+	$db      = DB::getInstance();
+	$max     = $db->cell("gs_log.count(*)");
+	$offset  = 0;
+	$buffer  = 100;
+	$output  = [];
+	$last_id = -1;
+	
+	$detailed_server_mod_change = !in_array(GS_LOG_SERVER_MOD_CHANGED, $exclude_type);
 	
 	if (!isset($max))
 		return $output;
@@ -1782,7 +1801,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				switch($array) {
 					case "users"           : $columns=["username"]; break;
 					case "gs_serv"         : $columns=["name","uniqueid","access"]; break;
-					case "gs_serv_times"   : $columns=["serverid","starttime,duration"]; break;
+					case "gs_serv_times"   : $columns=["serverid","starttime","duration","type","timezone"]; break;
 					case "gs_serv_mods"    : $columns=["serverid","modid"]; break;
 					case "gs_serv_admins"  : $columns=["serverid","userid"]; break;
 					case "gs_mods"         : $columns=["name","access","uniqueid"]; break;
@@ -1864,8 +1883,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 			$user_id        = null;
 			$event          = null;
 			$server_name    = "";
-			$event_start    = "";
-			$event_duration = "";
+			$playtime_text  = "";
 			$mod_name       = "";
 			$user_name      = "";
 			$versions       = [];
@@ -1880,10 +1898,22 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				case GS_LOG_SERVER_EVENT_REMOVED :
 				case GS_LOG_SERVER_EVENT_UPDATE  :
 				case GS_LOG_SERVER_EVENT_ADDED   : {
-					$event          = $data["gs_serv_times"][$log["itemid"]];
-					$event_start    = date("d M Y H:i",strtotime($event["starttime"]));
-					$event_duration = $event["duration"];
-					$server_id      = $event["serverid"];
+					$event           = $data["gs_serv_times"][$log["itemid"]];
+					$type            = $event["type"];
+					$server_id       = $event["serverid"];
+					$time_zone       = new DateTimeZone($event["timezone"]);
+					$start_date      = new DateTime($event["starttime"], $time_zone);
+					$playtime_text   = "";
+					$playtime_format = "jS F H:i";
+					
+					switch($type) {
+						case "1" : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_WEEKLY_DESC".$start_date->format("w"))." "; $playtime_format="H:i"; break;
+						case "2" : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_DAILY_DESC")." "; $playtime_format="H:i"; break;
+					}
+					
+					$end_date       = clone $start_date;
+					$end_date->modify("+".$event["duration"]." minute");
+					$playtime_text .= $start_date->format($playtime_format) . $end_date->format(" - H:i");
 				} break;
 				
 				case GS_LOG_SERVER_MOD_REMOVED :
@@ -1952,9 +1982,9 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				} break;
 			}
 			
-			if (isset($server_id)) {				
+			if (isset($server_id)) {
 				$server         = $data["gs_serv"][$server_id];
-				$server_name    = ($server["name"]!="" ? $server["name"] : $server["uniqueid"]);				
+				$server_name    = ($server["name"]!="" ? $server["name"] : $server["uniqueid"]);
 				$server_private = $server["access"] != "";
 				
 				$table_row["server_id"]   = $server["uniqueid"];
@@ -1987,7 +2017,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				case GS_LOG_SERVER_EVENT_UPDATE  :
 				case GS_LOG_SERVER_EVENT_ADDED   : {
 					if (isset($server_id) && isset($event)) {
-						$lang_arguments[] = "$event_start - {$event_duration}m";
+						$lang_arguments[] = $playtime_text;
 						$lang_arguments[] = $server_name;
 					} else
 						$valid_row = false;
@@ -2032,12 +2062,12 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				} break;
 					
 				case GS_LOG_MOD_SCRIPT_ADDED   : 
-				case GS_LOG_MOD_SCRIPT_UPDATED : {								
+				case GS_LOG_MOD_SCRIPT_UPDATED : {
 					if (isset($mod_id)) {
 						$str = $mod_name;
 						
 						if (!empty($versions))
-							$str .= " " . max($versions);
+							$str .= " " . mb_strtolower(lang("GS_STR_SERVER_VERSION")) . " " . max($versions);
 						
 						if (!empty($conditions))
 							$str .= " " . $condtions[0];
@@ -2067,9 +2097,30 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				} break;
 			}
 			
-			$table_row["description"] = lang($operation_names[$log["type"]], $lang_arguments);
+			$operation_name = $operation_names[$log["type"]];
+			
+			if ($detailed_server_mod_change) {
+				if (in_array($log["type"],[GS_LOG_SERVER_MOD_REMOVED,GS_LOG_SERVER_MOD_ADDED])) {
+					$operation_name = "GS_STR_LOG_SERVER_MOD_CHANGED";
+					unset($table_row["mod_name"]);
+					
+					if ($last_id >= 0 && $last_id==$server_id)
+						$valid_row = false;
+					else
+						$last_id = $server_id;
+				} else
+					$last_id = -1;
+			}
+			
+			if (isset($input["mod"]) && !empty($input["mod"]) && (isset($mod_id) && !in_array($mod["uniqueid"],$input["mod"]) || !isset($mod_id)))
+				$valid_row = false;
+			
+			if (isset($input["server"]) && !empty($input["server"]) && (isset($server_id) && !in_array($server["uniqueid"],$input["server"]) || !isset($server_id)))
+				$valid_row = false;
 
-			// Check record privacy before adding to the list		
+			$table_row["description"] = lang($operation_name, $lang_arguments);
+
+			// Check record privacy before adding to the list
 			if (
 				$show_private ||
 				$valid_row && (
@@ -2080,7 +2131,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private) {
 				$output[] = $table_row;
 			
 			if (count($output) >= $limit)
-				break;				
+				break;
 		}
 	}
 

@@ -36,7 +36,7 @@ if ($db) {
 				
 			$output .= "];GS_VOICE=[";
 			
-			foreach(GS_VOICE as $program_name=>$program_info) {
+			foreach (GS_VOICE as $program_name=>$program_info) {
 				$is_invite = in_array($program_name,["Discord","Steam"]) ? "true" : "false";
 				$output   .= "]+[[\"{$program_name}\",$is_invite,\"{$program_info["download"]}\"]";
 			}
@@ -73,11 +73,31 @@ if ($db) {
 
 	// Handle request for mod installation script
 	if ($input_mode == "install") {
-		$output = "";
-		$mods   = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], "game", 0);
+		$mods = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], "game", 0);
 
 		foreach ($mods["info"] as $mod)
 			$output .= (empty($output) ? "" : "\n") . $mod["script"];
+	}
+	
+	if ($input_mode == "mods") {
+		$mods = GS_list_mods([], $input["mod"], $input["modver"], $input["password"], "game_download_mods", 0);
+
+		$output .= "GS_MODS_ID=[";
+
+		foreach ($mods["id"] as $id)
+			$output .= "]+[\"{$id}\"";
+
+		$output .= "];GS_MODS_INFO=[";
+
+		foreach ($mods["info"] as $mod)
+			$output .= "]+[\"{$mod["sqf"]}\"";
+				
+		$output .= "];GS_MODS_VERSION=[";
+
+		foreach ($mods["info"] as $mod)
+			$output .= "]+[{$mod["version"]}";
+			
+		$output .= "];true";
 	}
 	
 	echo $output;

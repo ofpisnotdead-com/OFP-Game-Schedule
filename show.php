@@ -85,6 +85,8 @@ foreach($mods["info"] as $id=>$mod) {
 	echo "</div>
 	<div>
 		<a href=\"show.php?mod={$mod["uniqueid"]}\"><span class=\"glyphicon glyphicon-link\"></span></a>
+		<br>
+		<a href=\"rss.php?mod={$mod["uniqueid"]}\"><span class=\"fa fa-rss\"></span></a>
 	</div>
 
 	</div></div>";
