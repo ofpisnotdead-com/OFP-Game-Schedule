@@ -1,9 +1,9 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2019,12,16,1,0,30,54,741,60,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2019,12,30,1,17,0,52,417,60,FALSE]");
 define("GS_VERSION", 0.5);
-define("GS_ENCRYPT_KEY", 2997);
-define("GS_MODULUS_KEY", 20131);
-define("GS_DECRYPT_KEY", 10333);
+define("GS_ENCRYPT_KEY", 0);
+define("GS_MODULUS_KEY", 0);
+define("GS_DECRYPT_KEY", 0);
 define("GS_LOGO_FOLDER", "logo");	// Folder to save uploaded images in
 define("GS_OTHER_URL", []);			// Links to other schedule websites
 define("GS_SIZE_TYPES", ["KB", "MB", "GB"]);
