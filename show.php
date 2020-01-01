@@ -97,9 +97,9 @@ foreach($mods["info"] as $id=>$mod) {
 	foreach($mod["updates"] as $update_index=>$update) {
 		echo "<div class=\"panel panel-default\">
 				<div class=\"panel-heading\"><strong>{$update["version"]}<span style=\"font-size:10px;float:right;\">{$update["date"]}</span></strong></div>";
-				
+
 		if (!$input_onlylog)
-			echo "<pre style=\"margin:0;border:0;\"><code>{$update["script"]}</code></pre>";
+			echo "<pre style=\"margin:0;border:0;\"><code>". str_replace("&amp;", "&", htmlspecialchars($update["script"])) . "</code></pre>";
 		
 		$number_of_notes = 0;
 		foreach ($update["note"] as $note)

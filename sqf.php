@@ -81,8 +81,13 @@ if ($db) {
 	
 	if ($input_mode == "mods") {
 		$mods = GS_list_mods([], $input["mod"], $input["modver"], $input["password"], "game_download_mods", 0);
+		
+		$output .= "GS_FWATCH_LAST_UPDATE=". GS_FWATCH_LAST_UPDATE . "; SCHEDULE_LAST_UPDATE=GS_FWATCH_LAST_UPDATE; GS_VERSION=" . GS_VERSION . ";GS_URLS=[";
 
-		$output .= "GS_MODS_ID=[";
+		foreach (GS_OTHER_URL as $url)
+			$output .= "]+[\"{$url}\"";
+
+		$output .= "];GS_MODS_ID=[";
 
 		foreach ($mods["id"] as $id)
 			$output .= "]+[\"{$id}\"";
@@ -91,12 +96,7 @@ if ($db) {
 
 		foreach ($mods["info"] as $mod)
 			$output .= "]+[\"{$mod["sqf"]}\"";
-				
-		$output .= "];GS_MODS_VERSION=[";
 
-		foreach ($mods["info"] as $mod)
-			$output .= "]+[{$mod["version"]}";
-			
 		$output .= "];true";
 	}
 	

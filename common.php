@@ -1,5 +1,5 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2019,12,30,1,17,0,52,417,60,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2020,1,1,3,16,45,29,387,60,FALSE]");
 define("GS_VERSION", 0.5);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
@@ -1041,7 +1041,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 					$playtime_text .= $start_date->format($playtime_format);
 					
 					$end_date = clone $start_date;
-					$end_date->modify("+".$row["duration"]." minute");
+					$end_date->modify("+{$row["duration"]} minute");
 					$playtime_text .= $end_date->format(" - H:i T P");
 					
 					$playtime = [
@@ -1912,7 +1912,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 					}
 					
 					$end_date       = clone $start_date;
-					$end_date->modify("+".$event["duration"]." minute");
+					$end_date->modify("+{$event["duration"]} minute");
 					$playtime_text .= $start_date->format($playtime_format) . $end_date->format(" - H:i");
 				} break;
 				
