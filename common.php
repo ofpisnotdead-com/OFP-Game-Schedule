@@ -901,7 +901,7 @@ function GS_decrypt($string, $decrypt_key, $modulus_key) {
 
 // List servers with upcoming events
 function GS_list_servers($server_id_list, $password, $request_type, $last_modified, $language="English") {
-	$output          = ["info"=>[], "mods"=>[], "lastmodified"=>$last_modified];
+	$output          = ["info"=>[], "mods"=>[], "id"=>[], "lastmodified"=>$last_modified];
 	$specific_server = "";
 	$ignore_outdated = true;
 	
@@ -911,7 +911,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 		
 		unset($server_id_list[0]);
 	} else {
-		$specific_server = "AND gs_serv.uniqueid IN (".substr( str_repeat(",?",count(server_id_list)), 1).")";
+		$specific_server = "AND gs_serv.uniqueid IN (".substr( str_repeat(",?",count($server_id_list)), 1).")";
 		$ignore_outdated = false;
 	}
 	// Get server list
@@ -1059,6 +1059,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			if ($last_id != $id   &&   ($valid || !$ignore_outdated)) {
 				$last_id                       = $id;
 				$output["info"][$id]["events"] = [];
+				$output["id"][$id]             = $row["uniqueid"];
 
 				if ($request_type == "game") {
 					foreach ($row as $key=>$value) {
@@ -1546,7 +1547,7 @@ function GS_get_current_url($add_https=true, $add_path=true) {
 }
 
 // Read array with servers and output html
-function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=false) {
+function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=false, $server_order=[]) {
 	$html         = "";
 	$js_starttime = [];
 	$js_duration  = [];
@@ -1569,7 +1570,15 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 				$user_list[$row["id"]] = $row["username"];
 	}
 	
-	foreach ($servers["info"] as $server_id=>$server) {
+	if (count($server_order) == 0)
+		$server_order = array_keys($servers["info"]);
+	
+	foreach($server_order as $uniqueid) {
+		$id = array_search($uniqueid, array_keys($servers["id"]));
+		if ($id === FALSE)
+			continue;
+		
+		$server            = $servers["info"][array_keys($servers["id"])[$id]];
 		$server_name       = empty($server["name"]) ? $server["uniqueid"] : $server["name"];
 		$current_starttime = [];
 		$current_duration  = [];

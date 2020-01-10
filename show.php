@@ -14,7 +14,7 @@ $input_onlylog = isset($_GET['onlychangelog']) ? $_GET['onlychangelog'] : 0;
 $servers       = GS_list_servers($input["server"], $input["password"], "website", 0);
 $mods          = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], "website", 0);
 
-echo "<DIV CLASS=\"row\">" . GS_format_server_info($servers, $mods, 12, 1) . "</div>";
+echo "<DIV CLASS=\"row\">" . GS_format_server_info($servers, $mods, 12, 1, $input["server"]) . "</div>";
 
 if (!empty($servers["info"]))
 	echo 
@@ -43,9 +43,12 @@ if (!$db->query($sql,$user_id_list)->error())
 		$user_list[$row["id"]] = $row["username"];
 
 
-foreach($mods["info"] as $id=>$mod) {
-	if (!in_array($mod["uniqueid"],$input["mod"]))
-		continue; 
+foreach($input["mod"] as $uniqueid) {
+	$id = array_search($uniqueid, $mods["id"]);
+	if ($id === FALSE)
+		continue;
+
+	$mod = $mods["info"][$id];
 
 	echo "
 	<div class=\"col-lg-12\">
@@ -71,6 +74,8 @@ foreach($mods["info"] as $id=>$mod) {
 			default: $value=$mod[$key];
 		}
 		
+		$value = str_replace("&amp;#039;", "'", $value);
+		
 		if (!empty($value))
 			echo "<dt>{$name}:</dt><dd>{$value}</dd>";
 	}
@@ -92,7 +97,7 @@ foreach($mods["info"] as $id=>$mod) {
 	</div></div>";
 			
 	if (!$input_onlylog)
-		echo "<p><a target=\"_blank\" href=\"install_scripts\">".lang("GS_STR_MOD_PREVIEW_INST")."</a>:</p>";
+		echo "<p>" . lang("GS_STR_MOD_PREVIEW_INSTSCRIPT", ["<a target=\"_blank\" href=\"install_scripts\">", "</a>"]) . "</p>";
 	
 	foreach($mod["updates"] as $update_index=>$update) {
 		echo "<div class=\"panel panel-default\">

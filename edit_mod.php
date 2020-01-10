@@ -329,8 +329,10 @@ if ($form->hidden["display_form"] == "Update")
 		if ($form->hidden["display_subform"] == "Add")
 			$form->add_validation_rules(["version"], [">"=>$highest, "unique"=>$unique_array]);
 		
-		if ($form->hidden["display_subform"] == "Link")
+		if ($form->hidden["display_subform"] == "Link") {
 			$form->add_validation_rules(["fromver"], ["max"=>GS_MAX_MSG_INPUT_LENGTH]);
+			$form->add_validation_rules(["scripttext"], ["required"=>false]);
+		}
 
 
 		if ($form->validate($custom_errors,lang("GS_STR_ERROR_FORMDATA"))  &&  $is_ok) {

@@ -11,54 +11,14 @@ require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
 		<h1 align="center">How to Write Installation Instructions</h1>
 		<p align="center" class="text-muted">These scripts will determine how your mod is going to be installed</p>
 		<p align="center" style="font-size: 1em;">
-			<a href="#links">Links</a> &nbsp;
 			<a href="#auto_installation">Auto</a> &nbsp;
+			<a href="#links">Links</a> &nbsp;
 			<a href="#manual_installation">Manual</a> &nbsp;
 			<a href="#installation_examples">Examples</a> &nbsp;
 			<a href="#testing">Testing</a> &nbsp;
 			<a href="#changelog">Changelog</a>
 		</p>
 	</div>
-
-
-	<a name="links"></a><br>
-	<div class="panel panel-default betweencommands">
-		<div class="panel-heading"><strong>Link Syntax</strong></div>	
-		<div class="panel-body">
-			<p>Links must start with the protocol. Spaces should be replaced with <code>%20</code>.</p>
-			<p>If a direct link to the file is available then simply paste it.</p>
-			<pre><code>ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar</code></pre>
-			
-			<br>
-			
-			<p>If there's no direct link then add extra arguments:</p>
-<pre><code><span class="fake_link">&lt;starting url&gt;</span>  &lt;optionally intermediate links&gt;  <span class="download_filename">&lt;file name&gt;</span></code></pre>
-			<p>If a website requires you to go through intermediate pages then you must link to each of them. You don't actually have to type in full intermediate urls but only the unique part. Last argument is always file name. If it contains spaces then put it in quotation marks. Examples:</p>
-		
-<pre><code><span class="fake_link">https://www.moddb.com/downloads/start/36064</span>  /downloads/mirror/  <span class="download_filename">ww4mod25rel.rar</span>
-<span class="fake_link">http://www.mediafire.com/file/4rm6uf16ihe36ce</span>  ://download  <span class="download_filename">wgl512_2006-11-12.rar</span>
-<span class="fake_link">https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod</span>  fdf-mod/download  expires=  <span class="download_filename">fdfmod14_ww2.rar</span>
-<span class="fake_link">https://docs.google.com/uc?export=download&id=1S_94TXo6EvKZas6QqjVbcKuuFn2vLrr9</span>  confirm=  <span class="download_filename">ww4mod25rel.rar</span></pre></code>
-<p>More information on how to find intermediate links you'll find <a href="#testing">below</a>.</p>
-
-<br>
-
-			<p>Downloading a file from Google Drive smaller than 100MB doesn't require confirmation but you still have to write file name:</p>
-<pre><code><span class="fake_link">https://docs.google.com/uc?export=download&id=1HjvgZnNdKjEdPrq4WQimZTlrkJULyf8i</span>  <span class="download_filename">ww4mod25patch1.rar</span></pre></code>
-
-<p>Copy file id from the shareable link and paste it into the address <i>docs.google.com</i> from the examples because <i>drive.google.com</i> will not work.</p>
-
-
-<br><br>
-
-You can also write backup links. Add <code>/mirror</code> switch and the installer will skip to the next link if the current one failed.
-<pre><code><span class="fake_link">ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar</span>  /mirror
-<span class="fake_link">https://www.moddb.com/downloads/start/36064</span>  /downloads/mirror/  <span class="download_filename">ww4mod25rel.rar</span>  /mirror
-<span class="fake_link">https://ofp.today/Addons</span>  file=ww4mod25rel.rar  <span class="download_filename">ww4mod25rel.rar</span></pre></code>
-<p>Last link must not have the switch.</p>
-
-		</div>
-	</div><!-- /panel -->	
 	
 	
 	
@@ -66,7 +26,7 @@ You can also write backup links. Add <code>/mirror</code> switch and the install
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Auto Installation</strong></div>
 		<div class="panel-body">
-			<p>Simply paste the link to the file and the installator will figure out what to do on its own. If you have more than one file then paste link to each in a new line.</p>
+			<p>Simply paste the link to the file and the installator will figure out what to do on its own. Write download to each file in a new line.</p>
 			
 <pre><code>ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar
 ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
@@ -92,7 +52,7 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 				<li>If it matches modfolder name then it will be moved to the game directory. Other modfolders will be ignored (exception: unless dir name is contained in the downloaded filename)</li>
 				<li>If it matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code> then it will be moved to the modfolder</li>
 				<li>If it has a dot in its name (aka it's an unpacked mission) then it will be moved to the <code>Missions</code> directory in the modfolder</li>
-				<li>In any other case it will go through the contents of a directory and apply the same rules for each file and folder</p>
+				<li>In any other case it will go through the contents of a directory and apply the same rules for each file and folder there</p>
 			</ul></p>
 
 			<p>Existing files will be overwritten. Destination directories that don't exist will be created.<br>
@@ -100,6 +60,36 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 
 		</div>
 	</div><!-- /panel -->
+
+
+	<a name="links"></a><br>
+	<div class="panel panel-default betweencommands">
+		<div class="panel-heading"><strong>Link Format</strong></div>	
+		<div class="panel-body">
+			<p>Links must start with the protocol. Spaces should be replaced with <code>%20</code>. It's preferable to use direct links to files:</p>
+			<pre><code>ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar</code></pre>
+			
+			<p>If a direct link is not available then add more links to jump through the intermediate pages:</p>
+<pre><code><span class="fake_link">&lt;starting url&gt;</span>  &lt;optionally intermediate links&gt;  <span class="download_filename">&lt;file name&gt;</span></code></pre>
+			<p>You don't actually have to type in full urls but only the unique parts. Last argument is always a file name. If it contains spaces then put it in quotation marks. Examples:</p>
+		
+<pre><code><span class="fake_link">https://www.moddb.com/downloads/start/36064</span>  /downloads/mirror/  <span class="download_filename">ww4mod25rel.rar</span>
+<span class="fake_link">http://www.mediafire.com/file/4rm6uf16ihe36ce</span>  ://download  <span class="download_filename">wgl512_2006-11-12.rar</span>
+<span class="fake_link">https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod</span>  fdf-mod/download  expires=  <span class="download_filename">fdfmod14_ww2.rar</span>
+<span class="fake_link">https://docs.google.com/uc?export=download&id=1S_94TXo6EvKZas6QqjVbcKuuFn2vLrr9</span>  confirm=  <span class="download_filename">ww4mod25rel.rar</span></code></pre>
+<p>More information on how to find intermediate links you'll find <a href="#testing">below</a>.</p>
+
+
+<br><br>
+
+To enable backup links add <code>/mirror</code> switch. If download failed then installer will try the one in the next line.
+<pre><code><span class="fake_link">ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar</span>  /mirror
+<span class="fake_link">https://www.moddb.com/downloads/start/36064</span>  /downloads/mirror/  <span class="download_filename">ww4mod25rel.rar</span>  /mirror
+<span class="fake_link">https://ofp.today/Addons</span>  file=ww4mod25rel.rar  <span class="download_filename">ww4mod25rel.rar</span></code></pre>
+<p>Last link must not have the switch.</p>
+
+		</div>
+	</div><!-- /panel -->	
 	
 	
 	
@@ -112,25 +102,26 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 		<ul>
 		<li><a href="#unpack">Unpack, Extract</a></li>
 		<li><a href="#move">Move, Copy</a></li>
+		<li><a href="#unpackpbo">UnpackPBO, ExtractPBO</a></li>
+		<li><a href="#makepbo">MakePBO</a></li>
+		<li><a href="#delete">Delete, Remove</a></li>
+		<li><a href="#edit">Edit</a></li>
+		<li><a href="#if_version">If_version, else, endif</a></li>
+		<li><a href="#rename">Rename</a></li>
+		<li><a href="#makedir">Makedir, Newfolder</a></li>
 		<li><a href="#get">Get, Download</a></li>
 		<li><a href="#ask_get">Ask_get, Ask_download</a></li>
 		<li><a href="#ask_run">Ask_run, Ask_execute</a></li>
-		<li><a href="#makedir">Makedir, Newfolder</a></li>
-		<li><a href="#delete">Delete, Remove</a></li>
-		<li><a href="#rename">Rename</a></li>
-		<li><a href="#unpackpbo">UnpackPBO, ExtractPBO</a></li>
-		<li><a href="#makepbo">MakePBO</a></li>
-		<li><a href="#if_version">If_version, else, endif</a></li>
-		<li><a href="#edit">Edit</a></li>
 		</ul>
+		<br>		
 		
 		<p>Some commands have aliases. For example <code>remove</code> and <code>delete</code> are the same.</p>
+		<p>Write each command in a separate line.</p>
+		<p>Commands usually require arguments. Separate them by spaces. If an argument contains space then put it in quotation marks.</p>
 		<p>I recommend to capitalize command names for readability.</p>
 		<p>Invalid command names will be ignored.</p>
 		<p>Leading and trailing spaces will be ignored.</p>
-		<p>Write each command in a separate line.</p>
-		<p>Commands usually require arguments. Separate them by spaces. If an argument contains space then put it in quotation marks.</p>
-		<p>A script can contain both auto installation links and manual commands.</p>
+		<p>Script can have both auto installation links and manual commands.</p>
 		
 <a name="unpack"></a><hr class="betweencommands">
 <h3 class="commandtitle">Unpack, Extract</h3>
@@ -236,6 +227,139 @@ to the<br>
 
 
 
+<a name="unpackpbo"></a><hr class="betweencommands">
+<h3 class="commandtitle">UnpackPBO, ExtractPBO</h3>
+<pre><code>UNPACKPBO  &lt;file&gt;  &lt;destination&gt;</code></pre>
+<p>Program will unpack selected PBO file from the modfolder directory.</p>
+<p>Overwrites existing files.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>UNPACKPBO  addons\ww4_fx.pbo</code></pre>
+<br><br>
+<p>Optionally you can specify where to extract files. Sub‐directories in the destination path that don’t exist will be created.</p>
+<pre><code>UNPACKPBO  addons\ww4_fx.pbo  temp</code></pre>
+<br><br>
+<p>To access files from any location start the path with <code>&lt;game&gt;</code>. If destination wasn’t specified then the addon will be unpacked to the modfolder.</p>
+<pre><code>UNPACKPBO  &lt;game&gt;\addons\kozl.pbo  addons</code></pre>
+
+
+
+
+<a name="makepbo"></a><hr class="betweencommands">
+<h3 class="commandtitle">MakePBO</h3>
+<pre><code>MAKEPBO  &lt;folder&gt;  /no_delete</code></pre>
+<p>Program will create a PBO file (without compression) out of the selected folder from the modfolder and then remove the source.</p>
+
+<br><br>
+<p>Example:</p>
+<pre><code>MAKEPBO  addons\ww4_fx</code></pre>
+
+<br><br>
+<p>Add switch <code>/no_delete</code> to keep the original directory.</p>
+<pre><code>MAKEPBO  addons\ww4_fx  /no_delete</code></pre>
+
+<br><br>
+<p>Use this command without file name to pack the last addon extracted with <code>unpackpbo</code>.</p>
+
+
+
+
+
+<a name="delete"></a><hr class="betweencommands">
+<h3 class="commandtitle">Delete, Remove</h3>
+<pre><code>DELETE  &lt;file&gt;  /match_dir</code></pre>
+<p>Program will delete selected file or directory from the modfolder.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>DELETE  Install_win98_ME.bat</code></pre>
+<br><br>
+<p>Wildcards can be used to match multiple files.</p>
+<pre><code>DELETE  addons\*.txt</code></pre>
+<p>To match both files and folders add <code>/match_dir</code> switch.</p>
+<pre><code>DELETE  temp\*  /match_dir</code></pre>
+<br><br>
+<p>Use this command without any arguments to remove the last downloaded file.</p>
+
+
+
+
+<a name="edit"></a><hr class="betweencommands">
+<h3 class="commandtitle">Edit</h3>
+<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile</code></pre>
+<p>Replaces text line in the selected file from the modfolder directory.</p>
+
+<br><br>
+<p>Example:</p>
+<pre><code>EDIT addons\FDF_Suursaari\config.cpp - 58 - cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};</code></pre>
+
+<br><br>
+<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the line number is zero or exceeds the number of lines in the file then installer will add text at the end.</p>
+<p>Use <code>/newline</code> to create a new file. Existing file will be trashed.</p>
+<p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
+
+
+
+
+<a name="if_version"></a><hr class="betweencommands">
+<h3 class="commandtitle">If_version, else, endif</h3>
+<pre><code>IF_VERSION  &lt;operator&gt;  &lt;number&gt;
+ELSE
+ENDIF</code></pre>
+<p>Compares game version with given number.</p>
+<p>If it’s correct then following instructions are executed until the end of the script or until program encounters <code>endif</code> command. Content between else and <code>endif</code> will be ignored.</p>
+<p>If condition wasn’t correct then installer will skip commands until end of script or until it encounters <code>else</code> or <code>endif</code>.</p>
+<p>Allowed comparison operators are: <code>=</code>, <code>==</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;&gt;</code>, <code>!=</code>. If there’s no operator then equality is assumed.</p>
+<p>Conditions can be nested.</p>
+
+<br><br>
+<p>Example:</p>
+<pre><code>IF_VERSION  <=  1.96
+	UNPACK	https://www.mediafire.com/download/86d97zspupnjk9c  ://download  "WW4 Extended OFP patch v111.zip"
+	MOVE	v196_patch\ww4ext_inf_cfg.pbo.OFP  addons  ww4ext_inf_cfg.pbo
+ENDIF</code></pre>
+<pre><code>IF_VERSION  >=  1.99
+	COPY	&lt;game&gt;\bin\Config.cpp  bin
+ELSE
+	COPY	&lt;game&gt;\Res\bin\Config.cpp  bin
+ENDIF</code></pre>
+
+
+
+
+<a name="rename"></a><hr class="betweencommands">
+<h3 class="commandtitle">Rename</h3>
+<pre><code>RENAME  &lt;file&gt;  &lt;new name&gt;  /match_dir</code></pre>
+<p>Program will rename selected file or directory from the modfolder.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>RENAME  addons\lo_res_tex.pbo  lo_res_tex.pbx</code></pre>
+<br><br>
+<p>Wildcards can be used to match multiple files.</p>
+<pre><code>RENAME  addons\*.pbo  *.pbx
+RENAME  addons\*.pbo  ??????????????????_OLD*</code></pre>
+<p>To match both files and folders add <code>/match_dir</code> switch.</p>
+<pre><code>RENAME  *  old_*  /match_dir</code></pre>
+
+
+
+
+<a name="makedir"></a><hr class="betweencommands">
+<h3 class="commandtitle">Makedir, Newfolder</h3>
+<pre><code>MAKEDIR  &lt;path&gt;</code></pre>
+<p>Creates a folder and its parents.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>MAKEDIR  addons
+MAKEDIR  dta\hwtl</code></pre>
+<p>This will create:</p>
+<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;</span><br>
+<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\addons</span><br>
+<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta</span><br>
+<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta\hwtl</span><br>
+
+
+
+
 <a name="get"></a><hr class="betweencommands">
 <h3 class="commandtitle">Get, Download</h3>
 <pre><code>GET  &lt;url&gt;</code></pre>
@@ -276,139 +400,6 @@ If the file is in the modfolder then start the path with <code>&lt;mod&gt;</code
 
 
 
-<a name="makedir"></a><hr class="betweencommands">
-<h3 class="commandtitle">Makedir, Newfolder</h3>
-<pre><code>MAKEDIR  &lt;path&gt;</pre></code>
-<p>Creates a folder and its parents.</p>
-<br><br>
-<p>Example:</p>
-<pre><code>MAKEDIR  addons
-MAKEDIR  dta\hwtl</pre></code>
-<p>This will create:</p>
-<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;</span><br>
-<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\addons</span><br>
-<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta</span><br>
-<span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta\hwtl</span><br>
-
-
-
-
-
-<a name="delete"></a><hr class="betweencommands">
-<h3 class="commandtitle">Delete, Remove</h3>
-<pre><code>DELETE  &lt;file&gt;  /match_dir</pre></code>
-<p>Program will delete selected file or directory from the modfolder.</p>
-<br><br>
-<p>Example:</p>
-<pre><code>DELETE  Install_win98_ME.bat</pre></code>
-<br><br>
-<p>Wildcards can be used to match multiple files.</p>
-<pre><code>DELETE  addons\*.txt</pre></code>
-<p>To match both files and folders add <code>/match_dir</code> switch.</p>
-<pre><code>DELETE  temp\*  /match_dir</pre></code>
-<br><br>
-<p>Use this command without any arguments to remove the last downloaded file.</p>
-
-
-
-
-<a name="rename"></a><hr class="betweencommands">
-<h3 class="commandtitle">Rename</h3>
-<pre><code>RENAME  &lt;file&gt;  &lt;new name&gt;  /match_dir</pre></code>
-<p>Program will rename selected file or directory from the modfolder.</p>
-<br><br>
-<p>Example:</p>
-<pre><code>RENAME  addons\lo_res_tex.pbo  lo_res_tex.pbx</pre></code>
-<br><br>
-<p>Wildcards can be used to match multiple files.</p>
-<pre><code>RENAME  addons\*.pbo  *.pbx
-RENAME  addons\*.pbo  ??????????????????_OLD*</pre></code>
-<p>To match both files and folders add <code>/match_dir</code> switch.</p>
-<pre><code>RENAME  *  old_*  /match_dir</pre></code>
-
-
-
-
-<a name="unpackpbo"></a><hr class="betweencommands">
-<h3 class="commandtitle">UnpackPBO, ExtractPBO</h3>
-<pre><code>UNPACKPBO  &lt;file&gt;  &lt;destination&gt;</pre></code>
-<p>Program will unpack selected PBO file from the modfolder directory.</p>
-<p>Overwrites existing files.</p>
-<br><br>
-<p>Example:</p>
-<pre><code>UNPACKPBO  addons\ww4_fx.pbo</pre></code>
-<br><br>
-<p>Optionally you can specify where to extract files. Sub‐directories in the destination path that don’t exist will be created.</p>
-<pre><code>UNPACKPBO  addons\ww4_fx.pbo  temp</pre></code>
-<br><br>
-<p>To access files from any location start the path with <code>&lt;game&gt;</code>. If destination wasn’t specified then the addon will be unpacked to the modfolder.</p>
-<pre><code>UNPACKPBO  &lt;game&gt;\addons\kozl.pbo  addons</pre></code>
-
-
-
-
-<a name="makepbo"></a><hr class="betweencommands">
-<h3 class="commandtitle">MakePBO</h3>
-<pre><code>MAKEPBO  &lt;folder&gt;  /no_delete</pre></code>
-<p>Program will create a PBO file (without compression) out of the selected folder from the modfolder and then remove the source.</p>
-
-<br><br>
-<p>Example:</p>
-<pre><code>MAKEPBO  addons\ww4_fx</pre></code>
-
-<br><br>
-<p>Add switch <code>/no_delete</code> to keep the original directory.</p>
-<pre><code>MAKEPBO  addons\ww4_fx  /no_delete</pre></code>
-
-<br><br>
-<p>Use this command without file name to pack the last addon extracted with <code>unpackpbo</code>.</p>
-
-
-
-
-<a name="if_version"></a><hr class="betweencommands">
-<h3 class="commandtitle">If_version, else, endif</h3>
-<pre><code>IF_VERSION  &lt;operator&gt;  &lt;number&gt;
-ELSE
-ENDIF</pre></code>
-<p>Compares game version with given number.</p>
-<p>If it’s correct then following instructions are executed until the end of the script or until program encounters <code>endif</code> command. Content between else and <code>endif</code> will be ignored.</p>
-<p>If condition wasn’t correct then installer will skip commands until end of script or until it encounters <code>else</code> or <code>endif</code>.</p>
-<p>Allowed comparison operators are: <code>=</code>, <code>==</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;&gt;</code>, <code>!=</code>. If there’s no operator then equality is assumed.</p>
-<p>Conditions can be nested.</p>
-
-<br><br>
-<p>Example:</p>
-<pre><code>IF_VERSION  <=  1.96
-	UNPACK	https://www.mediafire.com/download/86d97zspupnjk9c  ://download  "WW4 Extended OFP patch v111.zip"
-	MOVE	v196_patch\ww4ext_inf_cfg.pbo.OFP  addons  ww4ext_inf_cfg.pbo
-ENDIF</pre></code>
-<pre><code>IF_VERSION  1.99
-	COPY	&lt;game&gt;\bin\Config.cpp  bin
-ELSE
-	COPY	&lt;game&gt;\Res\bin\Config.cpp  bin
-ENDIF</pre></code>
-
-
-
-
-<a name="edit"></a><hr class="betweencommands">
-<h3 class="commandtitle">Edit</h3>
-<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile</pre></code>
-<p>Replaces text line in the selected file from the modfolder directory.</p>
-
-<br><br>
-<p>Example:</p>
-<pre><code>EDIT addons\FDF_Suursaari\config.cpp - 58 - cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};</pre></code>
-
-<br><br>
-<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the line number is zero or exceeds the number of lines in the file then installer will add text at the end.</p>
-<p>Use <code>/newline</code> to create a new file. Existing file will be trashed.</p>
-<p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
-
-
-
-
 		</div>
 	</div><!-- /panel -->
 
@@ -440,7 +431,7 @@ UNPACK     http://ofp-faguss.com/files/ww4_binoculars.zip
 UNPACKPBO  dta\scripts.pbo
 MOVE       ww4_fwatch_binoc.sqs  dta\scripts
 MAKEPBO
-MOVE       replacement\Config.cpp  bin</pre></code>
+MOVE       replacement\Config.cpp  bin</code></pre>
 
 <hr class="betweencommands">
 
@@ -493,7 +484,7 @@ UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio206.rar
 MOVE    Files\FDF\Resource.cpp  bin
 
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
-MOVE    Files\FDF\Anims.pbo  dta</pre></code>
+MOVE    Files\FDF\Anims.pbo  dta</code></pre>
 
 <hr class="betweencommands">
 
@@ -532,7 +523,7 @@ UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
 MOVE    Files\WGL\Anims.pbo  dta
 
 UNPACK  http://pulverizer.pp.fi/ewe/missions/wglmiss.7z
-MOVE    *  mpmissions</pre></code>
+MOVE    *  mpmissions</code></pre>
 <!--
 <hr class="betweencommands">
 
@@ -555,7 +546,7 @@ ELSE
 	UNPACKPBO  &lt;game&gt;\DTA\Data3D.pbo  dta
 	MOVE  llaumax\newdata\*.p3d  dta\Data3D
 	MAKEPBO
-ENDIF</pre></code>
+ENDIF</code></pre>
 -->
 		</div>
 	</div><!-- /panel -->
