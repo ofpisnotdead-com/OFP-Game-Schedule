@@ -1571,14 +1571,14 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 	}
 	
 	if (count($server_order) == 0)
-		$server_order = array_keys($servers["info"]);
-	
+		$server_order = $servers["id"];
+
 	foreach($server_order as $uniqueid) {
-		$id = array_search($uniqueid, array_keys($servers["id"]));
+		$id = array_search($uniqueid, $servers["id"]);
 		if ($id === FALSE)
 			continue;
-		
-		$server            = $servers["info"][array_keys($servers["id"])[$id]];
+
+		$server            = $servers["info"][$id];
 		$server_name       = empty($server["name"]) ? $server["uniqueid"] : $server["name"];
 		$current_starttime = [];
 		$current_duration  = [];
