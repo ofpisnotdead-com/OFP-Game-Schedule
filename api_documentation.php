@@ -1,6 +1,8 @@
 <?php
 require_once 'users/init.php';
 require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
+require_once "common.php";
+$url = GS_get_current_url() . "api";
 
 ?>
 
@@ -11,17 +13,17 @@ require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
 	<div class="panel panel-default">
 		<div class="panel-heading"><strong>Game Schedule API</strong></div>	
 		<div class="panel-body">
-			<p>To get information in JSON format about the servers and mods on the website send a request to <a href="https://ofp-faguss.com/schedule/api">ofp-faguss.com/schedule/api</a> with the following arguments:</p>
+			<p>To get information in JSON format about the servers and mods on the website send a request to the <a href="<?=$url?>"><?=$url?></a> with the following arguments:</p>
 			<br>
 			
 			<ul>
-			<li><b>server</b> - server identificator. Alternatively write "current" to get servers with valid game times or "all" for all the public servers</li>
-			<li><b>mod</b> - mod identificator</li>
-			<li><b>ver</b> - mod version number. Installation details will be given starting from the specified version. Default is 0</li>
-			<li><b>password</b> - password required to preview a private server or a private mod (that is assigned to a private server)</p>
+			<li><b>server</b> - server identificator. Alternatively write "current" to get all public servers with upcoming game times or "all" for all the public servers.</li>
+			<li><b>mod</b> - mod identificator. Alternatively write "all" to get all public mods.</li>
+			<li><b>ver</b> - mod version number. Installation details will start from the specified version. Default is 0.</li>
+			<li><b>password</b> - password required to preview a private server or a private mod (when it's assigned to a private server).</p>
 			</ul>
 			<br>
-			<p>Separate multiple values with a comma.</p>
+			<p>Separate multiple values with a comma. "ver" is a parallel list to "mod".</p>
 			
 			<br>
 			<p><b>Examples:</b><br>

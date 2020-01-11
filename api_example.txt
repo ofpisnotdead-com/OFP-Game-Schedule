@@ -11,57 +11,15 @@ function url_get_contents ($Url) {
     return $output;
 }
 
-function GS_convert_size_in_bytes($bytes, $output_type) {
-	if ($bytes == "")
-		return "";
-	
-	$bytes     = intval($bytes);
-	$kilobytes = 0;
-	$megabytes = 0;
-	
-	if ($bytes > 1048576) {
-		$megabytes  = $bytes / 1048576;
-		$megabytes -= fmod($megabytes, 1);
-		$bytes     -= $megabytes * 1048576;
-	}
-	
-	if ($bytes > 1024) {
-		$kilobytes  = $bytes / 1024;
-		$kilobytes -= fmod($kilobytes, 1);
-		$bytes     -= $kilobytes * 1024;
-	}
-	
-	if ($output_type == "game")
-		return "[$bytes, $kilobytes, $megabytes]";
-	
-	if ($output_type == "website") {
-		$array = [$bytes, $kilobytes, $megabytes];
-		$index = 2;
-		
-		if ($array[2] == 0) 
-			$index = 1;
-		
-		if ($array[1] == 0) 
-			$index = 0;
-		
-		$size = $array[$index];
+// Download and convert to array
+// https://stackoverflow.com/questions/10333016/how-to-access-object-properties-with-names-like-integers
 
-		if ($index > 0) 
-			$size += $array[$index-1] / 1024;
-		
-		return (round($size, 2) . " " . ["B","KB","M"][$index]);
-	}
-	
-	return "";
-}
-
-		
-// Download info
-$download = json_decode(url_get_contents("http://ofp-faguss.com/schedule/api?server=4abc47b3"));
-$schedule = json_decode(json_encode($download),true);	//https://stackoverflow.com/questions/10333016/how-to-access-object-properties-with-names-like-integers
+$download = json_decode(url_get_contents("https://ofp-faguss.com/schedule/api?server=4abc47b3"));
+$schedule = json_decode(json_encode($download),true);
 
 
 
+// Show servers
 $server_properties_to_display = [
 	"version"           => "Version",
 	"modfolders"        => "Mods",
@@ -75,7 +33,6 @@ $server_properties_to_display = [
 	"access"            => "Schedule Password"
 ];
 
-// Show servers
 foreach($schedule["servers"] as $server) {
 	echo "<h2>" . ($server["name"]!="" ? $server["name"] : $server["uniqueid"]) ."</h2><dl>";
 	
@@ -84,8 +41,8 @@ foreach($schedule["servers"] as $server) {
 		
 		switch($key) {
 			case "maxcustomfilesize" : {
-				if (intval($server[$key]) < 102400)
-					$value = GS_convert_size_in_bytes($server[$key], "website");
+				$bytes = intval($server[$key]);
+				$value = $bytes/1024 - fmod($bytes/1024, 1) . " KB";
 			} break;
 			
 			case "website" : {
@@ -132,14 +89,14 @@ foreach($schedule["servers"] as $server) {
 
 
 
+// Show mods
 $mod_properties_to_display = [
-		"description" => "Description",
-		"type"        => "Type",
-		"version"     => "Version",
-		"size"        => "Download Size"
+	"description" => "Description",
+	"type"        => "Type",
+	"version"     => "Version",
+	"size"        => "Download Size"
 ];
 
-// Show mods
 foreach($schedule["mods"] as $id=>$mod) {
 	echo "<h2>{$mod["name"]}</h2><dl>";
 	
@@ -157,7 +114,7 @@ foreach($schedule["mods"] as $id=>$mod) {
 	
 	echo "</dl>";
 	
-	echo "<p>Preview <a target=\"_blank\" href=\"https://ofp-faguss.com/schedule/install_scripts\">Installation</a>:</p>";
+	echo "<p>Preview <a target=\"_blank\" href=\"https://ofp-faguss.com/schedule/install_scripts\">Installation Script</a>:</p>";
 
 	foreach($mod["updates"] as $update_index=>$update) {
 		echo "<strong>{$update["version"]}<span style=\"font-size:10px;float:right;\">".date(DATE_RFC2822,$update["date"])."</span></strong>

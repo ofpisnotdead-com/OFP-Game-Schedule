@@ -1076,7 +1076,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 							case "equalmodreq"       : $new_value=$value=="1" ? "true" : "false"; break;
 							case "version"           : $new_value="$value"; break;
 							case "logo"              : $new_value="\"\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$value}\"\""; break;
-							case "maxcustomfilesize" : if (intval($value)<=102400) {$new_value=GS_convert_size_in_bytes($value, "game");} else {$add_value=false;}; break;
+							case "maxcustomfilesize" : $new_value=GS_convert_size_in_bytes(intval($value), "game"); break;
 							
 							case "port"              : if ($value=="0") $add_value=false;
 							case "ip"                : 
@@ -1612,8 +1612,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 			
 			switch($key) {
 				case "maxcustomfilesize" : {
-					if (intval($server[$key]) < 102400)
-						$value = GS_convert_size_in_bytes($server[$key], "website");
+					$value = GS_convert_size_in_bytes(intval($server[$key]), "website");
 				} break;
 				
 				case "website" : {

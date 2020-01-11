@@ -22,7 +22,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->add_text("location"         , lang("GS_STR_SERVER_LOCATION")  , lang("GS_STR_SERVER_LOCATION_HINT")  , "Poland");
 	$form->add_text("message"          , lang("GS_STR_SERVER_MESSAGE")   , lang("GS_STR_SERVER_MESSAGE_HINT")   , lang("GS_STR_SERVER_MESSAGE_EXAMPLE"), "", 3);
 	$form->add_text("website"          , lang("GS_STR_SERVER_WEBSITE")   , lang("GS_STR_SERVER_WEBSITE_HINT")   , GS_get_current_url(true, false));
-	$form->add_text("voice"            , lang("GS_STR_SERVER_VOICE")     , $voice_links_combined                  , "ts3server://192.168.1.101?password=123");
+	$form->add_text("voice"            , lang("GS_STR_SERVER_VOICE")     , $voice_links_combined                , "ts3server://192.168.1.101?password=123");
 	$form->add_imagefile("logo"        , lang("GS_STR_SERVER_LOGO")      , lang("GS_STR_SERVER_LOGO_HINT")      , GS_LOGO_FOLDER, 10240*2);
 	
 	
@@ -65,6 +65,9 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			
 			$data["modified"]   = date("Y-m-d H:i:s");
 			$data["modifiedby"] = $uid;
+			
+			if ($data["maxcustomfilesize"] > 102400)
+				$data["maxcustomfilesize"] = 102400;
 			
 			if ($form->hidden["action"] == "Add New") {
 				$data["uniqueid"]  = substr(strtolower(Hash::unique()), rand(0,56), 8);

@@ -421,17 +421,11 @@ MOVE    *.txt
 MOVE    *.pbo  addons  /match_dir
 MOVE    *  Bonus  /match_dir
 
-UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio206.rar
+UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
 MOVE    Files\WW4mod25\Resource.cpp  bin
 
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
-MOVE    Files\WW4mod25\Anims.pbo  dta
-
-UNPACK     http://ofp-faguss.com/files/ww4_binoculars.zip
-UNPACKPBO  dta\scripts.pbo
-MOVE       ww4_fwatch_binoc.sqs  dta\scripts
-MAKEPBO
-MOVE       replacement\Config.cpp  bin</code></pre>
+MOVE    Files\WW4mod25\Anims.pbo  dta</code></pre>
 
 <hr class="betweencommands">
 
@@ -480,7 +474,7 @@ UNPACKPBO  addons\FDF_Suursaari.pbo
 EDIT       addons\FDF_Suursaari\config.cpp  58  "cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};"
 MAKEPBO
 
-UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio206.rar
+UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
 MOVE    Files\FDF\Resource.cpp  bin
 
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
@@ -516,38 +510,12 @@ ELSE
 	MAKEPBO
 ENDIF
 
-UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio206.rar
+UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
 MOVE    Files\WGL\Resource.cpp  bin
 
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
-MOVE    Files\WGL\Anims.pbo  dta
+MOVE    Files\WGL\Anims.pbo  dta</code></pre>
 
-UNPACK  http://pulverizer.pp.fi/ewe/missions/wglmiss.7z
-MOVE    *  mpmissions</code></pre>
-<!--
-<hr class="betweencommands">
-
-<p>This is a script for installing Llaumax sky replacement</p>
-
-<pre><code>UNPACK  ftp://ftp.armedassault.info/ofpd/unofaddons2/OFPR_Addon_LlauMaxSkyPackV12.zip
-IF_VERSION  <=  1.96
-	UNPACKPBO  &lt;game&gt;\Res\Dta\HWTL\data.pbo  dta\HWTL
-	MOVE  llaumax\newdata\*.pa?  dta\HWTL\Data
-	MAKEPBO
-	
-	UNPACKPBO  &lt;game&gt;\Res\Dta\HWTL\data3d.pbo  dta\HTWL
-	MOVE  llaumax\newdata\*.p3d  dta\HWTL\data3d
-	MAKEPBO
-ELSE
-	UNPACKPBO  &lt;game&gt;\DTA\Data.pbo  dta
-	MOVE  llaumax\newdata\*.pa?  dta\Data
-	MAKEPBO
-	
-	UNPACKPBO  &lt;game&gt;\DTA\Data3D.pbo  dta
-	MOVE  llaumax\newdata\*.p3d  dta\Data3D
-	MAKEPBO
-ENDIF</code></pre>
--->
 		</div>
 	</div><!-- /panel -->
 	
