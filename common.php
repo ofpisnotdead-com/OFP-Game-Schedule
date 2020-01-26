@@ -944,13 +944,11 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			gs_serv_times.modified AS modified2
 			
 		FROM 
-			gs_serv, 
-			gs_serv_times 
+			gs_serv LEFT JOIN gs_serv_times 
+				ON gs_serv.id=gs_serv_times.serverid  AND  gs_serv_times.removed=0
 			
 		WHERE 
-			gs_serv.id            = gs_serv_times.serverid  AND
-			gs_serv.removed       = 0 AND
-			gs_serv_times.removed = 0
+			gs_serv.removed = 0
 			$specific_server
 			
 		ORDER BY 
@@ -984,73 +982,76 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			$playtime        = "";												// formatted string
 			$playtime_array  = [];
 			$valid           = false;											// discard or keep
-			$time_zone       = new DateTimeZone($row["timezone"]);				// time zone object
-			$start_date      = new DateTime($row["starttime"], $time_zone);		// when does the game start
-			$start_date_orig = clone $start_date;
-			$type            = ["single", "weekly", "daily"][$row["type"]];		// recurrence
-			$now             = new DateTime("now", $time_zone);					// get current time
-				
-			// if it's a recurrent event then I need to update it to the current time because of DST
-			if (date_diff($now, $start_date)->format("%R%a") < 0  &&  $type!="single") {				
-				$offset = 0;
-				
-				if ($type=="weekly"  &&  $now->format('w')!=$start_date->format('w')) {
-					$now_day   = intval($now->format('w'));
-					$start_day = intval($start_date->format('w'));
+			
+			if (isset($row["starttime"])) {
+				$time_zone       = new DateTimeZone($row["timezone"]);				// time zone object
+				$start_date      = new DateTime($row["starttime"], $time_zone);		// when does the game start
+				$start_date_orig = clone $start_date;
+				$type            = ["single", "weekly", "daily"][$row["type"]];		// recurrence
+				$now             = new DateTime("now", $time_zone);					// get current time
+					
+				// if it's a recurrent event then I need to update it to the current time because of DST
+				if (date_diff($now, $start_date)->format("%R%a") < 0  &&  $type!="single") {				
+					$offset = 0;
+					
+					if ($type=="weekly"  &&  $now->format('w')!=$start_date->format('w')) {
+						$now_day   = intval($now->format('w'));
+						$start_day = intval($start_date->format('w'));
 
-					if ($start_day > $now_day)
-						$offset = $start_day - $now_day;
-					else
-						$offset = 7 - $now_day + $start_day;
+						if ($start_day > $now_day)
+							$offset = $start_day - $now_day;
+						else
+							$offset = 7 - $now_day + $start_day;
+					}
+
+					$start_date->setDate($now->format('Y'), $now->format('m'), $now->format('d'));
+					$start_date->modify("+".$offset." day");
 				}
 
-				$start_date->setDate($now->format('Y'), $now->format('m'), $now->format('d'));
-				$start_date->modify("+".$offset." day");
-			}
-
-			if (date_diff($now, $start_date)->format("%R%a") > -1  ||  $type!="single") {
-				$offset = $time_zone -> getOffset($start_date) / 60;		// difference from gmt in minutes
-				//$date   = getdate(date_timestamp_get($start_date));		// date object to array
-				$valid  = true;
-								
-				if ($request_type == "game") {
-					//$date_orig = getdate(date_timestamp_get($start_date_orig));
-					$year     = $start_date_orig->format("Y");
-					$month    = $start_date_orig->format("n");
-					$day      = $start_date_orig->format("j");
-					$dayname  = $start_date_orig->format("w");
-					$hours    = $start_date->format("H");
-					$minutes  = $start_date->format("i");
-					$seconds  = $start_date->format("s");
-					$playtime = "[{$row["type"]},[$year,$month,$day,$dayname,$hours,$minutes,$seconds,0,$offset,false],{$row["duration"]}]";
-				}
-				
-				if ($request_type == "website") {
-					// Convert date to universal
-					$start_date->setTimezone(new DateTimeZone("UTC"));
-					
-					// Describe event
-					$playtime_text   = "";
-					$playtime_format = "jS F H:i";
-					
-					switch($type) {
-						case "weekly" : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_WEEKLY_DESC".$start_date->format("w"))." "; $playtime_format="H:i"; break;
-						case "daily"  : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_DAILY_DESC")." "; $playtime_format="H:i"; break;
+				if (date_diff($now, $start_date)->format("%R%a") > -1  ||  $type!="single") {
+					$offset = $time_zone -> getOffset($start_date) / 60;		// difference from gmt in minutes
+					//$date   = getdate(date_timestamp_get($start_date));		// date object to array
+					$valid  = true;
+									
+					if ($request_type == "game") {
+						//$date_orig = getdate(date_timestamp_get($start_date_orig));
+						$year     = $start_date_orig->format("Y");
+						$month    = $start_date_orig->format("n");
+						$day      = $start_date_orig->format("j");
+						$dayname  = $start_date_orig->format("w");
+						$hours    = $start_date->format("H");
+						$minutes  = $start_date->format("i");
+						$seconds  = $start_date->format("s");
+						$playtime = "[{$row["type"]},[$year,$month,$day,$dayname,$hours,$minutes,$seconds,0,$offset,false],{$row["duration"]}]";
 					}
 					
-					$playtime_text .= $start_date->format($playtime_format);
-					
-					$end_date = clone $start_date;
-					$end_date->modify("+{$row["duration"]} minute");
-					$playtime_text .= $end_date->format(" - H:i T P");
-					
-					$playtime = [
-						"type"        => intval($row["type"]), 
-						"date"        => $start_date->getTimestamp(),
-						"starttime"   => $start_date->format('c'),
-						"duration"    => intval($row["duration"]),
-						"description" => $playtime_text
-					];
+					if ($request_type == "website") {
+						// Convert date to universal
+						$start_date->setTimezone(new DateTimeZone("UTC"));
+						
+						// Describe event
+						$playtime_text   = "";
+						$playtime_format = "jS F H:i";
+						
+						switch($type) {
+							case "weekly" : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_WEEKLY_DESC".$start_date->format("w"))." "; $playtime_format="H:i"; break;
+							case "daily"  : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_DAILY_DESC")." "; $playtime_format="H:i"; break;
+						}
+						
+						$playtime_text .= $start_date->format($playtime_format);
+						
+						$end_date = clone $start_date;
+						$end_date->modify("+{$row["duration"]} minute");
+						$playtime_text .= $end_date->format(" - H:i T P");
+						
+						$playtime = [
+							"type"        => intval($row["type"]), 
+							"date"        => $start_date->getTimestamp(),
+							"starttime"   => $start_date->format('c'),
+							"duration"    => intval($row["duration"]),
+							"description" => $playtime_text
+						];
+					}
 				}
 			}
 
