@@ -16,4 +16,3 @@ Requires PHP 7 and UserSpice 4.4.14
 * Go to Admin Dashboard --> Pages and add public access for pages: edit_server.php, edit_mod.php, installationscripts.php, quickstart.php, installdedicated.php, show.php, api_documentation.php, recent_activity.php
 * Add administrator access for page admin_log.php
 * Go to Permission Levels and add Unlimited User (ID-3) and Experienced user (ID-4)
-* Rename htaccess to .htacess in the main directory and in the "logo" directory

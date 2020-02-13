@@ -1,9 +1,9 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,1,1,3,16,45,29,387,60,FALSE]");
-define("GS_VERSION", 0.5);
-define("GS_ENCRYPT_KEY", 2997);
-define("GS_MODULUS_KEY", 20131);
-define("GS_DECRYPT_KEY", 10333);
+define("GS_FWATCH_LAST_UPDATE","[2020,2,13,4,3,44,20,695,60,FALSE]");
+define("GS_VERSION", 0.51);
+define("GS_ENCRYPT_KEY", 0);
+define("GS_MODULUS_KEY", 0);
+define("GS_DECRYPT_KEY", 0);
 define("GS_LOGO_FOLDER", "logo");	// Folder to save uploaded images in
 define("GS_OTHER_URL", []);			// Links to other schedule websites
 define("GS_SIZE_TYPES", ["KB", "MB", "GB"]);
@@ -778,9 +778,6 @@ EOREGEX;
 
 // Convert bytes to a readable text or to an array for the game
 function GS_convert_size_in_bytes($bytes, $output_type) {
-	if ($bytes === "")
-		return "";
-	
 	$bytes     = intval($bytes);
 	$kilobytes = 0;
 	$megabytes = 0;
