@@ -338,21 +338,21 @@ function GS_activate_convertlink_modal() {
 		convertlink_modal_group_filename.style.display = 'none';
 		convertlink_modal_group_size.style.display     = 'none';
 
-		if (convertlink_modal_link.value.search('drive.google.com') >= 0) {
+		if (convertlink_modal_link.value.indexOf('drive.google.com') >= 0) {
 			convertlink_modal_group_filename.style.display = 'block';
 			convertlink_modal_group_size.style.display     = 'block';
 		}
 
-		if (convertlink_modal_link.value.search('moddb.com/mods/') >= 0 || convertlink_modal_link.value.search('moddb.com/downloads/start') >= 0 || convertlink_modal_link.value.search('gamefront.com/games/') >= 0) {
+		if (convertlink_modal_link.value.indexOf('moddb.com/mods/') >= 0 || convertlink_modal_link.value.indexOf('moddb.com/downloads/start') >= 0 || convertlink_modal_link.value.indexOf('gamefront.com/games/') >= 0) {
 			convertlink_modal_group_filename.style.display = 'block';
 		}
 
-		if (convertlink_modal_link.value.search('mediafire.com/file/') >= 0) {
+		if (convertlink_modal_link.value.indexOf('mediafire.com/file/') >= 0) {
 			convertlink_modal_group_filename.style.display = 'block';
 
-			var pos = convertlink_modal_link.value.search('mediafire.com/file/');
+			var pos = convertlink_modal_link.value.indexOf('mediafire.com/file/');
 			var sub = convertlink_modal_link.value.substring(pos+19);
-			pos     = sub.search('/');
+			pos     = sub.indexOf('/');
 
 			if (pos >= 0) {
 				convertlink_modal_filename.value = sub.substring(pos+1);
@@ -369,22 +369,31 @@ function GS_activate_convertlink_modal() {
 	convertlink_modal_accept.onclick = function() {
 		var final_url = '';
 
-		if (convertlink_modal_link.value.search('drive.google.com') >= 0) {
-			var id_pos = convertlink_modal_link.value.search('id=');
+		if (convertlink_modal_link.value.indexOf('drive.google.com') >= 0) {
+			var id_pos1 = convertlink_modal_link.value.indexOf('id=');
+			var id_pos2 = convertlink_modal_link.value.indexOf('/d/');
 			
-			if (id_pos >= 0) {
-				final_url += 'https://docs.google.com/uc?export=download&id=' + convertlink_modal_link.value.substring(id_pos+3) + ' ';
+			if (id_pos1>=0 || id_pos2>=0) {
+				final_url += 'https://docs.google.com/uc?export=download&id=';
+				
+				if (id_pos1 >= 0)
+					final_url += convertlink_modal_link.value.substring(id_pos1+3);
+				
+				if (id_pos2 >= 0)
+					final_url += convertlink_modal_link.value.substring(id_pos2+3, convertlink_modal_link.value.indexOf('/',id_pos2+4));
+				
+				final_url += ' ';
 				
 				if (convertlink_modal_size.checked)
 					final_url += 'confirm= ';
 			}
 		}
 
-		if (convertlink_modal_link.value.search('moddb.com/mods/') >= 0) {			
+		if (convertlink_modal_link.value.indexOf('moddb.com/mods/') >= 0) {			
 			final_url = convertlink_modal_link.value + ' /downloads/start/ /downloads/mirror/ ';
 		}
 		
-		if (convertlink_modal_link.value.search('moddb.com/downloads/start') >= 0) {
+		if (convertlink_modal_link.value.indexOf('moddb.com/downloads/start') >= 0) {
 			var query_pos = convertlink_modal_link.value.indexOf('?');
 			
 			if (query_pos == -1)
@@ -393,8 +402,8 @@ function GS_activate_convertlink_modal() {
 			final_url = convertlink_modal_link.value.substring(0, query_pos) + ' /downloads/mirror/ ';
 		}
 		
-		if (convertlink_modal_link.value.search('mediafire.com/file/') >= 0) {
-			var pos = convertlink_modal_link.value.search('mediafire.com/file/');
+		if (convertlink_modal_link.value.indexOf('mediafire.com/file/') >= 0) {
+			var pos = convertlink_modal_link.value.indexOf('mediafire.com/file/');
 			var sub = convertlink_modal_link.value.substring(pos+19);
 			
 			if (GS_count_occurrences(sub, '/', false) > 0) {
@@ -407,7 +416,7 @@ function GS_activate_convertlink_modal() {
 			final_url += ' ://download ';
 		}
 		
-		if (convertlink_modal_link.value.search('gamefront.com/games/') >= 0) {
+		if (convertlink_modal_link.value.indexOf('gamefront.com/games/') >= 0) {
 			var last_slash = convertlink_modal_link.value.lastIndexOf('/');
 			final_url      = convertlink_modal_link.value + ' ' + convertlink_modal_link.value.substring(last_slash+1) + '/download expires= ';
 		}
