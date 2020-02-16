@@ -1,6 +1,6 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,2,13,4,3,44,20,695,60,FALSE]");
-define("GS_VERSION", 0.51);
+define("GS_FWATCH_LAST_UPDATE","[2020,2,16,0,21,31,39,87,60,FALSE]");
+define("GS_VERSION", 0.52);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
 define("GS_DECRYPT_KEY", 0);
@@ -45,7 +45,7 @@ define("GS_VOICE", [
 define("GS_MAX_TXT_INPUT_LENGTH"   , 100);
 define("GS_MAX_MSG_INPUT_LENGTH"   , 255);
 define("GS_MAX_CODE_INPUT_LENGTH"  , 10);
-define("GS_MAX_SCRIPT_INPUT_LENGTH", 4096);
+define("GS_MAX_SCRIPT_INPUT_LENGTH", 8192);
 
 // Log codes
 define("GS_LOG_UNKNOWN"              , 0);
@@ -74,6 +74,7 @@ define("GS_LOG_MOD_LINK_ADDED"       , 22);
 define("GS_LOG_MOD_LINK_UPDATED"     , 23);
 define("GS_LOG_MOD_LINK_DELETED"     , 24);
 define("GS_LOG_SERVER_MOD_CHANGED"   , 25);
+define("GS_LOG_INSTALLER_UPDATE"     , 26);
 
 // User permissions
 define("GS_PERM_NOUSER",0);
@@ -1074,7 +1075,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 							case "equalmodreq"       : $new_value=$value=="1" ? "true" : "false"; break;
 							case "version"           : $new_value="$value"; break;
 							case "logo"              : $new_value="\"\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$value}\"\""; break;
-							case "maxcustomfilesize" : $new_value=GS_convert_size_in_bytes(intval($value), "game"); break;
+							case "maxcustomfilesize" : $new_value=GS_convert_size_in_bytes($value, "game"); break;
 							
 							case "port"              : if ($value=="0") $add_value=false;
 							case "ip"                : 
@@ -1332,7 +1333,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]}";
 						
 						if ($add_description)
-							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".strip_tags($row["description"])."\"\";";
+							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".str_replace("\"", "\"\"\"\"", strip_tags($row["description"]))."\"\";";
 					}
 
 					$output["id"][$id] = $row["uniqueid"];
@@ -1610,8 +1611,8 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 			
 			switch($key) {
 				case "maxcustomfilesize" : {
-					if ($value != "")
-						$value = GS_convert_size_in_bytes(intval($server[$key]), "website");
+					if ($server[$key] != "")
+						$value = GS_convert_size_in_bytes($server[$key], "website");
 				} break;
 				
 				case "website" : {
@@ -1752,6 +1753,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 			"gs_mods_admins"  => [],
 			"gs_mods_scripts" => [],
 			"gs_mods"         => [],
+			"gs_announce"     => [],
 			"users"           => []
 		];
 
@@ -1784,6 +1786,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 				case GS_LOG_MOD_LINK_ADDED        : 
 				case GS_LOG_MOD_LINK_DELETED      :
 				case GS_LOG_MOD_LINK_UPDATED      : $array="gs_mods_links"; break;
+				case GS_LOG_INSTALLER_UPDATE      : $array="gs_announce"; break;
 				default                           : $array=""; break;
 			}
 			
@@ -1816,6 +1819,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 					case "gs_mods_updates" : $columns=["modid","scriptid","version","changelog"]; break;
 					case "gs_mods_links"   : $columns=["updateid","scriptid","fromver"]; break;
 					case "gs_mods_admins"  : $columns=["modid","userid"]; break;
+					case "gs_announce"     : $columns=["text"]; break;
 				}
 				
 				foreach($columns as $column)
@@ -2126,6 +2130,9 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 				$valid_row = false;
 
 			$table_row["description"] = lang($operation_name, $lang_arguments);
+			
+			if ($log["type"] == GS_LOG_INSTALLER_UPDATE)
+				$table_row["description"]=$data["gs_announce"][$log["itemid"]]["text"];
 
 			// Check record privacy before adding to the list
 			if (

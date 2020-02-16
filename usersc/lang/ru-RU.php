@@ -199,6 +199,7 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_PATCHNOTES_EXAMPLE" => "Добавлен новый объект",
 	"GS_STR_MOD_PREVIEW_INST" => "Предпросмотр установки",
 	"GS_STR_MOD_PREVIEW_INSTSCRIPT" => "Предпросмотр %m1%скрипт установки%m2%:",
+	"GS_STR_MOD_SHOW_INSTSCRIPT" => "%m1%Show%m2% installation details",
 	"GS_STR_MOD_PICK_ONE" => "Выберите одно",
 	"GS_STR_MOD_ADD_NEW_SCRIPT" => "Добавить новый скрипт",
 	"GS_STR_MOD_SAME_AS" => "Так же, как в версии",

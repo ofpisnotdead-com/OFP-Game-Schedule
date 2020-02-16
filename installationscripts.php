@@ -42,8 +42,7 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 			<ul>
 				<li>If it's <code>.rar</code>, <code>.zip</code>, <code>.7z</code>, <code>.ace</code> or <code>.exe</code> then it will extract it and inspect its contents</li>
 				<li>If an <code>.exe</code> couldn't be unpacked then it will ask the user to run it</li>
-				<li>If it's <code>.pbo</code> then it will move it to the <code>addons</code> directory in the modfolder.</li>
-				<li>If it's <code>.pbo</code> but with more than one dot in its name (aka mission file) then it will be moved to the <code>Missions</code> directory in the modfolder.</li>
+				<li>If it's <code>.pbo</code> then it will move it to the <code>addons</code>, <code>Missions</code> or <code>MPMissions</code> directory in the modfolder.</li>
 				<li>Other types of files are ignored</li>
 			</ul></p>
 
@@ -51,7 +50,7 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 			<ul>
 				<li>If it matches modfolder name then it will be moved to the game directory. Other modfolders will be ignored (exception: unless dir name is contained in the downloaded filename)</li>
 				<li>If it matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code> then it will be moved to the modfolder</li>
-				<li>If it has a dot in its name (aka it's an unpacked mission) then it will be moved to the <code>Missions</code> directory in the modfolder</li>
+				<li>If it has a dot in its name (aka it's an unpacked mission) then it will be moved to the <code>Missions</code> or <code>MPMissions</code> directory in the modfolder</li>
 				<li>In any other case it will go through the contents of a directory and apply the same rules for each file and folder there</p>
 			</ul></p>
 
@@ -71,7 +70,7 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 			
 			<p>If a direct link is not available then add more links to jump through the intermediate pages:</p>
 <pre><code><span class="fake_link">&lt;starting url&gt;</span>  &lt;optionally intermediate links&gt;  <span class="download_filename">&lt;file name&gt;</span></code></pre>
-			<p>You don't actually have to type in full urls but only the unique parts. Last argument is always a file name. If it contains spaces then put it in quotation marks. Examples:</p>
+			<p>You don't actually have to type in intermediary full urls but only the unique parts. Last argument is always a file name. If it contains spaces then put it in quotation marks. Examples:</p>
 		
 <pre><code><span class="fake_link">https://www.moddb.com/downloads/start/36064</span>  /downloads/mirror/  <span class="download_filename">ww4mod25rel.rar</span>
 <span class="fake_link">http://www.mediafire.com/file/4rm6uf16ihe36ce</span>  ://download  <span class="download_filename">wgl512_2006-11-12.rar</span>
@@ -112,6 +111,7 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 		<li><a href="#get">Get, Download</a></li>
 		<li><a href="#ask_get">Ask_get, Ask_download</a></li>
 		<li><a href="#ask_run">Ask_run, Ask_execute</a></li>
+		<li><a href="#alias">Alias</a></li>
 		</ul>
 		<br>		
 		
@@ -285,15 +285,17 @@ to the<br>
 
 <a name="edit"></a><hr class="betweencommands">
 <h3 class="commandtitle">Edit</h3>
-<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile</code></pre>
+<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
 <p>Replaces text line in the selected file from the modfolder directory.</p>
+<p>If text you want to already contains quotation marks then use a custom delimeter to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
 
 <br><br>
 <p>Example:</p>
-<pre><code>EDIT addons\FDF_Suursaari\config.cpp - 58 - cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};</code></pre>
+<pre><code>EDIT addons\FDF_Suursaari\config.cpp 58 >>@cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};@</code></pre>
 
 <br><br>
 <p>Add switch <code>/insert</code> to add a new line instead of replacing. If the line number is zero or exceeds the number of lines in the file then installer will add text at the end.</p>
+<p>Add switch <code>/append</code> to append to the line instead of replacing.</p>
 <p>Use <code>/newline</code> to create a new file. Existing file will be trashed.</p>
 <p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
 
@@ -397,6 +399,18 @@ If the file is in the modfolder then start the path with <code>&lt;mod&gt;</code
 <br><br>
 <p>Use this command without any arguments to run the last downloaded file.</p>
 
+
+
+
+<a name="alias"></a><hr class="betweencommands">
+<h3 class="commandtitle">Alias</h3>
+<pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
+<p>Adds one or more alternative name for the mod. It's relevant for auto installation and for a Move command - folders matching selected name are moved to the game directory.</p>
+<p>Names are carried over to the other installation scripts of the same mod.</p>
+<p>Use this command without arguments to clear all the names.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>ALIAS  @ww4mod25a</code></pre>
 
 
 
@@ -624,7 +638,23 @@ First release.<br>
 <li><code>Edit</code> – switch <code>/insert</code> can now be used to append text at the end</li>
 </ul>
 
+<br>
+<br>
+<strong>0.51</strong> (14.02.20)<br>
+<ul>
+<li>Added command: <code>Alias</code></li>
+<li>Auto installation - reverted change from 0.31: file name irrelevant for auto installation again (use command Alias instead)</li>
+<li>Auto installation - now detects if mission is SP or MP and copies it to the correct folder</li>
+<li><code>Edit</code> – added <code>/append</code> switch</li>
+<li><code>MakePBO</code> – fixed bug where it wouldn't work with files with spaces in their names</li>
+</ul>
 
+<br>
+<br>
+<strong>0.52</strong> (16.02.20)<br>
+<ul>
+<li>Command arguments can now be escaped with custom delimiters (relevant for the <code>Edit</code> command)</li>
+</ul>
 
 
 

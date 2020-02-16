@@ -98,6 +98,8 @@ foreach($input["mod"] as $uniqueid) {
 			
 	if (!$input_onlylog)
 		echo "<p>" . lang("GS_STR_MOD_PREVIEW_INSTSCRIPT", ["<a target=\"_blank\" href=\"install_scripts\">", "</a>"]) . "</p>";
+	else
+		echo "<p style=\"font-size:10px;\">" . lang("GS_STR_MOD_SHOW_INSTSCRIPT", ["<a target=\"_blank\" href=\"?mod=".implode(",",$input["mod"])."\">", "</a>"]) . "</p>";
 	
 	foreach($mod["updates"] as $update_index=>$update) {
 		echo "<div class=\"panel panel-default\">
