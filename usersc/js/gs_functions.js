@@ -320,6 +320,7 @@ function GS_activate_convertlink_modal() {
 	var convertlink_modal_size     = document.getElementById('convertlink_modal_size');
 	var convertlink_modal_link     = document.getElementById('convertlink_modal_link');
 	var convertlink_modal_filename = document.getElementById('convertlink_modal_filename');
+	var convertlink_modal_testlink = document.getElementById('convertlink_modal_testlink');
 
 	// Make link open the modal
 	var custom_button     = document.getElementById('convertlink_field');
@@ -341,6 +342,20 @@ function GS_activate_convertlink_modal() {
 		if (convertlink_modal_link.value.indexOf('drive.google.com') >= 0) {
 			convertlink_modal_group_filename.style.display = 'block';
 			convertlink_modal_group_size.style.display     = 'block';
+			
+			var id_pos1 = convertlink_modal_link.value.indexOf('id=');
+			var id_pos2 = convertlink_modal_link.value.indexOf('/d/');
+			var testurl = 'https://docs.google.com/uc?export=download&id=';
+			
+			if (id_pos1>=0 || id_pos2>=0) {				
+				if (id_pos1 >= 0)
+					testurl += convertlink_modal_link.value.substring(id_pos1+3);
+				
+				if (id_pos2 >= 0)
+					testurl += convertlink_modal_link.value.substring(id_pos2+3, convertlink_modal_link.value.indexOf('/',id_pos2+4));
+				
+				convertlink_modal_testlink.href = testurl;
+			}
 		}
 
 		if (convertlink_modal_link.value.indexOf('moddb.com/mods/') >= 0 || convertlink_modal_link.value.indexOf('moddb.com/downloads/start') >= 0 || convertlink_modal_link.value.indexOf('gamefront.com/games/') >= 0) {

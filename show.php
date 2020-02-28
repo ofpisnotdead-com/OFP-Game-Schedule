@@ -19,7 +19,7 @@ echo "<DIV CLASS=\"row\">" . GS_format_server_info($servers, $mods, 12, 1, $inpu
 if (!empty($servers["info"]))
 	echo 
 	"<div class=\"jumbotron\">
-		<h2><a href=\"quickstart#players\">".lang("GS_STR_QUICKSTART_HOWTO")."</a></h2>
+		<h2><a href=\"quickstart#players\">".lang("GS_STR_QUICKSTART_HOWTO_CONNECT")."</a></h2>
 	</div>";
 
 
@@ -99,14 +99,14 @@ foreach($input["mod"] as $uniqueid) {
 	if (!$input_onlylog)
 		echo "<p>" . lang("GS_STR_MOD_PREVIEW_INSTSCRIPT", ["<a target=\"_blank\" href=\"install_scripts\">", "</a>"]) . "</p>";
 	else
-		echo "<p style=\"font-size:10px;\">" . lang("GS_STR_MOD_SHOW_INSTSCRIPT", ["<a target=\"_blank\" href=\"?mod=".implode(",",$input["mod"])."\">", "</a>"]) . "</p>";
+		echo "<p style=\"font-size:10px;\">" . lang("GS_STR_MOD_SHOW_INSTSCRIPT", ["<a href=\"?mod=".implode(",",$input["mod"])."\">", "</a>"]) . "</p>";
 	
 	foreach($mod["updates"] as $update_index=>$update) {
 		echo "<div class=\"panel panel-default\">
 				<div class=\"panel-heading\"><strong>{$update["version"]}<span style=\"font-size:10px;float:right;\">{$update["date"]}</span></strong></div>";
 
 		if (!$input_onlylog)
-			echo "<pre style=\"margin:0;border:0;\"><code>". str_replace("&amp;", "&", htmlspecialchars($update["script"])) . "</code></pre>";
+			echo "<pre style=\"margin:0;border:0;\"><code>". GS_scripting_highlighting($update["script"]) . "</code></pre>";
 		
 		$number_of_notes = 0;
 		foreach ($update["note"] as $note)
@@ -155,6 +155,13 @@ if (!empty($js_addedon)) {
 }
 
 echo "</div>";
+
+if (!empty($mods["info"]))
+	echo 
+	"<div class=\"jumbotron\">
+		<h2><a href=\"https://youtu.be/KSK_H8Dc4oo\">".lang("GS_STR_QUICKSTART_HOWTO_INSTALL")."</a></h2>
+	</div>";
+	
 if (isset($user) && $user->isLoggedIn())
 	languageSwitcher();
 ?>

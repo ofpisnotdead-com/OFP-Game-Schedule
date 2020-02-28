@@ -33,7 +33,14 @@ $js_modal = "
 		<div id=\"convertlink_modal_group_size\" class=\"form-group\">
 			<label class=\"col-lg-2 control-label\" for=\"convertlink_modal_size\">".lang("GS_STR_MOD_CONVERTLINK_BIGFILE")."</label>
 			<div class=\"col-lg-10\">
-				<input type=\"checkbox\" id=\"convertlink_modal_size\">
+				<div>
+					<div class=\"checkbox\">
+						<label>
+							<input type=\"checkbox\" id=\"convertlink_modal_size\">
+						</label>
+					</div>
+				</div>
+				<span class=\"help-block\">".lang("GS_STR_MOD_CONVERTLINK_BIGFILE_DESC", ["<a id=\"convertlink_modal_testlink\" target=\"_blank\" href=\"\">", "</a>"])."</span>
 			</div>
 		</div>
 		

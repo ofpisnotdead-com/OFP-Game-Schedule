@@ -1,5 +1,5 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,2,16,0,21,31,39,87,60,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2020,2,28,5,22,29,37,268,60,FALSE]");
 define("GS_VERSION", 0.52);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
@@ -2246,5 +2246,160 @@ function GS_convert_cyrillic($input, $to_latin=false) {
 	}
 
 	return $output;
+}
+
+// Code highlighting for addon installer scripting language
+function GS_scripting_highlighting($code) {
+	$code         = str_replace("&amp;", "&", htmlspecialchars($code));
+	$html         = "";
+	$lines        = preg_split( "/(\n)/", $code);
+	$all_commands = [
+		"auto_install" => "auto_installation",
+		"download"     => "get",
+		"get"          => "get",
+		"unpack"       => "unpack",
+		"extract"      => "unpack",
+		"move"         => "move",
+		"copy"         => "move",
+		"makedir"      => "makedir",
+		"newfolder"    => "makedir",
+		"ask_run"      => "ask_run",
+		"ask_execute"  => "ask_run",
+		"begin_mod"    => "",
+		"delete"       => "delete",
+		"remove"       => "delete",
+		"rename"       => "rename",
+		"ask_download" => "ask_get",
+		"ask_get"      => "ask_get",
+		"if_version"   => "if_version",
+		"else"         => "if_version",
+		"endif"        => "if_version",
+		"makepbo"      => "makepbo",
+		"extractpbo"   => "unpackpbo",
+		"unpackpbo"    => "unpackpbo",
+		"edit"         => "edit",
+		"begin_ver"    => "",
+		"alias"        => "alias"
+	];
+	$switches = [
+		"/mirror",
+		"/password",
+		"/no_overwrite",
+		"/match_dir",
+		"/no_delete",
+		"/insert",
+		"/newfile",
+		"/append"
+	];
+	
+	foreach($lines as $line) {
+		$line            = str_replace("\r", "", $line);
+		$arguments       = [];
+		$arguments_begin = [];
+		$arguments_end   = [];
+		$in_quote        = false;
+		$begin           = -1;
+		$offset          = 0;
+		$found_url       = false;
+		$argument_num    = 1;
+		
+		// Custom tokenization
+		for($i=0; $i<=strlen($line); $i++) {
+			if (substr($line, $i, 6) == "&quot;") {
+				if ($in_quote)
+					$i += 6;
+				
+				$in_quote = !$in_quote;
+			}
+			
+			$is_token = $i==strlen($line) || ctype_space($line[$i]);
+			
+			// Mark beginning of the word
+			if (!$is_token && $begin<0) {
+				$begin = $i;
+				
+				// Custom delimiter
+				if (substr($line, $begin, 8) == "&gt;&gt;") {
+					$end      = strpos($line, substr($line,$i+8,1), $i+9);
+					$is_token = true;
+					$i        = $end===FALSE ? strlen($line) : $end+1;
+				}
+			}
+			
+			// Mark end of the word
+			if ($is_token  &&  $begin>=0  &&  !$in_quote) {
+				$arguments[]       = substr($line, $begin, $i-$begin);
+				$arguments_begin[] = $begin;
+				$arguments_end[]   = $i;
+				$begin             = -1;
+			}
+		}
+
+		// Check word type
+		foreach($arguments as $i=>$argument) {
+			$argumentL  = strtolower($argument);
+			$class      = "";
+			$comm_index = FALSE;
+			$is_switch  = false;
+			$is_url     = substr($argumentL,0,7)=="http://" || substr($argumentL,0,8)=="https://" || substr($argumentL,0,6)=="ftp://" || substr($argumentL,0,4)=="www.";
+			$comm_index = array_search($argumentL, array_keys($all_commands));
+			
+			for($j=0; $j<count($switches); $j++)
+				if ($switches[$j] == substr($argumentL,0,strlen($switches[$j])))
+					$is_switch = true;
+			
+			// If not a valid command line
+			if ($i==0 && $comm_index===FALSE && !$is_url)
+				break;
+			
+			// Determine argument type
+			if ($is_url) {
+				$found_url = true;
+				$class     = "scripting_command_url";
+			} else			
+				if ($i==0 && $comm_index!==FALSE)
+					$class = "scripting_command";
+				else
+					if ($is_switch)
+						$class = "scripting_command_switch";
+					else 
+						if ($argument == "|") {
+							$found_url = false;
+							$argument_num++;
+						} else {
+							$class = "scripting_command_arg$argument_num";
+							$argument_num++;
+						}
+			
+			// Add style
+			if ($class != "") {
+				if ($found_url && substr($class,0,21) == "scripting_command_arg")
+					continue;
+				
+				$start = "<span class=\"$class\">";
+				$end   = "</span>";
+				
+				if (in_array($class,["scripting_command_url","scripting_command"])) {
+					$url = $argument;
+					
+					if ($comm_index !== FALSE)
+						$url = "install_scripts#{$all_commands[array_keys($all_commands)[$comm_index]]}";
+					
+					$start = "<a href=\"$url\" target=\"_blank\">$start";
+					$end  .= "</a>";
+				}
+				
+				$line    = substr_replace($line, $start, $arguments_begin[$i]+$offset, 0);
+				$offset += strlen($start);
+				
+				$line    = substr_replace($line, $end  , $arguments_end[$i]+$offset  , 0);
+				$offset += strlen($end);
+			}
+		}
+		
+		$html .= $line . "\n";
+	}
+	
+	return $html;
 }
 ?>

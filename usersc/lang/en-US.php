@@ -42,7 +42,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_QUICKSTART_FORPLAYERS_WAITINSTALL" => "Wait for the installer to finish. Playing the game or even quitting it won't affect the installation",
 	"GS_STR_QUICKSTART_FORPLAYERS_CONNECT" => "Once it's done go to the server options again and double-click on the \"Connect\"",
 	"GS_STR_QUICKSTART_FORPLAYERS_HAVEFUN" => "Have fun playing!",
-	"GS_STR_QUICKSTART_HOWTO" => "How to connect",
+	"GS_STR_QUICKSTART_HOWTO_CONNECT" => "How to connect",
+	"GS_STR_QUICKSTART_HOWTO_INSTALL" => "How to install",
 	
 	"GS_STR_INDEX_WELCOME" => "Welcome to the OFP Game Schedule",
 	"GS_STR_INDEX_DESCRIPTION" => "Organize multiplayer Operation Flashpoint sessions",
@@ -243,7 +244,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_CONVERTLINK_SHAREABLE" => "shareable link",
 	"GS_STR_MOD_CONVERTLINK_PAGE" => "download page address",
 	"GS_STR_MOD_CONVERTLINK_FILENAME" => "File name",
-	"GS_STR_MOD_CONVERTLINK_BIGFILE" => "Above 100 MB",
+	"GS_STR_MOD_CONVERTLINK_BIGFILE" => "Requires confirmation",
+	"GS_STR_MOD_CONVERTLINK_BIGFILE_DESC" => "(usually for files above 100 MB, %m1%check%m2%)",
 	"GS_STR_MOD_CONVERTLINK_INSERT" => "Insert",
 	
 	"GS_STR_SERVER_SHARESERVER_TITLE" => "Share",

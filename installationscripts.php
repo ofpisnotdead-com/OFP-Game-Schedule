@@ -108,10 +108,10 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 		<li><a href="#if_version">If_version, else, endif</a></li>
 		<li><a href="#rename">Rename</a></li>
 		<li><a href="#makedir">Makedir, Newfolder</a></li>
+		<li><a href="#alias">Alias</a></li>
 		<li><a href="#get">Get, Download</a></li>
 		<li><a href="#ask_get">Ask_get, Ask_download</a></li>
 		<li><a href="#ask_run">Ask_run, Ask_execute</a></li>
-		<li><a href="#alias">Alias</a></li>
 		</ul>
 		<br>		
 		
@@ -126,7 +126,7 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 <a name="unpack"></a><hr class="betweencommands">
 <h3 class="commandtitle">Unpack, Extract</h3>
 <pre><code>UNPACK  &lt;url or file&gt;  /password:&lt;text&gt;</code></pre>
-<p>Extracts archive from the <span class="courier">fwatch\tmp\</span> directory to the <span class="courier">_extracted</span> subfolder (its previous contents are wiped).</p>
+<p>Extracts archive from the <span class="courier">fwatch\tmp</span> directory to the <span class="courier">_extracted</span> subfolder (its previous contents are wiped). If passed URL then it downloads a file to the <span class="courier">fwatch\tmp</span> and extracts it.</p>
 <br><br>
 <p>Example:</p>
 <pre><code>UNPACK  ftp://ftp.armedassault.info/ofpd/mods/fdfmod13_installer.exe</code></pre>
@@ -147,9 +147,9 @@ UNPACK  _extracted\_extracted\third.rar</code></pre>
 <a name="move"></a><hr class="betweencommands">
 <h3 class="commandtitle">Move, Copy</h3>
 <pre><code>MOVE  &lt;file or or url|&gt;  &lt;destination&gt;  &lt;new name&gt;  /no_overwrite  /match_dir</code></pre>
-<p>Program will move or copy selected file or folder from the <span class="courier">fwatch\tmp\_extracted</span> directory to the modfolder.</p>
+<p>Moves or copies selected file or folder from the <span class="courier">fwatch\tmp\_extracted</span> directory to the modfolder.</p>
 <p>Overwrites files.</p>
-<p>Sub-directories in the destination path that don't exist will be created.</p>
+<p>Automatically creates sub-directories in the destination path.</p>
 <br><br>
 
 <p>Example:</p>
@@ -194,7 +194,7 @@ to the<br>
 
 <br><br>
 
-<p>To rename a file write new name as the third argument.</p>	
+<p>To rename a file write new name after the destination path.</p>	
 <pre><code>MOVE  misc\readme.txt  docs  readme_old.txt</code></pre>
 <p>Use dot if you don’t want to change location.</p>	
 <pre><code>MOVE  misc\readme.txt  .  readme_old.txt</code></pre>
@@ -206,7 +206,7 @@ to the<br>
 
 <br><br>
 
-<p>If a link was passed then the file will be downloaded. Add a vertical bar to separate download arguments from the move arguments</p>	
+<p>Write URL to download a file. Separate <a href="#links">download arguments</a> from the <code>Move</code> arguments with a vertical bar.</p>
 <pre><code>MOVE  ftp://ftp.armedassault.info/ofpd/gameserver/editorupdate102.pbo  |  addons</code></pre>
 
 <br><br>
@@ -230,13 +230,13 @@ to the<br>
 <a name="unpackpbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">UnpackPBO, ExtractPBO</h3>
 <pre><code>UNPACKPBO  &lt;file&gt;  &lt;destination&gt;</code></pre>
-<p>Program will unpack selected PBO file from the modfolder directory.</p>
+<p>Extracts PBO file from the modfolder.</p>
 <p>Overwrites existing files.</p>
 <br><br>
 <p>Example:</p>
 <pre><code>UNPACKPBO  addons\ww4_fx.pbo</code></pre>
 <br><br>
-<p>Optionally you can specify where to extract files. Sub‐directories in the destination path that don’t exist will be created.</p>
+<p>Optionally you can specify where to extract files. Sub-directories in the destination path are automatically created.</p>
 <pre><code>UNPACKPBO  addons\ww4_fx.pbo  temp</code></pre>
 <br><br>
 <p>To access files from any location start the path with <code>&lt;game&gt;</code>. If destination wasn’t specified then the addon will be unpacked to the modfolder.</p>
@@ -248,18 +248,18 @@ to the<br>
 <a name="makepbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">MakePBO</h3>
 <pre><code>MAKEPBO  &lt;folder&gt;  /no_delete</code></pre>
-<p>Program will create a PBO file (without compression) out of the selected folder from the modfolder and then remove the source.</p>
+<p>Creates PBO file (no compression) from a directory in the modfolder and then removes the source.</p>
 
 <br><br>
 <p>Example:</p>
 <pre><code>MAKEPBO  addons\ww4_fx</code></pre>
 
 <br><br>
-<p>Add switch <code>/no_delete</code> to keep the original directory.</p>
+<p>Add switch <code>/no_delete</code> to keep the original folder.</p>
 <pre><code>MAKEPBO  addons\ww4_fx  /no_delete</code></pre>
 
 <br><br>
-<p>Use this command without file name to pack the last addon extracted with <code>unpackpbo</code>.</p>
+<p>Use this command without writing file name to pack the last addon extracted with <code>UnpackPBO</code>.</p>
 
 
 
@@ -268,7 +268,7 @@ to the<br>
 <a name="delete"></a><hr class="betweencommands">
 <h3 class="commandtitle">Delete, Remove</h3>
 <pre><code>DELETE  &lt;file&gt;  /match_dir</code></pre>
-<p>Program will delete selected file or directory from the modfolder.</p>
+<p>Deletes file or folder from the modfolder.</p>
 <br><br>
 <p>Example:</p>
 <pre><code>DELETE  Install_win98_ME.bat</code></pre>
@@ -286,17 +286,17 @@ to the<br>
 <a name="edit"></a><hr class="betweencommands">
 <h3 class="commandtitle">Edit</h3>
 <pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
-<p>Replaces text line in the selected file from the modfolder directory.</p>
-<p>If text you want to already contains quotation marks then use a custom delimeter to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
+<p>Replaces text line in the selected file from the modfolder.</p>
+<p>If the text you want to already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
 
 <br><br>
 <p>Example:</p>
 <pre><code>EDIT addons\FDF_Suursaari\config.cpp 58 >>@cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};@</code></pre>
 
 <br><br>
-<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the line number is zero or exceeds the number of lines in the file then installer will add text at the end.</p>
+<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the selected line number is zero or exceeds the number of lines in a file then text will be added at the end.</p>
 <p>Add switch <code>/append</code> to append to the line instead of replacing.</p>
-<p>Use <code>/newline</code> to create a new file. Existing file will be trashed.</p>
+<p>Add switch <code>/newline</code> to create a new file. Existing file will be trashed.</p>
 <p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
 
 
@@ -307,9 +307,9 @@ to the<br>
 <pre><code>IF_VERSION  &lt;operator&gt;  &lt;number&gt;
 ELSE
 ENDIF</code></pre>
-<p>Compares game version with given number.</p>
-<p>If it’s correct then following instructions are executed until the end of the script or until program encounters <code>endif</code> command. Content between else and <code>endif</code> will be ignored.</p>
-<p>If condition wasn’t correct then installer will skip commands until end of script or until it encounters <code>else</code> or <code>endif</code>.</p>
+<p>Runs instructions if your game version matches given number.</p>
+<p>If it’s correct then following instructions are executed until the end of the script or until <code>endif</code> command is encountered. Content between else and <code>endif</code> will be ignored.</p>
+<p>If condition wasn’t correct then commands are skipped until the end of script or until <code>else</code> or <code>endif</code> commands.</p>
 <p>Allowed comparison operators are: <code>=</code>, <code>==</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;&gt;</code>, <code>!=</code>. If there’s no operator then equality is assumed.</p>
 <p>Conditions can be nested.</p>
 
@@ -331,12 +331,12 @@ ENDIF</code></pre>
 <a name="rename"></a><hr class="betweencommands">
 <h3 class="commandtitle">Rename</h3>
 <pre><code>RENAME  &lt;file&gt;  &lt;new name&gt;  /match_dir</code></pre>
-<p>Program will rename selected file or directory from the modfolder.</p>
+<p>Renames file or folder from the modfolder.</p>
 <br><br>
 <p>Example:</p>
 <pre><code>RENAME  addons\lo_res_tex.pbo  lo_res_tex.pbx</code></pre>
 <br><br>
-<p>Wildcards can be used to match multiple files.</p>
+<p><a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows">Wildcards</a> can be used to match multiple files.</p>
 <pre><code>RENAME  addons\*.pbo  *.pbx
 RENAME  addons\*.pbo  ??????????????????_OLD*</code></pre>
 <p>To match both files and folders add <code>/match_dir</code> switch.</p>
@@ -348,7 +348,7 @@ RENAME  addons\*.pbo  ??????????????????_OLD*</code></pre>
 <a name="makedir"></a><hr class="betweencommands">
 <h3 class="commandtitle">Makedir, Newfolder</h3>
 <pre><code>MAKEDIR  &lt;path&gt;</code></pre>
-<p>Creates a folder and its parents.</p>
+<p>Creates folder(s).</p>
 <br><br>
 <p>Example:</p>
 <pre><code>MAKEDIR  addons
@@ -358,6 +358,19 @@ MAKEDIR  dta\hwtl</code></pre>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\addons</span><br>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta</span><br>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta\hwtl</span><br>
+
+
+
+
+<a name="alias"></a><hr class="betweencommands">
+<h3 class="commandtitle">Alias</h3>
+<pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
+<p>Adds one or more alternative name for the mod. It's relevant for auto installation and for a Move command - folders matching selected name are moved to the game directory.</p>
+<p>Names are carried over to the other installation scripts of the same mod.</p>
+<p>Use this command without arguments to clear all the names.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>ALIAS  @ww4mod25a</code></pre>
 
 
 
@@ -398,19 +411,6 @@ If the file is in the modfolder then start the path with <code>&lt;mod&gt;</code
 <pre><code>ASK_RUN  &lt;mod&gt;\Install_win2k_XP.bat</code></pre>
 <br><br>
 <p>Use this command without any arguments to run the last downloaded file.</p>
-
-
-
-
-<a name="alias"></a><hr class="betweencommands">
-<h3 class="commandtitle">Alias</h3>
-<pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
-<p>Adds one or more alternative name for the mod. It's relevant for auto installation and for a Move command - folders matching selected name are moved to the game directory.</p>
-<p>Names are carried over to the other installation scripts of the same mod.</p>
-<p>Use this command without arguments to clear all the names.</p>
-<br><br>
-<p>Example:</p>
-<pre><code>ALIAS  @ww4mod25a</code></pre>
 
 
 

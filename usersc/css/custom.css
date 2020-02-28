@@ -1,3 +1,22 @@
+.scripting_command {
+	color: rgb(0, 0, 255);
+	font-weight: bold;
+}
+
+.scripting_command_switch {
+	color: rgb(255, 153, 0);
+	font-style: italic;
+}
+
+.scripting_command_url {
+	color: #3399f3;
+}
+
+.scripting_command_arg1 {color: #C881B0;}
+.scripting_command_arg2 {color: rgb(104,157,25,0.84);}
+.scripting_command_arg3 {color: rgb(128,128,128);}
+.scripting_command_arg4 {color: #E40909;}
+
 .btn-overflow {
 	text-overflow: ellipsis;
 	white-space: normal;
