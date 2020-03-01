@@ -184,6 +184,8 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_TYPE3" => "Миссии",
 	"GS_STR_MOD_TYPE3_DESC" => "Пак, который содержит только миссии",
 	"GS_STR_MOD_CURATOR" => "Владелец",
+	"GS_STR_MOD_ALIAS" => "Alternative Mod Names",
+	"GS_STR_MOD_ALIAS_DESC" => "Works just like %m1%Alias%m2% command but for the entire installation",
 	
 	"GS_STR_MOD_EDITVER" => "Редактировать версию мода",
 	"GS_STR_MOD_EDITSCRIPT" => "Редактировать скрипт",

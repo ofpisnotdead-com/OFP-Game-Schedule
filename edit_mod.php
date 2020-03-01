@@ -86,6 +86,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->add_emptyspan("convertlink_field", "id=\"convertlink_field_group\"");
 	$form->add_text("size"       , lang("GS_STR_MOD_DOWNLOADSIZE"), "", "128");
 	$form->add_select("sizetype" , "", "", GS_SIZE_TYPES, "MB");
+	$form->add_text("alias"      , lang("GS_STR_MOD_ALIAS")       , lang("GS_STR_MOD_ALIAS_DESC",["<a target=\"_blank\" href=\"install_scripts#alias\">","</a>"]), "@ww4mod21 @ww4mod");
 	
 	if ($form->hidden["display_form"] == "Add New") {
 		$form->include_file("usersc/js/gs_functions.js");
@@ -113,10 +114,11 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$unique_array[1][] = ["id","!=",$id];
 		
 		$form->init_validation     (["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $exclude);
-		$form->add_validation_rules(["description"], ["max"=>GS_MAX_MSG_INPUT_LENGTH, "unique" =>$unique_array]);
+		$form->add_validation_rules(["description"], ["max"=>GS_MAX_MSG_INPUT_LENGTH, "unique"=>$unique_array]);
 		$form->add_validation_rules(["scripttext"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
 		$form->add_validation_rules(["size"]       , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]   , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
+		$form->add_validation_rules(["alias"]      , ["max"=>GS_MAX_MSG_INPUT_LENGTH, "required"=>false]);
 
 
 		// Send data to table
@@ -127,7 +129,8 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				"description" => $data["description"],
 				"access"      => $data["access"],
 				"forcename"   => $data["forcename"],
-				"type"        => $data["type"]
+				"type"        => $data["type"],
+				"alias"       => $data["alias"]
 			];
 			
 			$admin_fields = [
@@ -195,7 +198,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
 		
 	if ($form->hidden["display_form"] == "Edit")
-		$form->change_control(["scripttext", "size", "sizetype"], "remove");
+		$form->change_control(["convertlink_field", "scripttext", "size", "sizetype"], "remove");
 	
 	$form->data["description"] = htmlspecialchars($form->data["description"]);
 	

@@ -1,6 +1,6 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,2,28,5,22,29,37,268,60,FALSE]");
-define("GS_VERSION", 0.52);
+define("GS_FWATCH_LAST_UPDATE","[2020,3,1,0,21,14,9,540,60,FALSE]");
+define("GS_VERSION", 0.53);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
 define("GS_DECRYPT_KEY", 0);
@@ -1241,6 +1241,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				gs_mods.createdby,
 				gs_mods.modifiedby,
 				gs_mods.access,
+				gs_mods.alias,
 				gs_mods_updates.version,
 				gs_mods_updates.created AS update_created,
 				gs_mods_updates.modified AS modified2,
@@ -1329,8 +1330,9 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 
 				if ($last_id != $id) {
 					if ($request_type == "game") {
+						$alias = $row["alias"]=="" ? "?" : $row["alias"];
 						$output["info"][$id]["sqf"]    = "_mod_name=\"\"{$row["name"]}\"\";_mod_forcename=".($row["forcename"]=="1" ? "true" : "false").";";
-						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]}";
+						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]} \"$alias\"";
 						
 						if ($add_description)
 							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".str_replace("\"", "\"\"\"\"", strip_tags($row["description"]))."\"\";";
@@ -2277,6 +2279,7 @@ function GS_scripting_highlighting($code) {
 		"makepbo"      => "makepbo",
 		"extractpbo"   => "unpackpbo",
 		"unpackpbo"    => "unpackpbo",
+		"unpbo"        => "unpbo",
 		"edit"         => "edit",
 		"begin_ver"    => "",
 		"alias"        => "alias"

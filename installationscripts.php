@@ -101,7 +101,7 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 		<ul>
 		<li><a href="#unpack">Unpack, Extract</a></li>
 		<li><a href="#move">Move, Copy</a></li>
-		<li><a href="#unpackpbo">UnpackPBO, ExtractPBO</a></li>
+		<li><a href="#unpackpbo">UnPBO, UnpackPBO, ExtractPBO</a></li>
 		<li><a href="#makepbo">MakePBO</a></li>
 		<li><a href="#delete">Delete, Remove</a></li>
 		<li><a href="#edit">Edit</a></li>
@@ -228,19 +228,19 @@ to the<br>
 
 
 <a name="unpackpbo"></a><hr class="betweencommands">
-<h3 class="commandtitle">UnpackPBO, ExtractPBO</h3>
-<pre><code>UNPACKPBO  &lt;file&gt;  &lt;destination&gt;</code></pre>
+<h3 class="commandtitle">UnPBO, UnpackPBO, ExtractPBO</h3>
+<pre><code>UNPBO  &lt;file&gt;  &lt;destination&gt;</code></pre>
 <p>Extracts PBO file from the modfolder.</p>
 <p>Overwrites existing files.</p>
 <br><br>
 <p>Example:</p>
-<pre><code>UNPACKPBO  addons\ww4_fx.pbo</code></pre>
+<pre><code>UNPBO  addons\ww4_fx.pbo</code></pre>
 <br><br>
 <p>Optionally you can specify where to extract files. Sub-directories in the destination path are automatically created.</p>
-<pre><code>UNPACKPBO  addons\ww4_fx.pbo  temp</code></pre>
+<pre><code>UNPBO  addons\ww4_fx.pbo  temp</code></pre>
 <br><br>
 <p>To access files from any location start the path with <code>&lt;game&gt;</code>. If destination wasn’t specified then the addon will be unpacked to the modfolder.</p>
-<pre><code>UNPACKPBO  &lt;game&gt;\addons\kozl.pbo  addons</code></pre>
+<pre><code>UNPBO  &lt;game&gt;\addons\kozl.pbo  addons</code></pre>
 
 
 
@@ -259,7 +259,7 @@ to the<br>
 <pre><code>MAKEPBO  addons\ww4_fx  /no_delete</code></pre>
 
 <br><br>
-<p>Use this command without writing file name to pack the last addon extracted with <code>UnpackPBO</code>.</p>
+<p>Use this command without writing file name to pack the last addon extracted with <code>UnPBO</code>.</p>
 
 
 
@@ -365,8 +365,7 @@ MAKEDIR  dta\hwtl</code></pre>
 <a name="alias"></a><hr class="betweencommands">
 <h3 class="commandtitle">Alias</h3>
 <pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
-<p>Adds one or more alternative name for the mod. It's relevant for auto installation and for a Move command - folders matching selected name are moved to the game directory.</p>
-<p>Names are carried over to the other installation scripts of the same mod.</p>
+<p>Adds one or more alternative names for the mod. It's relevant for auto installation and for the <code>Move</code> command: folders with selected name will be merged with the mod.</p>
 <p>Use this command without arguments to clear all the names.</p>
 <br><br>
 <p>Example:</p>
@@ -484,8 +483,8 @@ MOVE    FDF_Suursaari.pbo  addons
 MOVE    Suursaari_anim  addons
 MOVE    *  readme_addons
 
-UNPACKPBO  addons\FDF_Suursaari.pbo
-EDIT       addons\FDF_Suursaari\config.cpp  58  "cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};"
+UNPBO  addons\FDF_Suursaari.pbo
+EDIT   addons\FDF_Suursaari\config.cpp  58  "cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};"
 MAKEPBO
 
 UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
@@ -507,20 +506,20 @@ https://www.moddb.com/downloads/start/93801  /downloads/mirror/  wgl512_2006-11-
 http://www.mediafire.com/file/4rm6uf16ihe36ce  ://download  wgl512_2006-11-12.rar
 
 IF_VERSION  <=  1.96
-	UNPACKPBO  &lt;game&gt;\Res\Dta\HWTL\data.pbo  dta\HWTL
-	COPY       &lt;mod&gt;\newdata\*.pa?           dta\HWTL\Data
+	UNPBO  &lt;game&gt;\Res\Dta\HWTL\data.pbo  dta\HWTL
+	COPY   &lt;mod&gt;\newdata\*.pa?           dta\HWTL\Data
 	MAKEPBO
 	
-	UNPACKPBO  &lt;game&gt;\Res\Dta\HWTL\data3d.pbo  dta\HTWL
-	COPY       &lt;mod&gt;\newdata\*.p3d             dta\HWTL\data3d
+	UNPBO  &lt;game&gt;\Res\Dta\HWTL\data3d.pbo  dta\HTWL
+	COPY   &lt;mod&gt;\newdata\*.p3d             dta\HWTL\data3d
 	MAKEPBO
 ELSE
-	UNPACKPBO  &lt;game&gt;\DTA\Data.pbo  dta
-	COPY       &lt;mod&gt;\newdata\*.pa?  dta\Data
+	UNPBO  &lt;game&gt;\DTA\Data.pbo  dta
+	COPY   &lt;mod&gt;\newdata\*.pa?  dta\Data
 	MAKEPBO
 	
-	UNPACKPBO  &lt;game&gt;\DTA\Data3D.pbo  dta
-	COPY       &lt;mod&gt;\newdata\*.p3d    dta\Data3D
+	UNPBO  &lt;game&gt;\DTA\Data3D.pbo  dta
+	COPY   &lt;mod&gt;\newdata\*.p3d    dta\Data3D
 	MAKEPBO
 ENDIF
 
@@ -656,6 +655,13 @@ First release.<br>
 <li>Command arguments can now be escaped with custom delimiters (relevant for the <code>Edit</code> command)</li>
 </ul>
 
+<br>
+<br>
+<strong>0.53</strong> (01.03.20)<br>
+<ul>
+<li><code>Alias</code> – effect now lasts until the end of the script (instead of throughout the entire installation)</li>
+<li>Added shorter name <code>UnPBO</code> for the command <code>UnpackPBO</code></li>
+</ul>
 
 
 

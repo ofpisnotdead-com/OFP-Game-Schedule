@@ -184,6 +184,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_TYPE3" => "Mission Pack",
 	"GS_STR_MOD_TYPE3_DESC" => "contains only missions",
 	"GS_STR_MOD_CURATOR" => "Curated by",
+	"GS_STR_MOD_ALIAS" => "Alternative Mod Names",
+	"GS_STR_MOD_ALIAS_DESC" => "Works just like %m1%Alias%m2% command but for the entire installation",
 	
 	"GS_STR_MOD_EDITVER" => "Edit Version",
 	"GS_STR_MOD_EDITSCRIPT" => "Edit Script",
