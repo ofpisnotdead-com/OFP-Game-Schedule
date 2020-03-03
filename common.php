@@ -573,7 +573,7 @@ function GS_record_delete($record_type, $record_table, &$form, $id, $uid) {
 
 // Interpret expression typed by the user (for jumping between mod versions)
 function GS_parse_jump_rule($string, $from_version, $to_version) {
-	$string     = strtolower(trim($string));
+	$string     = str_replace(["&lt;","&gt;"], ["<",">"], strtolower(trim($string)));
 	$max        = strlen($string);
 	$lastType   = "";
 	$wordStart  = 0;
@@ -2277,8 +2277,8 @@ function GS_scripting_highlighting($code) {
 		"else"         => "if_version",
 		"endif"        => "if_version",
 		"makepbo"      => "makepbo",
-		"extractpbo"   => "unpackpbo",
-		"unpackpbo"    => "unpackpbo",
+		"extractpbo"   => "unpbo",
+		"unpackpbo"    => "unpbo",
 		"unpbo"        => "unpbo",
 		"edit"         => "edit",
 		"begin_ver"    => "",

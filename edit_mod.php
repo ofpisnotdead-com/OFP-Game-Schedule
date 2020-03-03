@@ -64,7 +64,6 @@ $install_example = "ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar
 
 
 
-
 // If user wants to add new mod or edit existing
 if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 {
@@ -77,8 +76,10 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	for($i=0; $i<4; $i++)
 		$mod_type_select[] = [lang("GS_STR_MOD_TYPE{$i}")." - ".lang("GS_STR_MOD_TYPE{$i}_DESC"),"{$i}"];
 	
+	$description_hint =  lang("GS_STR_MOD_DESCRIPTION_HINT"). ". <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
+	
 	$form->add_text("name"       , lang("GS_STR_MOD_FOLDER")      , lang("GS_STR_MOD_FOLDER_HINT")     , "@ww4mod25");
-	$form->add_text("description", lang("GS_STR_MOD_DESCRIPTION") , lang("GS_STR_MOD_DESCRIPTION_HINT"), lang("GS_STR_MOD_DESCRIPTION_EXAMPLE"));
+	$form->add_text("description", lang("GS_STR_MOD_DESCRIPTION") , $description_hint                  , lang("GS_STR_MOD_DESCRIPTION_EXAMPLE"));
 	$form->add_select("type"     , lang("GS_STR_MOD_TYPE")        , ""                                 , $mod_type_select, "0");
 	$form->add_select("access"   , lang("GS_STR_MOD_ACCESS")      , lang("GS_STR_MOD_ACCESS_HINT")     , [[lang("GS_STR_MOD_PUBLIC"),"1"], [lang("GS_STR_MOD_PRIVATE"),"0"]], "1", "radio");
 	$form->add_select("forcename", lang("GS_STR_MOD_FORCENAME")   , lang("GS_STR_MOD_FORCENAME_HINT")  , [[lang("GS_STR_DISABLED"),"0"], [lang("GS_STR_ENABLED"),"1"]], "0", "radio");
@@ -114,7 +115,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$unique_array[1][] = ["id","!=",$id];
 		
 		$form->init_validation     (["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $exclude);
-		$form->add_validation_rules(["description"], ["max"=>GS_MAX_MSG_INPUT_LENGTH, "unique"=>$unique_array]);
+		$form->add_validation_rules(["description"], ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "unique"=>$unique_array]);
 		$form->add_validation_rules(["scripttext"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
 		$form->add_validation_rules(["size"]       , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]   , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
@@ -255,8 +256,10 @@ if ($form->hidden["display_form"] == "Update")
 	$form->add_html($js_modal);
 	
 	
-	if (in_array($form->hidden["display_subform"], ["Add", "Edit"]))
-		$form->add_text("changelog", lang("GS_STR_MOD_PATCHNOTES"), lang("GS_STR_MOD_PATCHNOTES_HINT"), lang("GS_STR_MOD_PATCHNOTES_EXAMPLE"), "", -1);
+	if (in_array($form->hidden["display_subform"], ["Add", "Edit"])) {
+		$description_hint = lang("GS_STR_MOD_PATCHNOTES_HINT") . ". <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
+		$form->add_text("changelog", lang("GS_STR_MOD_PATCHNOTES"), $description_hint, lang("GS_STR_MOD_PATCHNOTES_EXAMPLE"), "", -1);
+	}
 
 	$form->add_button("action", $form->hidden["display_subform"], lang(GS_FORM_ACTIONS_MODUPDATE[$form->hidden["display_subform"]]), "btn-mods btn-lg", "SubmitButton");
 		
@@ -358,7 +361,7 @@ if ($form->hidden["display_form"] == "Update")
 				"size"     => "{$data["size"]} {$data["sizetype"]}",
 				"script"   => $data["scripttext"]
 			];
-			
+
 			$link_fields = [
 				"updateid" => $updateid,
 				"scriptid" => $data["script"],
@@ -371,14 +374,14 @@ if ($form->hidden["display_form"] == "Update")
 			// Update script
 			if ($form->hidden["display_subform"] == "Modify") {
 				$scriptid = $db->cell("gs_mods_scripts.id",["uniqueid","=",$data["script"]]);
-				
+
 				if (isset($scriptid)) {
 					$result = $form->feedback(
 						$db->update("gs_mods_scripts", $scriptid, $script_fields),
 						lang("GS_STR_MOD_SCRIPT_UPDATED"),
 						lang("GS_STR_MOD_SCRIPT_UPDATED_ERROR")
 					);
-					
+
 					if ($result)
 						$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$scriptid, "type"=>GS_LOG_MOD_SCRIPT_UPDATED, "added"=>date("Y-m-d H:i:s")]);
 				} else
@@ -643,12 +646,12 @@ if ($form->hidden["display_form"] == "Update")
 		$links        = $db->query($sql,[$id])->results(true);
 		$links_select = [[lang("GS_STR_MOD_ADD_NEW_LINK"), "-1", "SELECTED"]];
 		$js_link_list = ["name"=>"Links_List", "data"=>[]];
-		
+
 		foreach ($links as $link) {
-			$condition      = htmlentities($link["fromver"]);
+			$condition      = str_replace(["&lt;","&gt;"], ["<",">"], $link["fromver"]);
 			$links_select[] = ["$condition ".lang("GS_STR_MOD_TO")." {$link["version"]}", $link["uniqueid"]];
-			$size           = explode(' ', $update["size"]);
-			
+			$size           = explode(' ', $link["size"]);
+
 			$js_link_list["data"][] = [
 				"uniqueid"       => $link["uniqueid"],
 				"fromver"        => $link["fromver"],

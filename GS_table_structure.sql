@@ -6,7 +6,7 @@ UPDATE `settings` SET `us_css3` = '../usersc/css/custom.css' WHERE `settings`.`i
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 14, 2019 at 09:17 PM
+-- Generation Time: Mar 03, 2020 at 05:37 PM
 -- Server version: 5.5.63-MariaDB
 -- PHP Version: 7.0.32
 
@@ -24,6 +24,19 @@ SET time_zone = "+00:00";
 --
 -- Database: `ofpfagus_schedule`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gs_announce`
+--
+
+CREATE TABLE `gs_announce` (
+  `id` int(11) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `createdby` int(11) NOT NULL DEFAULT '0',
+  `text` text COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -48,7 +61,7 @@ CREATE TABLE `gs_log` (
 CREATE TABLE `gs_mods` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `description` varchar(255) NOT NULL,
+  `description` text NOT NULL,
   `uniqueid` varchar(10) NOT NULL,
   `removed` tinyint(1) NOT NULL DEFAULT '0',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -57,7 +70,8 @@ CREATE TABLE `gs_mods` (
   `modifiedby` int(11) NOT NULL DEFAULT '0',
   `access` tinyint(1) NOT NULL DEFAULT '1',
   `forcename` tinyint(4) NOT NULL DEFAULT '0',
-  `type` int(11) NOT NULL
+  `type` int(11) NOT NULL,
+  `alias` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -228,6 +242,12 @@ CREATE TABLE `gs_serv_times` (
 --
 
 --
+-- Indexes for table `gs_announce`
+--
+ALTER TABLE `gs_announce`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `gs_log`
 --
 ALTER TABLE `gs_log`
@@ -310,6 +330,12 @@ ALTER TABLE `gs_serv_times`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `gs_announce`
+--
+ALTER TABLE `gs_announce`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `gs_log`

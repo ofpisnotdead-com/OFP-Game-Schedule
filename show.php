@@ -28,6 +28,7 @@ if (!empty($servers["info"]))
 echo "<div class=\"row\">";
 $user_list  = [];
 $js_addedon = [];
+$Parsedown   = new Parsedown();
 
 // Get user list first
 $user_id_list = [];
@@ -70,8 +71,9 @@ foreach($input["mod"] as $uniqueid) {
 		$value = "";
 		
 		switch($key) {
-			case "type" : $value=lang("GS_STR_MOD_TYPE{$mod["type"]}"); break;
-			default: $value=$mod[$key];
+			case "type"        : $value=lang("GS_STR_MOD_TYPE{$mod["type"]}"); break;
+			case "description" : $value=$Parsedown->line($mod[$key]); break;
+			default            : $value=$mod[$key];
 		}
 		
 		$value = str_replace("&amp;#039;", "'", $value);
@@ -124,7 +126,7 @@ foreach($input["mod"] as $uniqueid) {
 				if ($number_of_notes > 1)
 					echo "<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}<span style=\"float:right;\">{$update["note_date"][$note_index]}</span></span><br>";
 				
-				echo $note;
+				echo $Parsedown->line($note);
 				echo "</p>";
 			}
 			

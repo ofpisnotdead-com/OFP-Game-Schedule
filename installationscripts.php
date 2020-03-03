@@ -101,14 +101,14 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 		<ul>
 		<li><a href="#unpack">Unpack, Extract</a></li>
 		<li><a href="#move">Move, Copy</a></li>
-		<li><a href="#unpackpbo">UnPBO, UnpackPBO, ExtractPBO</a></li>
+		<li><a href="#unpbo">UnPBO, UnpackPBO, ExtractPBO</a></li>
 		<li><a href="#makepbo">MakePBO</a></li>
-		<li><a href="#delete">Delete, Remove</a></li>
 		<li><a href="#edit">Edit</a></li>
+		<li><a href="#delete">Delete, Remove</a></li>
 		<li><a href="#if_version">If_version, else, endif</a></li>
+		<li><a href="#alias">Alias</a></li>
 		<li><a href="#rename">Rename</a></li>
 		<li><a href="#makedir">Makedir, Newfolder</a></li>
-		<li><a href="#alias">Alias</a></li>
 		<li><a href="#get">Get, Download</a></li>
 		<li><a href="#ask_get">Ask_get, Ask_download</a></li>
 		<li><a href="#ask_run">Ask_run, Ask_execute</a></li>
@@ -227,7 +227,7 @@ to the<br>
 
 
 
-<a name="unpackpbo"></a><hr class="betweencommands">
+<a name="unpbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">UnPBO, UnpackPBO, ExtractPBO</h3>
 <pre><code>UNPBO  &lt;file&gt;  &lt;destination&gt;</code></pre>
 <p>Extracts PBO file from the modfolder.</p>
@@ -264,6 +264,25 @@ to the<br>
 
 
 
+<a name="edit"></a><hr class="betweencommands">
+<h3 class="commandtitle">Edit</h3>
+<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
+<p>Replaces text line in the selected file from the modfolder.</p>
+<p>If the text you want to already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
+
+<br><br>
+<p>Example:</p>
+<pre><code>EDIT addons\FDF_Suursaari\config.cpp 58 >>@cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};@</code></pre>
+
+<br><br>
+<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the selected line number is zero or exceeds the number of lines in a file then text will be added at the end.</p>
+<p>Add switch <code>/append</code> to append to the line instead of replacing.</p>
+<p>Add switch <code>/newfile</code> to create a new file. Existing file will be trashed.</p>
+<p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
+
+
+
+
 
 <a name="delete"></a><hr class="betweencommands">
 <h3 class="commandtitle">Delete, Remove</h3>
@@ -279,25 +298,6 @@ to the<br>
 <pre><code>DELETE  temp\*  /match_dir</code></pre>
 <br><br>
 <p>Use this command without any arguments to remove the last downloaded file.</p>
-
-
-
-
-<a name="edit"></a><hr class="betweencommands">
-<h3 class="commandtitle">Edit</h3>
-<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
-<p>Replaces text line in the selected file from the modfolder.</p>
-<p>If the text you want to already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
-
-<br><br>
-<p>Example:</p>
-<pre><code>EDIT addons\FDF_Suursaari\config.cpp 58 >>@cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};@</code></pre>
-
-<br><br>
-<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the selected line number is zero or exceeds the number of lines in a file then text will be added at the end.</p>
-<p>Add switch <code>/append</code> to append to the line instead of replacing.</p>
-<p>Add switch <code>/newline</code> to create a new file. Existing file will be trashed.</p>
-<p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
 
 
 
@@ -324,6 +324,18 @@ ENDIF</code></pre>
 ELSE
 	COPY	&lt;game&gt;\Res\bin\Config.cpp  bin
 ENDIF</code></pre>
+
+
+
+
+<a name="alias"></a><hr class="betweencommands">
+<h3 class="commandtitle">Alias</h3>
+<pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
+<p>Adds one or more alternative names for the mod. It's relevant for auto installation and for the <code>Move</code> command: folders with selected name will be merged with the mod.</p>
+<p>Use this command without arguments to clear all the names.</p>
+<br><br>
+<p>Example:</p>
+<pre><code>ALIAS  @ww4mod21</code></pre>
 
 
 
@@ -358,18 +370,6 @@ MAKEDIR  dta\hwtl</code></pre>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\addons</span><br>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta</span><br>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta\hwtl</span><br>
-
-
-
-
-<a name="alias"></a><hr class="betweencommands">
-<h3 class="commandtitle">Alias</h3>
-<pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
-<p>Adds one or more alternative names for the mod. It's relevant for auto installation and for the <code>Move</code> command: folders with selected name will be merged with the mod.</p>
-<p>Use this command without arguments to clear all the names.</p>
-<br><br>
-<p>Example:</p>
-<pre><code>ALIAS  @ww4mod25a</code></pre>
 
 
 
