@@ -14,6 +14,6 @@ Requires PHP 7 and UserSpice 4.4.14
 * Copy [Parsedown.php](https://github.com/erusev/parsedown) to users\classes
 * Copy GS files to your UserSpice installation folder.
 * Run query from the file GS_table_structure.sql
-* Go to Admin Dashboard --> Pages and add public access for pages: edit_server.php, edit_mod.php, installationscripts.php, quickstart.php, installdedicated.php, show.php, api_documentation.php, recent_activity.php
+* Go to Admin Dashboard --> Pages and add public access for pages: edit_server.php, edit_mod.php, installationscripts.php, quickstart.php, installdedicated.php, show.php, api_documentation.php, recent_activity.php, allmods.php
 * Add administrator access for page admin_log.php
 * Go to Permission Levels and add Unlimited User (ID-3) and Experienced user (ID-4)

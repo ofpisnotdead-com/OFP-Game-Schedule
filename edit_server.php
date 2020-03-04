@@ -662,8 +662,9 @@ if ($form->hidden["display_form"] == "Mods")
 		$form->add_heading(count($mods_to_rem)>=GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level] ? lang("GS_STR_SERVER_MOD_FULL") : lang("GS_STR_SERVER_MOD_NOTHING"), lang("GS_STR_SERVER_MOD_AVAILABLE"));
 	else {
 		$form->size = 12;
-		$html = "";
+		$html          = "";
 		$js_table_list = ["name"=>"Mod_Tables_List", "data"=>[]];
+		$Parsedown     = new Parsedown();
 		
 		foreach ($mod_labels as $key=>$label) {
 			$label_description = "";
@@ -694,8 +695,8 @@ if ($form->hidden["display_form"] == "Mods")
 				
 				$html .= "
 				<tr>
-					<td>{$modfolders[$i]["name"]}</td>
-					<td>{$modfolders[$i]["description"]}</td>
+					<td><b>{$modfolders[$i]["name"]}</b></td>
+					<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
 					<td>{$modfolders[$i]["Curator"]}</td>
 					<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\">{$modfolders[$i]["uniqueid"]}</a></td>
 					<td><button type=\"submit\" class=\"btn btn-mods btn-xs\" id=\"mod_to_assign\" name=\"mod_to_assign\" value=\"{$modfolders[$i]["uniqueid"]}\">".lang("GS_STR_SERVER_MOD_ASSIGN")."</button></td>

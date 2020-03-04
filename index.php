@@ -216,7 +216,7 @@ foreach ($items as $item) {
 
 echo "
 <div class=\"panel panel-default\">
-<div class=\"panel-body mods_background\">
+<div class=\"panel-body mods_background\" style=\"display:flex;\">
 <table style=\"table-layout:fixed;width:100%\">";
 
 $current_column = 0;
@@ -232,6 +232,11 @@ for ($current_row=0; $current_row<$number_of_rows; $current_row++) {
 }
 
 echo "</table>
+
+<div>
+	<a href=\"allmods.php\"><span class=\"glyphicon glyphicon-link\"></span></a>
+</div>
+
 </div>
 </div>";
 

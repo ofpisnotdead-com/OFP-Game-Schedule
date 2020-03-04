@@ -158,7 +158,7 @@ if (!empty($js_addedon)) {
 
 echo "</div>";
 
-if (!empty($mods["info"]))
+if (!empty($_GET['mod']))
 	echo 
 	"<div class=\"jumbotron\">
 		<h2><a href=\"https://youtu.be/KSK_H8Dc4oo\">".lang("GS_STR_QUICKSTART_HOWTO_INSTALL")."</a></h2>

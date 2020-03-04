@@ -23,7 +23,7 @@
 }
 
 .table-striped > tbody > tr:nth-of-type(2n+1) {
-	background: rgb(241, 255, 244);
+	background: rgb(241, 255, 244, 0.5);
 }
 
 .table-striped > tbody > tr:nth-of-type(2n) {
