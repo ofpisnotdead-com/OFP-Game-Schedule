@@ -234,7 +234,7 @@ for ($current_row=0; $current_row<$number_of_rows; $current_row++) {
 echo "</table>
 
 <div>
-	<a href=\"allmods.php\"><span class=\"glyphicon glyphicon-link\"></span></a>
+	<a href=\"allmods\"><span class=\"glyphicon glyphicon-link\"></span></a>
 </div>
 
 </div>

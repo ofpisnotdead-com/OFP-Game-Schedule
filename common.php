@@ -1,6 +1,6 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,3,4,3,19,23,15,622,60,FALSE]");
-define("GS_VERSION", 0.53);
+define("GS_FWATCH_LAST_UPDATE","[2020,3,28,6,2,41,27,99,60,FALSE]");
+define("GS_VERSION", 0.54);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
 define("GS_DECRYPT_KEY", 0);
@@ -1075,7 +1075,11 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 							case "equalmodreq"       : $new_value=$value=="1" ? "true" : "false"; break;
 							case "version"           : $new_value="$value"; break;
 							case "logo"              : $new_value="\"\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$value}\"\""; break;
-							case "maxcustomfilesize" : $new_value=GS_convert_size_in_bytes($value, "game"); break;
+							case "maxcustomfilesize" : {
+								if ($add_value)
+									$output["info"][$id]["sqf"] .= "_server_maxcustombytes=\"\"$value\"\";";
+								$new_value = GS_convert_size_in_bytes($value, "game");
+							} break;
 							
 							case "port"              : if ($value=="0") $add_value=false;
 							case "ip"                : 
@@ -1169,7 +1173,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 				gs_serv_mods.serverid IN (" . substr( str_repeat(",?",count($output["info"])), 1) . ")
 
 			ORDER BY 
-				gs_serv.id, gs_serv_mods.id
+				gs_serv.id, gs_serv_mods.loadorder
 		";
 	
 		if (!$db->query($sql,array_keys($output["info"]))->error()) {
@@ -2228,9 +2232,9 @@ function GS_convert_cyrillic($input, $to_latin=false) {
 	if (mb_strlen($input) == strlen($input))
 		return $input;
 
-	$utf8        = ["а","б","в","г","д","е" ,"ё" ,"ж" ,"з","и","й","к","л","м","н","о","п","р","с","т","у","ф","х","ц" ,"ч" ,"ш" ,"щ"   ,"ъ","ы","ь","э","ю" ,"я" ,"А","Б","В","Г","Д","Е" ,"Ё" ,"Ж" ,"З","И","Й","К","Л","М","Н","О","П","Р","С","Т","У","Ф","Х","Ц" ,"Ч" ,"Ш" ,"Щ"   ,"Ъ","Ы","Ь","Э","Ю" ,"Я"];
+	$utf8        = ["а","б","в","г","д","е","ё","ж","з","и","й","к","л","м","н","о","п","р","с","т","у","ф","х","ц","ч" ,"ш" ,"щ","ъ","ы","ь","э","ю","я","А","Б","В","Г","Д","Е","Ё","Ж","З","И","Й","К","Л","М","Н","О","П","Р","С","Т","У","Ф","Х","Ц","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю","Я"];
 	$windows1251 = ["\xE0","\xE1","\xE2","\xE3","\xE4","\xE5","\xB8","\xE6","\xE7","\xE8","\xE9","\xEA","\xEB","\xEC","\xED","\xEE","\xEF","\xF0","\xF1","\xF2","\xF3","\xF4","\xF5","\xF6","\xF7","\xF8","\xF9","\xFA","\xFB","\xFC","\xFD","\xFE","\xFF","\xC0","\xC1","\xC2","\xC3","\xC4","\xC5","\xA8","\xC6","\xC7","\xC8","\xC9","\xCA","\xCB","\xCC","\xCD","\xCE","\xCF","\xD0","\xD1","\xD2","\xD3","\xD4","\xD5","\xD6","\xD7","\xD8","\xD9","\xDA","\xDB","\xDC","\xDD","\xDE","\xDF"];
-	$latin       = ["a","b","v","g","d","ye","yo","zh","z","i","y","k","l","m","n","o","p","r","s","t","u","f","h","ts","ch","sh","shsh","" ,"i","" ,"e","yu","ya","A","B","V","G","D","YE","YO","ZH","Z","I","Y","K","L","M","N","O","P","R","S","T","U","F","H","TS","CH","SH","SHSH","" ,"I","" ,"E","YU","YA"];
+	$latin       = ["a","b","v","g","d","ye","yo","zh","z","i","y","k","l","m","n","o","p","r","s","t","u","f","h","ts","ch","sh","shsh","","i","","e","yu","ya","A","B","V","G","D","YE","YO","ZH","Z","I","Y","K","L","M","N","O","P","R","S","T","U","F","H","TS","CH","SH","SHSH","","I","","E","YU","YA"];
 	
 	$output      = "";
 	$length      = mb_strlen($input, 'UTF-8');

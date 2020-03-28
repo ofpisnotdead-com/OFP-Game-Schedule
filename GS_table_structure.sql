@@ -6,7 +6,7 @@ UPDATE `settings` SET `us_css3` = '../usersc/css/custom.css' WHERE `settings`.`i
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 03, 2020 at 05:37 PM
+-- Generation Time: Mar 28, 2020 at 03:28 AM
 -- Server version: 5.5.63-MariaDB
 -- PHP Version: 7.0.32
 
@@ -208,11 +208,12 @@ CREATE TABLE `gs_serv_mods` (
   `modid` int(11) NOT NULL,
   `serverid` int(11) NOT NULL,
   `uniqueid` varchar(10) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `createdby` int(11) NOT NULL DEFAULT '0',
-  `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modifiedby` int(11) NOT NULL DEFAULT '0',
-  `removed` tinyint(4) NOT NULL DEFAULT '0'
+  `removed` tinyint(4) NOT NULL DEFAULT '0',
+  `loadorder` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

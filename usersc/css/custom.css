@@ -36,7 +36,7 @@
 }
 
 .table-striped > tbody > tr:hover {
-	background: rgb(173, 219, 183);
+	background: rgba(173, 219, 183, 0.7);
 	background-repeat: repeat-x;
 }
 

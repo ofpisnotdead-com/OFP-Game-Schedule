@@ -14,17 +14,18 @@ if ($db) {
 		$servers = GS_list_servers($input["server"], $input["password"], "game", GS_fwatch_date_to_timestamp(GS_FWATCH_LAST_UPDATE), $language);
 		$mods    = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], "game", $servers["lastmodified"]);
 
-		// If user just wants the last modification date
+		// If user wants the last modification date
 		if ($input_mode == "lastmodified") {
 			$output .= "GS_MODS_ID=[";
 			$ver     = "]; GS_MODS_VER=[";
 			
+			// Pass mods info so that user can respond with his version numbers
 			foreach ($mods["id"] as $id=>$uniqueid) {
 				$output .= "]+[\"{$uniqueid}\"";
 				$ver    .= "]+[\"{$mods["info"][$id]["version"]}\"";
 			}
 
-			$output .= $ver . "]; \"{$mods["lastmodified"]}\"";
+			$output .= $ver . "]; GS_LAST_MODIFIED=\"{$mods["lastmodified"]}\";true";
 		}
 		
 		// If user wants complete schedule

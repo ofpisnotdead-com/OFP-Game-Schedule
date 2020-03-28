@@ -125,7 +125,8 @@ foreach($input["mod"] as $uniqueid) {
 
 				if ($number_of_notes > 1)
 					echo "<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}<span style=\"float:right;\">{$update["note_date"][$note_index]}</span></span><br>";
-				
+
+				$note = str_replace("&amp;#039;", "'", $note);
 				echo $Parsedown->line($note);
 				echo "</p>";
 			}

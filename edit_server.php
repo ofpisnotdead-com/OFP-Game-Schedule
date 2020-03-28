@@ -430,6 +430,11 @@ if ($form->hidden["display_form"] == "Mods")
 			gs_serv_mods.uniqueid AS gs_serv_mods_uniqueid,
 			gs_serv_mods.removed AS gs_serv_mods_removed,
 			gs_serv_mods.serverid, 
+			gs_serv_mods.created,
+			gs_serv_mods.createdby,
+			gs_serv_mods.modified,
+			gs_serv_mods.modifiedby,
+			gs_serv_mods.loadorder,
 			gs_mods_admins.isowner,
 			gs_mods_admins.right_edit,
 			gs_mods_admins.right_update
@@ -534,11 +539,12 @@ if ($form->hidden["display_form"] == "Mods")
 					
 					// Build an insert query
 					$fields = [
-						"modid"     => [],
-						"serverid"  => [],
-						"uniqueid"  => [],
-						"created"   => [],
-						"createdby" => []
+						"modid"      => [],
+						"serverid"   => [],
+						"uniqueid"   => [],
+						"modified"   => [],
+						"modifiedby" => [],
+						"loadorder"  => []
 					];
 					
 					foreach ($selected_modfolders as $modID) {
@@ -553,13 +559,17 @@ if ($form->hidden["display_form"] == "Mods")
 							}
 						}
 						
-						$fields["modid"][]     = $modID;
-						$fields["serverid"][]  = $id;
-						$fields["created"][]   = date("Y-m-d H:i:s");
-						$fields["createdby"][] = $uid;
+						$fields["modid"][]      = $modID;
+						$fields["serverid"][]   = $id;
+						$fields["modified"][]   = date("Y-m-d H:i:s");
+						$fields["modifiedby"][] = $uid;
+						$fields["loadorder"][]  = $count_existing + 1;
 						
-						if (!$mod_found)
-							$fields["uniqueid"][]  = substr(strtolower(Hash::unique()), rand(0,56), 8);
+						if (!$mod_found) {
+							$fields["uniqueid"][] = substr(strtolower(Hash::unique()), rand(0,56), 8);
+							$fields["created"]    = date("Y-m-d H:i:s");
+							$fields["createdby"]  = $uid;
+						}
 					}
 					
 					$positive_feedback = "GS_STR_SERVER_MOD_ADDED";
@@ -650,7 +660,7 @@ if ($form->hidden["display_form"] == "Mods")
 			$added_labels[$label]  = true;
 		} else {
 			$mods_to_rem[]      = $key;
-			$mods_to_rem_sort[] = $value["gs_serv_mods_id"];
+			$mods_to_rem_sort[] = $value["loadorder"];
 		}
 
 
