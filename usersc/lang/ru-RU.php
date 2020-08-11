@@ -1,4 +1,5 @@
 <?php
+// Translation by mju https://twitter.com/paumju
 $lang = array_merge($lang, array(
 	"GS_STR_DOWNLOAD" => "Скачать",
 	"GS_STR_TRANSLATION" => "Перевод: <a href=\"https://twitter.com/paumju\">mju</a>",
@@ -152,6 +153,8 @@ $lang = array_merge($lang, array(
 	"GS_STR_SERVER_MOD_ASSIGN" => "Добавить",
 	"GS_STR_SERVER_MOD_TITLE" => "Добавить моды для",
 	"GS_STR_SERVER_MOD_DISCARD" => "Удалить с сервера",
+	"GS_STR_SERVER_MOD_UPDATED" => "Моды сервера обновлены",
+	"GS_STR_SERVER_MOD_CLEAR" => "Моды сервера удалены",
 	
 	"GS_STR_SERVER_MOD_NOSEL_ERROR" => "Нет выбранных модов",
 	"GS_STR_SERVER_MOD_REMOVED_ERROR" => "Ошибка при удалении модов",
@@ -184,8 +187,12 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_TYPE3" => "Миссии",
 	"GS_STR_MOD_TYPE3_DESC" => "Пак, который содержит только миссии",
 	"GS_STR_MOD_CURATOR" => "Владелец",
-	"GS_STR_MOD_ALIAS" => "Alternative Mod Names",
-	"GS_STR_MOD_ALIAS_DESC" => "Works just like %m1%Alias%m2% command but for the entire installation",
+	"GS_STR_MOD_ALIAS" => "Другие названия мода",
+	"GS_STR_MOD_ALIAS_DESC" => "Работает так же, как и команда %m1%Alias%m2%, но для всей установки",
+	"GS_STR_MOD_MPCOMP" => "Совместимо с сетевой игрой",
+	"GS_STR_MOD_MPCOMP_HINT" => "Моды для одиночной игры не будут показываться в списке выбора модов для серверов",
+	"GS_STR_MOD_MPCOMP_YES" => "Да",
+	"GS_STR_MOD_MPCOMP_NO" => "Нет",
 	
 	"GS_STR_MOD_EDITVER" => "Редактировать версию мода",
 	"GS_STR_MOD_EDITSCRIPT" => "Редактировать скрипт",

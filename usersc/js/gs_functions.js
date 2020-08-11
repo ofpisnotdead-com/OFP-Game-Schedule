@@ -154,6 +154,75 @@ function GS_display_mod_types_table(list, data) {
 	}
 }
 
+// Show game exe startup parameter -mod=
+function GS_mod_parameter_update(table_id, field_id) {
+	var table = document.getElementById(table_id).tBodies[0];
+	var field = document.getElementById(field_id);
+	
+	var text_to_show = "";
+	
+	if (table.rows.length > 1) {
+		text_to_show = "-mod=";
+		
+		for (var i=1; i<table.rows.length; i++) {
+			if (i>1)
+				text_to_show += ";"
+			
+			text_to_show += table.rows[i].children[0].innerHTML;
+		}
+	}
+	
+	field.innerHTML = text_to_show;
+};
+
+// Move table row from one table to another
+function GS_table_row_transfer(source_table_id, destination_table_id, row_id, field_id, mod_limit, mod_limit_msg) {
+	var source_table       = document.getElementById(source_table_id).tBodies[0];
+	var destination_table  = document.getElementById(destination_table_id).tBodies[0];
+	var row                = document.getElementById(row_id);
+	var new_row            = row.cloneNode(true);
+	var button_class       = destination_table_id=="current_mods" ? "btn-warning"         : "btn-mods";
+	var button_description = destination_table_id=="current_mods" ? Mod_Button_Strings[1] : Mod_Button_Strings[0];
+	
+	new_row.children[4].innerHTML = "";
+	
+	if (destination_table_id != "current_mods" || destination_table_id == "current_mods" && destination_table.rows.length-1 < mod_limit) {
+		if (destination_table_id == "current_mods") {			
+			new_row.children[3].innerHTML += "<input type=\"hidden\" name=\"mod_to_assign[]\" value=\""+row_id+"\" />";
+			new_row.children[4].innerHTML += "<button onclick=\"GS_table_rows_swap('up','"+row_id+"','"+field_id+"')\" type='button' class=\"btn btn-mods btn-xs\"><span class=\"fa fa-fw fa-arrow-up\"></span></button> ";
+			new_row.children[4].innerHTML += "<button onclick=\"GS_table_rows_swap('down','"+row_id+"','"+field_id+"')\" type='button' class=\"btn btn-mods btn-xs\"><span class=\"fa fa-fw fa-arrow-down\"></span></button> "
+		} else
+			new_row.children[3].removeChild(new_row.children[3].children[1]);
+		
+		new_row.children[4].innerHTML += "<td><button onclick=\"GS_table_row_transfer('"+destination_table_id+"','"+source_table_id+"','"+row_id+"','"+field_id+"',"+mod_limit+",'"+mod_limit_msg+"')\" type=\"button\" class=\"btn "+button_class+" btn-xs\">"+button_description+"</button></td>";
+		
+		source_table.removeChild(row);
+		destination_table.appendChild(new_row);
+		
+		GS_mod_parameter_update(destination_table_id=="current_mods" ? destination_table_id : source_table_id, field_id);
+	} else
+		alert(mod_limit_msg);
+}
+
+// Move table row up or down
+function GS_table_rows_swap(direction, row_id, field_id) {
+    var row   = document.getElementById(row_id);
+	var table = row.parentNode;
+	
+	for (var i=0; i<table.rows.length; i++)
+		if (table.rows[i] == row) {
+			if (direction=="up" && i>1)
+				table.insertBefore(table.rows[i], table.rows[i-1]);
+				
+			if (direction=="down" && i<table.rows.length-1)
+				table.insertBefore(table.rows[i+1], table.rows[i]);
+			
+			GS_mod_parameter_update(table.parentNode.id, field_id);
+			
+			break;
+		}
+}
+
 
 
 
@@ -536,7 +605,7 @@ function GS_confirm_transfer_ownership(checkboxes_name, message) {
 /* index.php */
 
 // Localize event dates when displaying server info
-function GS_convert_server_events(starttime, duration, types, stringtable) {
+function GS_convert_server_events(starttime, duration, types, started, stringtable) {
 	var now      = moment();
 	var all_tags = document.getElementsByClassName("servergametime");
 
@@ -546,6 +615,7 @@ function GS_convert_server_events(starttime, duration, types, stringtable) {
 		for (var j=0; j<starttime[i].length; j++) {
 			var type   = types[i][j];
 			var start  = moment(starttime[i][j]);
+			var start2 = moment(starttime[i][j]);
 			var end    = moment(starttime[i][j]).add(duration[i][j], "minutes");
 			var day    = start.day();
 			var hour   = start.hour();
@@ -573,9 +643,21 @@ function GS_convert_server_events(starttime, duration, types, stringtable) {
 			var description = "";
 			
 			switch(type) {
-				case 0 : description += start.format("Do MMMM [(]dddd[)]"); break;
-				case 1 : description += stringtable[start.format("d")]; break;
-				case 2 : description += stringtable["Daily"]; break;
+				case 0 : 
+					description += start.format("Do MMMM [(]dddd[)]"); 
+					break;
+				
+				case 1 : 
+					if (!started[i][j])
+						description += start2.format("Do MMMM[. ]");
+					description += stringtable[start.format("d")]; 
+					break;
+					
+				case 2 : 
+					if (!started[i][j])
+						description += start2.format("MMMM Do YYYY, h:mm:ss a");
+					description += stringtable["Daily"]; 
+					break;
 			}
 			
 			description += start.format(" HH:mm - ") + end.format("HH:mm");

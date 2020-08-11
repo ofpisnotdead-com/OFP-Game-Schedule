@@ -88,6 +88,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->add_text("size"       , lang("GS_STR_MOD_DOWNLOADSIZE"), "", "128");
 	$form->add_select("sizetype" , "", "", GS_SIZE_TYPES, "MB");
 	$form->add_text("alias"      , lang("GS_STR_MOD_ALIAS")       , lang("GS_STR_MOD_ALIAS_DESC",["<a target=\"_blank\" href=\"install_scripts#alias\">","</a>"]), "@ww4mod21 @ww4mod");
+	$form->add_select("is_mp"    , lang("GS_STR_MOD_MPCOMP")      , lang("GS_STR_MOD_MPCOMP_HINT")     , [[lang("GS_STR_MOD_MPCOMP_YES"),"1"], [lang("GS_STR_MOD_MPCOMP_NO"),"0"]], "1", "radio");
 	
 	if ($form->hidden["display_form"] == "Add New") {
 		$form->include_file("usersc/js/gs_functions.js");
@@ -131,7 +132,8 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				"access"      => $data["access"],
 				"forcename"   => $data["forcename"],
 				"type"        => $data["type"],
-				"alias"       => $data["alias"]
+				"alias"       => $data["alias"],
+				"is_mp"       => $data["is_mp"]
 			];
 			
 			$admin_fields = [
@@ -269,7 +271,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->add_button("action", "DeleteLink", lang("GS_STR_INDEX_DELETE"), "btn-danger btn-sm", "SubmitButton");
 	}
 	
-	$form->add_html("<BR><BR><A TARGET=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</A>");
+	$form->add_html("<br><br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a>");
 	$form->change_control(["size", "sizetype"], ["Inline"=>3]);
 	
 
@@ -568,7 +570,7 @@ if ($form->hidden["display_form"] == "Update")
 			$highest = $update["version"];
 
 		$fromver   = $update["version"];
-		$changelog = htmlentities($update["changelog"]); 
+		//$changelog = htmlentities($update["changelog"]); 
 	}
 	
 	$form->add_js_var($js_update_list);
@@ -763,6 +765,7 @@ if ($form->hidden["display_form"] == "Delete") {
 $section_title = lang(GS_FORM_ACTIONS[$form->hidden["display_form"]]) . " " . lang("GS_STR_MOD");
 
 switch ($form->hidden["display_form"]) {
+	case "Update"   : $section_title=lang("GS_STR_INDEX_UPDATE"); break;
 	case "Share"    : $section_title=lang("GS_STR_SERVER_SHAREMOD_TITLE"); break;
 }
 

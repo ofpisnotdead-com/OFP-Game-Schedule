@@ -1,9 +1,9 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,3,28,6,2,41,27,99,60,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2020,7,12,0,11,13,32,617,120,FALSE]");
 define("GS_VERSION", 0.54);
-define("GS_ENCRYPT_KEY", 0);
-define("GS_MODULUS_KEY", 0);
-define("GS_DECRYPT_KEY", 0);
+define("GS_ENCRYPT_KEY", 2997);
+define("GS_MODULUS_KEY", 20131);
+define("GS_DECRYPT_KEY", 10333);
 define("GS_LOGO_FOLDER", "logo");	// Folder to save uploaded images in
 define("GS_OTHER_URL", []);			// Links to other schedule websites
 define("GS_SIZE_TYPES", ["KB", "MB", "GB"]);
@@ -16,7 +16,7 @@ define("GS_FORM_ACTIONS", [
 	"Mods"     => "GS_STR_INDEX_MODS", 
 	"Share"    => "GS_STR_INDEX_SHARE", 
 	"Delete"   => "GS_STR_INDEX_DELETE", 
-	"Update"   => "GS_STR_INDEX_UPDATE",
+	"Update"   => "GS_STR_MOD_INSTALLATION",
 ]);
 
 define("GS_FORM_ACTIONS_BY_PAGE", [
@@ -35,10 +35,10 @@ define("GS_FORM_ACTIONS_MODUPDATE", [
 
 // List of VOIP software
 define("GS_VOICE", [
-	"TeamSpeak3" => ["url"=>"ts3server://"        , "info"=>"https://support.teamspeakusa.com/index.php?/Knowledgebase/Article/View/46/0/how-can-i-link-to-my-teamspeak-3-server-on-my-webpage", "download"=>"https://teamspeak.com/en/downloads/"],
-	"Mumble"     => ["url"=>"mumble://"           , "info"=>"https://wiki.mumble.info/wiki/Mumble_URL"                                                                                         , "download"=>"https://www.mumble.com/mumble-download.php"],
-	"Discord"    => ["url"=>"https://discord.gg/" , "info"=>"https://support.discordapp.com/hc/en-us/articles/208866998-Invites-101"                                                           , "download"=>"https://discordapp.com/download"],
-	"Steam"      => ["url"=>"https://s.team/chat/", "info"=>"https://steamcommunity.com/updates/chatupdate"                                                                                    , "download"=>"https://store.steampowered.com/about/"]
+	"TeamSpeak3" => ["url"=>"ts3server://"        , "info"=>"https://web.archive.org/web/20121115204541/https://support.teamspeakusa.com/index.php?/Knowledgebase/Article/View/46/0/how-can-i-link-to-my-teamspeak-3-server-on-my-webpage", "download"=>"https://teamspeak.com/en/downloads/"],
+	"Mumble"     => ["url"=>"mumble://"           , "info"=>"https://wiki.mumble.info/wiki/Mumble_URL"                               , "download"=>"https://www.mumble.com/mumble-download.php"],
+	"Discord"    => ["url"=>"https://discord.gg/" , "info"=>"https://support.discordapp.com/hc/en-us/articles/208866998-Invites-101" , "download"=>"https://discordapp.com/download"],
+	"Steam"      => ["url"=>"https://s.team/chat/", "info"=>"https://steamcommunity.com/updates/chatupdate"                          , "download"=>"https://store.steampowered.com/about/"]
 ]);
 
 // Maximal input length
@@ -229,16 +229,20 @@ function GS_uniqueid_to_id($table_name, $id_list) {
 		$db  = DB::getInstance();
 		$sql = "
 			SELECT 
-				$table_name.id 
+				$table_name.id,
+				$table_name.uniqueid
 			FROM 
 				$table_name 
 			WHERE 
 				$table_name.uniqueid IN (". substr(str_repeat(",?",count($id_list)), 1) . ")
 		";
 
-		if (!$db->query($sql,$id_list)->error())
-			foreach($db->results(true) as $row)
-				$output[] = $row["id"];
+		if (!$db->query($sql,$id_list)->error()) {
+			foreach($id_list as $uniqueid)
+				foreach($db->results(true) as $row)
+					if ($uniqueid == $row["uniqueid"])
+						$output[] = $row["id"];
+		}
 	}
 	
 	return $output;
@@ -1029,11 +1033,14 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 						
 						// Describe event
 						$playtime_text   = "";
-						$playtime_format = "jS F H:i";
+						$playtime_format = "Y jS F H:i";
+						
+						if (($type!="single") && $now < $start_date_orig)
+							$playtime_text .= $start_date_orig->format("Y jS F. ");
 						
 						switch($type) {
-							case "weekly" : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_WEEKLY_DESC".$start_date->format("w"))." "; $playtime_format="H:i"; break;
-							case "daily"  : $playtime_text=lang("GS_STR_SERVER_EVENT_REPEAT_DAILY_DESC")." "; $playtime_format="H:i"; break;
+							case "weekly" : $playtime_text.=lang("GS_STR_SERVER_EVENT_REPEAT_WEEKLY_DESC".$start_date->format("w"))." "; $playtime_format="H:i"; break;
+							case "daily"  : $playtime_text.=lang("GS_STR_SERVER_EVENT_REPEAT_DAILY_DESC")." "; $playtime_format="H:i"; break;
 						}
 						
 						$playtime_text .= $start_date->format($playtime_format);
@@ -1047,7 +1054,8 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 							"date"        => $start_date->getTimestamp(),
 							"starttime"   => $start_date->format('c'),
 							"duration"    => intval($row["duration"]),
-							"description" => $playtime_text
+							"description" => $playtime_text,
+							"started"     => $now > $start_date_orig
 						];
 					}
 				}
@@ -1157,7 +1165,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 				gs_mods.id,
 				gs_mods.name,
 				gs_mods.uniqueid,
-				gs_serv_mods.created
+				gs_serv_mods.modified
 
 			FROM 
 				gs_serv,
@@ -1181,8 +1189,8 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			$table_rows = [];
 		
 			foreach($db->results(true) as $row) {
-				if (strtotime($row["created"]) > $output["lastmodified"])
-					$output["lastmodified"] = strtotime($row["created"]);
+				if (strtotime($row["modified"]) > $output["lastmodified"])
+					$output["lastmodified"] = strtotime($row["modified"]);
 			
 				$mod_id  = $row["id"];
 				$serv_id = $row["serverid"];
@@ -1227,7 +1235,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 			$where_condition = "gs_mods.removed=0";
 		else {
 			$argument_list    = array_merge($argument_list, $mods_uniqueid_list);
-			$where_condition .= ($where_condition!="" ? " OR " : "") . "gs_mods.uniqueid IN (".substr( str_repeat(",?",count($mods_uniqueid_list)), 1).")";
+			$where_condition .= ($where_condition!="" ? " OR " : "") . "gs_mods.uniqueid IN (".substr( str_repeat(",?",count($mods_uniqueid_list)), 1).") AND gs_mods.removed=0";
 		}
 	}
 	
@@ -1246,10 +1254,12 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				gs_mods.modifiedby,
 				gs_mods.access,
 				gs_mods.alias,
+				gs_mods.is_mp,
 				gs_mods_updates.version,
 				gs_mods_updates.created AS update_created,
 				gs_mods_updates.modified AS modified2,
 				gs_mods_updates.changelog,
+				gs_mods_updates.createdby AS update_createdby,
 				gs_mods_scripts.id AS scriptid,
 				gs_mods_scripts.size,
 				gs_mods_scripts.script,
@@ -1362,7 +1372,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 
 				if ($last_version != $version) {
 					$last_version    = $version;
-					$columns_to_copy = ["version", "scriptid", "size", "script", "update_created", "changelog"];
+					$columns_to_copy = ["version", "scriptid", "size", "script", "update_created", "changelog", "update_createdby"];
 					$update_num      = count($mods_updates[$id]);
 					
 					foreach($columns_to_copy as $column)
@@ -1380,6 +1390,8 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$output["info"][$id]["modifiedby"]  = $row["modifiedby"];
 					$output["info"][$id]["created"]     = $row["created"];
 					$output["info"][$id]["modified"]    = $row["modified1"];
+					$output["info"][$id]["alias"]       = $row["alias"];
+					$output["info"][$id]["is_mp"]       = $row["is_mp"];
 				}
 			}
 		}
@@ -1477,6 +1489,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$output["info"][$id]["updates"][$update_index]["note"][]         = $changelog;
 					$output["info"][$id]["updates"][$update_index]["note_date"][]    = $date;
 					$output["info"][$id]["updates"][$update_index]["note_version"][] = $update["version"];
+					$output["info"][$id]["updates"][$update_index]["note_author"][]  = $update["update_createdby"];
 				}
 			}
 
@@ -1557,6 +1570,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 	$js_starttime = [];
 	$js_duration  = [];
 	$js_type      = [];
+	$js_started   = [];
 	$user_list    = [];
 	$js_addedon   = [];
 	
@@ -1588,6 +1602,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 		$current_starttime = [];
 		$current_duration  = [];
 		$current_type      = [];
+		$current_started   = [];
 		
 		$html .= "
 		<div class=\"col-lg-$box_size\">
@@ -1650,6 +1665,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 						$current_starttime[] = $event["starttime"];
 						$current_duration[]  = $event["duration"];
 						$current_type[]      = $event["type"];
+						$current_started[]   = $event["started"];
 					}
 				} break;
 				
@@ -1669,6 +1685,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 		$js_starttime[] = $current_starttime;
 		$js_duration[]  = $current_duration;
 		$js_type[]      = $current_type;
+		$js_started[]   = $current_started;
 		
 		$html .= "</dl>";
 
@@ -1713,7 +1730,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 	<script type=\"text/javascript\" src=\"usersc/js/moment.js\"></script>
 	<script type=\"text/javascript\" src=\"usersc/js/{$locale_file}.js\"></script>
 	<script type=\"text/javascript\">
-		GS_convert_server_events(".json_encode($js_starttime).",".json_encode($js_duration).",".json_encode($js_type).",".json_encode($localized_strings).");
+		GS_convert_server_events(".json_encode($js_starttime).",".json_encode($js_duration).",".json_encode($js_type).",".json_encode($js_started).",".json_encode($localized_strings).");
 		GS_convert_addedon_date('server_addedon',".json_encode($js_addedon).");
 	</script>
 	";
@@ -1774,6 +1791,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 				case GS_LOG_SERVER_EVENT_REMOVED  :
 				case GS_LOG_SERVER_EVENT_UPDATE   :
 				case GS_LOG_SERVER_EVENT_ADDED    : $array="gs_serv_times"; break;
+				case GS_LOG_SERVER_MOD_CHANGED    : 
 				case GS_LOG_SERVER_MOD_ADDED      :
 				case GS_LOG_SERVER_MOD_REMOVED    : $array="gs_serv_mods"; break;
 				case GS_LOG_SERVER_REVOKE_ACCESS  :
@@ -1838,9 +1856,10 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 				
 				if (!empty($script_list_id))
 					$sql .= "$array.scriptid in (". substr( str_repeat(",?",count($script_list_id)), 1) . ") OR ";
+				
 				$sql = substr($sql, 0, strlen($sql)-3);
 
-				$db->query($sql,array_merge(array_keys($data[$array]),$script_list_id));
+				$db->query($sql, array_merge(array_keys($data[$array]),$script_list_id));
 
 				foreach($db->results(true) as $row) {
 					$data[$array][$row["id"]] = $row;
@@ -1881,7 +1900,8 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 			GS_LOG_MOD_VERSION_UPDATED   => "GS_STR_LOG_MOD_VERSION_UPDATED",
 			GS_LOG_MOD_LINK_ADDED        => "GS_STR_LOG_MOD_LINK_ADDED",
 			GS_LOG_MOD_LINK_UPDATED      => "GS_STR_LOG_MOD_LINK_UPDATED",
-			GS_LOG_MOD_LINK_DELETED      => "GS_STR_LOG_MOD_LINK_DELETED"
+			GS_LOG_MOD_LINK_DELETED      => "GS_STR_LOG_MOD_LINK_DELETED",
+			GS_LOG_SERVER_MOD_CHANGED    => "GS_STR_LOG_SERVER_MOD_CHANGED"
 		];
 
 		// Second pass - format data from the log
@@ -1908,9 +1928,9 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 			$lang_arguments = [$table_row["user"]];
 			
 			switch($log["type"]) {
-				case GS_LOG_SERVER_ADDED   : 
-				case GS_LOG_SERVER_UPDATED :
-				case GS_LOG_SERVER_DELETE  : $server_id = $log["itemid"]; break;
+				case GS_LOG_SERVER_ADDED       : 
+				case GS_LOG_SERVER_UPDATED     :
+				case GS_LOG_SERVER_DELETE      : $server_id = $log["itemid"]; break;
 				
 				case GS_LOG_SERVER_EVENT_REMOVED :
 				case GS_LOG_SERVER_EVENT_UPDATE  :
@@ -1933,6 +1953,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 					$playtime_text .= $start_date->format($playtime_format) . $end_date->format(" - H:i");
 				} break;
 				
+				case GS_LOG_SERVER_MOD_CHANGED : 
 				case GS_LOG_SERVER_MOD_REMOVED :
 				case GS_LOG_SERVER_MOD_ADDED   : {
 					$serv_mod   = $data["gs_serv_mods"][$log["itemid"]];
@@ -2021,9 +2042,9 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 				$user_name = $data["users"][$user_id]["username"];
 
 			switch($log["type"]) {
-				case GS_LOG_SERVER_ADDED   : 
-				case GS_LOG_SERVER_UPDATED :
-				case GS_LOG_SERVER_DELETE  : {
+				case GS_LOG_SERVER_ADDED       : 
+				case GS_LOG_SERVER_UPDATED     :
+				case GS_LOG_SERVER_DELETE      : {
 					if (isset($server_id)) 
 						$lang_arguments[] = $server_name;
 					else
@@ -2040,6 +2061,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 						$valid_row = false;
 				} break;
 				
+				case GS_LOG_SERVER_MOD_CHANGED : 
 				case GS_LOG_SERVER_MOD_REMOVED :
 				case GS_LOG_SERVER_MOD_ADDED   : {
 					if (isset($server_id) && isset($mod_id)) {

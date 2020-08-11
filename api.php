@@ -51,6 +51,7 @@ foreach($servers_keys as $id) {
 foreach($mod_keys as $id) {
 	$mods["info"][$id]["admin"]     = "";
 	$mods["info"][$id]["forcename"] = $mods["info"][$id]["forcename"]=="true" ? true : false;
+	$mods["info"][$id]["is_mp"]     = $mods["info"][$id]["is_mp"]=="1" ? true : false;
 	$mods["info"][$id]["type"]      = intval($mods["info"][$id]["type"]);
 	$mods["info"][$id]["version"]   = floatval($mods["info"][$id]["version"]);
 	$mods["info"][$id]["modified"]  = strtotime($mods["info"][$id]["modified"]);

@@ -103,7 +103,7 @@ $Parsedown = new Parsedown();
 		<div id=\"$section_name\">
 		<h1>$label (".count($mods_to_add[$label]).")</h1>
 		<h4>$label_description</h4>
-		<table class=\"table table-striped table-bordered table-hover\">
+		<table class=\"table table-mods-striped table-bordered table-hover\">
 			<tr>
 				<th>".lang("GS_STR_MOD")."</th>
 				<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>

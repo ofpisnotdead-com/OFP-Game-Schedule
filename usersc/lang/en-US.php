@@ -152,6 +152,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_SERVER_MOD_ASSIGN" => "Assign",
 	"GS_STR_SERVER_MOD_TITLE" => "Assign Mods for",
 	"GS_STR_SERVER_MOD_DISCARD" => "Discard",
+	"GS_STR_SERVER_MOD_UPDATED" => "Server mods updated",
+	"GS_STR_SERVER_MOD_CLEAR" => "Server mods cleared",
 	
 	"GS_STR_SERVER_MOD_NOSEL_ERROR" => "No mods selected",
 	"GS_STR_SERVER_MOD_REMOVED_ERROR" => "Failed to remove mods",
@@ -186,6 +188,10 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_CURATOR" => "Curated by",
 	"GS_STR_MOD_ALIAS" => "Alternative Mod Names",
 	"GS_STR_MOD_ALIAS_DESC" => "Works just like %m1%Alias%m2% command but for the entire installation",
+	"GS_STR_MOD_MPCOMP" => "Multiplayer",
+	"GS_STR_MOD_MPCOMP_HINT" => "SP mods won't show up in mod selection page for servers",
+	"GS_STR_MOD_MPCOMP_YES" => "Compatible",
+	"GS_STR_MOD_MPCOMP_NO" => "Single player only",
 	
 	"GS_STR_MOD_EDITVER" => "Edit Version",
 	"GS_STR_MOD_EDITSCRIPT" => "Edit Script",

@@ -235,6 +235,9 @@ if ($form->hidden["display_form"] == "Schedule")
 	if ($form->hidden["action"] != "") {
 		if ($events_count < GS_PERMISSION_MAX_SERV_SCHEDULE[$gs_my_permission_level]) {
 			$data = &$form->save_input();
+			
+			if ($data["duration"] > 1440)
+				$data["duration"] = 1440;
 
 			$form->init_validation     ( ["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], ["schedulelist"] );
 			$form->add_validation_rules( ["duration"] , [">"=>0, "is_int"=>true]);
@@ -427,11 +430,8 @@ if ($form->hidden["display_form"] == "Mods")
 			gs_mods.access,
 			gs_mods.type,
 			gs_serv_mods.id AS gs_serv_mods_id,
-			gs_serv_mods.uniqueid AS gs_serv_mods_uniqueid,
 			gs_serv_mods.removed AS gs_serv_mods_removed,
 			gs_serv_mods.serverid, 
-			gs_serv_mods.created,
-			gs_serv_mods.createdby,
 			gs_serv_mods.modified,
 			gs_serv_mods.modifiedby,
 			gs_serv_mods.loadorder,
@@ -449,6 +449,7 @@ if ($form->hidden["display_form"] == "Mods")
 					   gs_mods_admins.userid = ?
 					   
 		WHERE
+			gs_mods.is_mp = 1 AND 
 			gs_mods.removed = 0 AND (
 				gs_mods.access              = 1 OR 
 				gs_serv_mods.serverid       = ? OR 
@@ -505,136 +506,105 @@ if ($form->hidden["display_form"] == "Mods")
 
 	
 	// Save new entry
-	$mod_to_assign = Input::get("mod_to_assign");
-	
-	if ($form->hidden["action"] == "Assign" || $mod_to_assign!="") {
-		$selected_modfolders = $mod_to_assign!="" ? [$mod_to_assign] : Input::get("modlist");
+	if ($form->hidden["action"] == "Assign") {
+		$reload        = false;
+		$mod_to_assign = Input::get("mod_to_assign");
 		
-		if (is_array($selected_modfolders)) {
-			$selected_modfolders = GS_uniqueid_to_id("gs_mods", $selected_modfolders);
+		if ($mod_to_assign == "")
+			$mod_to_assign = [];
+		
+		// Limit records
+		if (count($mod_to_assign) > GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level]) {
+			$mod_to_assign = array_splice($mod_to_assign, 0, GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level]);
+			$form->alert(lang("GS_STR_SERVER_MOD_MAX_ERROR"));
+		}
+		
+		// Clear all existing
+		$result = $db->update("gs_serv_mods", ["serverid"=>$id], ["removed"=>1]);
+		
+		if ($result && count($mod_to_assign)>0) {
+			// Build an insert query
+			$fields = [
+				"modid"      => [],
+				"serverid"   => [],
+				"modified"   => [],
+				"modifiedby" => [],
+				"loadorder"  => []
+			];
 			
-			if (!empty($selected_modfolders)) {
-				// Check whether the mod was already added and if so then remove it
-				$already_existing_mods = [];
+			$selected_modfolders = GS_uniqueid_to_id("gs_mods", $mod_to_assign);
+			
+			foreach ($selected_modfolders as $loadorder=>$mod_id) {
+				$record_id = NULL;
 				
-				foreach ($modfolders as $key=>$value)
-					if (isset($value["serverid"]) && $value["gs_serv_mods_removed"]==0)
-						$already_existing_mods[] = $value["id"];
-							
-				for ($i=0; $i<count($selected_modfolders); $i++)
-					if (array_search($selected_modfolders[$i], $already_existing_mods) !== FALSE) {
-						array_splice($selected_modfolders, $i, 1);
-						$i--;
-					}
-					
-				$count_existing = count($already_existing_mods);
-				$count_selected = count($selected_modfolders);
-					
-				if ($count_selected > 0) {
-					// Resize array to match the limit
-					if ($count_existing + $count_selected > GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level]) {
-						array_splice($selected_modfolders, GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level]-$count_existing);
-						$form->alert(lang("GS_STR_SERVER_MOD_MAX_ERROR"));
-					}
-					
-					// Build an insert query
-					$fields = [
-						"modid"      => [],
-						"serverid"   => [],
-						"uniqueid"   => [],
-						"modified"   => [],
-						"modifiedby" => [],
-						"loadorder"  => []
-					];
-					
-					foreach ($selected_modfolders as $modID) {
-						// Check if mod was already added to this server
-						$mod_found = false;
-						foreach ($modfolders as $mod_in_db) {
-							if ($modID == $mod_in_db["id"] && $id==$mod_in_db["serverid"]) {
-								$mod_found          = true;
-								$fields["id"]       = intval($mod_in_db["gs_serv_mods_id"]);
-								$fields["uniqueid"] = intval($mod_in_db["gs_serv_mods_uniqueid"]);
-								$fields["removed"]  = 0;
-							}
-						}
-						
-						$fields["modid"][]      = $modID;
-						$fields["serverid"][]   = $id;
-						$fields["modified"][]   = date("Y-m-d H:i:s");
-						$fields["modifiedby"][] = $uid;
-						$fields["loadorder"][]  = $count_existing + 1;
-						
-						if (!$mod_found) {
-							$fields["uniqueid"][] = substr(strtolower(Hash::unique()), rand(0,56), 8);
-							$fields["created"]    = date("Y-m-d H:i:s");
-							$fields["createdby"]  = $uid;
-						}
-					}
-					
-					$positive_feedback = "GS_STR_SERVER_MOD_ADDED";
-					
-					// If adding just one mod then include its name
-					if (count($selected_modfolders) == 1)					
-						foreach ($modfolders as $key=>$value)
-							if ($selected_modfolders[0] == $value["id"])
-								$positive_feedback=lang("GS_STR_SERVER_MOD_ADDED_ONE", [$value["name"]]);
+				$index = array_search($mod_id, $modfolders_id);
+				if ($index !== FALSE)
+					$record_id = $modfolders[$index]["gs_serv_mods_id"];
+				
+				$fields["id"][]         = $record_id;
+				$fields["modid"][]      = $mod_id;
+				$fields["serverid"][]   = $id;
+				$fields["modified"][]   = date("Y-m-d H:i:s");
+				$fields["modifiedby"][] = $uid;
+				$fields["removed"][]    = 0;
+				$fields["loadorder"][]  = $loadorder;
+			}
 
-					$result = $form->feedback(
-						$db->insert("gs_serv_mods", $fields, true), 
-						$positive_feedback, 
-						"GS_STR_SERVER_MOD_ADDED_ERROR",
-						"GS_lang"
-					);
-					
-					if ($result) {
-						$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_SERVER_MOD_ADDED, "added"=>date("Y-m-d H:i:s")]);
-						
-						// Get all records again
-						if ($db->query($sql_allmods,[$id,$uid,$id])->error())
-							$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
-
-						$modfolders    = $db->results(true);
-						$modfolders_id = [];
-						
-						foreach ($modfolders as $key=>$value)
-							$modfolders_id[] = $value["id"];
-							
-						// Get all mod authors
-						$sql_authorsmods = "
-							SELECT 
-								gs_mods.id, 
-								users.username
-								
-							FROM 
-								gs_mods JOIN gs_mods_admins 
-									ON gs_mods.id = gs_mods_admins.modid 
-									
-								JOIN users 
-									ON gs_mods_admins.userid = users.id
-										   
-							WHERE
-								gs_mods.id IN (". implode(',', $modfolders_id).") AND
-								gs_mods_admins.isowner=1
-						";
-						
-						$db->query($sql_authorsmods);
-						$mod_authors = $db->results(true);
-						
-						foreach ($mod_authors as $key=>$value)
-							foreach ($modfolders as $key2=>$value2)
-								if ($value["id"] == $value2["id"]) {
-									$modfolders[$key2]["Curator"] = $value["username"];
-									break;
-								}
-					}
-				} else
-					$form->alert(lang("GS_STR_SERVER_MOD_ALREADY_ERROR"));
-			} else
-				$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
+			$result = $form->feedback(
+				$db->insert("gs_serv_mods", $fields, true), 
+				"GS_STR_SERVER_MOD_UPDATED",
+				"GS_STR_SERVER_MOD_ADDED_ERROR",
+				"GS_lang"
+			);
+			
+			if ($result) {
+				$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_SERVER_MOD_CHANGED, "added"=>date("Y-m-d H:i:s")]);
+				$reload = true;
+			}
 		} else
-			$form->alert(lang("GS_STR_SERVER_MOD_NOSEL_ERROR"));
+			$reload = $form->feedback($result, "GS_STR_SERVER_MOD_CLEAR", "GS_STR_SERVER_MOD_REMOVED_ERROR", "GS_lang");
+		
+		// Get all records again
+		if ($reload) {
+			if ($db->query($sql_allmods,[$id,$uid,$id])->error())
+				$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
+
+			$modfolders    = $db->results(true);
+			$modfolders_id = [];
+			
+			foreach ($modfolders as $key=>$value)
+				$modfolders_id[] = $value["id"];
+				
+			// Get all mod authors
+			$sql_authorsmods = "
+				SELECT 
+					gs_mods.id, 
+					users.username
+					
+				FROM 
+					gs_mods JOIN gs_mods_admins 
+						ON gs_mods.id = gs_mods_admins.modid 
+						
+					JOIN users 
+						ON gs_mods_admins.userid = users.id
+							   
+				WHERE
+					gs_mods.id IN (". implode(',', $modfolders_id).") AND
+					gs_mods_admins.isowner=1
+			";
+			
+			$db->query($sql_authorsmods);
+			$mod_authors = $db->results(true);
+			
+			foreach ($mod_authors as $key=>$value)
+				foreach ($modfolders as $key2=>$value2)
+					if ($value["id"] == $value2["id"]) {
+						$modfolders[$key2]["Curator"] = $value["username"];
+						break;
+					}
+		}
 	}
+
 
 
 
@@ -662,19 +632,72 @@ if ($form->hidden["display_form"] == "Mods")
 			$mods_to_rem[]      = $key;
 			$mods_to_rem_sort[] = $value["loadorder"];
 		}
+		
+
+		
+		
+	$form->size           = 12;
+	$form->label_size     = 2;
+	$form->input_size     = 10;
+	$html                 = "";
+	$Parsedown            = new Parsedown();
+	$currentmods_table_id = "current_mods";
+	$mod_parameter_field  = "Mod_Startup_Parameter";
+		
+	// Display list of mods that can be removed
+	array_multisort($mods_to_rem_sort, SORT_ASC, $mods_to_rem);
+	
+	$mods_select       = [];
+	$js_mods_list      = ["name"=>"Remove_Mods_List", "data"=>[]];
+	$description_field = "ModToRemoveDetails";
+	
+	$html .= "
+	<table id=\"$currentmods_table_id\" class=\"table table-mods-striped table-bordered table-hover\">
+		<tr>
+			<th>".lang("GS_STR_MOD")."</th>
+			<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>
+			<th>".lang("GS_STR_MOD_CURATOR")."</th>
+			<th>".lang("GS_STR_MOD_PREVIEW_INST")."</th>
+			<th style=\"width:135px;\"></th>
+		</tr>
+		";
+			
+	foreach ($mods_to_rem as $i) {
+		if (!isset($modfolders[$i]["name"]) || !isset($modfolders[$i]["uniqueid"]))
+			continue;
+		
+		$html .= "
+		<tr id=\"{$modfolders[$i]["uniqueid"]}\">
+			<td><b>{$modfolders[$i]["name"]}</b></td>
+			<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
+			<td>{$modfolders[$i]["Curator"]}</td>
+			<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\">{$modfolders[$i]["uniqueid"]}</a><input type=\"hidden\" name=\"mod_to_assign[]\" value=\"{$modfolders[$i]["uniqueid"]}\" /></td>
+			<td>
+				<button onclick=\"GS_table_rows_swap('up','{$modfolders[$i]["uniqueid"]}','$mod_parameter_field')\" type='button' class=\"btn btn-mods btn-xs\"><span class=\"fa fa-fw fa-arrow-up\"></span></button>
+				<button onclick=\"GS_table_rows_swap('down','{$modfolders[$i]["uniqueid"]}','$mod_parameter_field')\" type='button' class=\"btn btn-mods btn-xs\"><span class=\"fa fa-fw fa-arrow-down\"></span></button>
+				<button onclick=\"GS_table_row_transfer('$currentmods_table_id','mod_table_{$modfolders[$i]["type"]}','{$modfolders[$i]["uniqueid"]}','$mod_parameter_field',".GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level].",'".lang("GS_STR_SERVER_MOD_FULL")."')\" type='button' class=\"btn btn-warning btn-xs\">".lang("GS_STR_SERVER_MOD_DISCARD")."</button>
+			</td>
+		</tr>
+		";
+	}
+	
+	$html .= "</table>";
+	
+	$form->add_heading(lang("GS_STR_SERVER_MOD_CURRENT"));
+	$form->add_html($html);
+	$form->add_emptyspan($mod_parameter_field);
+	$form->add_html("<SCRIPT TYPE=\"text/javascript\">GS_mod_parameter_update('$currentmods_table_id','$mod_parameter_field')</SCRIPT>");
+	$form->add_button("action", "Assign", lang("GEN_SUBMIT"), "btn-mods");
+	$form->add_space(2);
 
 
 
 
 
 	// Display form with a list of mods that can be added	
-	if (count($mods_to_rem)>=GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level]  ||  empty($added_labels))
-		$form->add_heading(count($mods_to_rem)>=GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level] ? lang("GS_STR_SERVER_MOD_FULL") : lang("GS_STR_SERVER_MOD_NOTHING"), lang("GS_STR_SERVER_MOD_AVAILABLE"));
-	else {
-		$form->size = 12;
-		$html          = "";
+	if (!empty($added_labels)) {
+		$html = "";
 		$js_table_list = ["name"=>"Mod_Tables_List", "data"=>[]];
-		$Parsedown     = new Parsedown();
 		
 		foreach ($mod_labels as $key=>$label) {
 			$label_description = "";
@@ -683,13 +706,14 @@ if ($form->hidden["display_form"] == "Mods")
 				if ($label == lang("GS_STR_MOD_TYPE{$i}"))
 					$label_description = ucfirst(lang("GS_STR_MOD_TYPE{$i}_DESC"));
 			
-			$section_name = "mod_table_$key";
+			$section_name            = "mod_div_$key";
+			$table_name              = "mod_table_$key";
 			$js_table_list["data"][] = $section_name;
 			
 			$html .= "
 			<div id=\"$section_name\" ".($key!=0 ? "style=\"display:none\"" : "").">
 			<h4>$label_description</h4>
-			<table class=\"table table-striped table-bordered table-hover\">
+			<table id=\"$table_name\" class=\"table table-mods-striped table-bordered table-hover\">
 				<tr>
 					<th>".lang("GS_STR_MOD")."</th>
 					<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>
@@ -698,18 +722,18 @@ if ($form->hidden["display_form"] == "Mods")
 					<th></th>
 				</tr>
 				";
-				
+
 			foreach ($mods_to_add[$label] as $i) {
 				if (!isset($modfolders[$i]["name"]) || !isset($modfolders[$i]["uniqueid"]))
 					continue;
 				
 				$html .= "
-				<tr>
+				<tr id=\"{$modfolders[$i]["uniqueid"]}\">
 					<td><b>{$modfolders[$i]["name"]}</b></td>
 					<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
 					<td>{$modfolders[$i]["Curator"]}</td>
 					<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\">{$modfolders[$i]["uniqueid"]}</a></td>
-					<td><button type=\"submit\" class=\"btn btn-mods btn-xs\" id=\"mod_to_assign\" name=\"mod_to_assign\" value=\"{$modfolders[$i]["uniqueid"]}\">".lang("GS_STR_SERVER_MOD_ASSIGN")."</button></td>
+					<td><button onclick=\"GS_table_row_transfer('$table_name','$currentmods_table_id','{$modfolders[$i]["uniqueid"]}','$mod_parameter_field',".GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level].",'".lang("GS_STR_SERVER_MOD_FULL")."')\" type=\"button\" class=\"btn btn-mods btn-xs\">".lang("GS_STR_SERVER_MOD_ASSIGN")."</button></td>
 				</tr>
 				";
 			}
@@ -718,32 +742,15 @@ if ($form->hidden["display_form"] == "Mods")
 		}
 		
 		$form->include_file("usersc/js/gs_functions.js");
+		$form->add_js_var(["name"=>"Mod_Button_Strings", "data"=>[lang("GS_STR_SERVER_MOD_ASSIGN"), lang("GS_STR_SERVER_MOD_DISCARD")]]);
 		$form->add_js_var($js_table_list);
+		
+		$form->add_heading(lang("GS_STR_SERVER_MOD_AVAILABLE"));
 		$form->add_select("modtype", lang("GS_STR_MOD_TYPE"), "", $mod_labels, "", 0, "onChange=\"GS_display_mod_types_table(this,{$js_table_list["name"]})\"");
 		$form->add_space(1);
 		$form->add_html($html);
-	}
-		
-		
-	// Display list of mods that can be removed
-	if (!empty($mods_to_rem)) {
-		array_multisort($mods_to_rem_sort, SORT_ASC, $mods_to_rem);
-		
-		$mods_select       = [];
-		$js_mods_list      = ["name"=>"Remove_Mods_List", "data"=>[]];
-		$description_field = "ModToRemoveDetails";
-		
-		foreach ($mods_to_rem as $i) {
-			$mods_select[]          = [$modfolders[$i]["name"], $modfolders[$i]["gs_serv_mods_uniqueid"]];
-			$js_mods_list["data"][] = $modfolders[$i]["description"]."<BR>".lang("GS_STR_MOD_CURATOR")." {$modfolders[$i]["Curator"]}.<BR><A TARGET='_blank' HREF=show.php?mod={$modfolders[$i]["uniqueid"]}>".lang("GS_STR_MOD_PREVIEW_INST")."</A>";
-		}
-		
-		$form->add_space(2);
-		$form->add_js_var($js_mods_list);
-		$form->add_select("modlist", lang("GS_STR_SERVER_MOD_CURRENT"), "", $mods_select, "", GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level], "onChange=\"GS_display_info_when_selected(this,'{$form->hidden["display_form"]}',{$js_mods_list["name"]},'$description_field')\"");
-		$form->add_button("action", "Discard", lang("GS_STR_SERVER_MOD_DISCARD"), "btn-warning");
-		$form->add_emptyspan($description_field);
-	}
+	} else 
+		$form->add_heading(lang("GS_STR_SERVER_MOD_NOTHING"), lang("GS_STR_SERVER_MOD_AVAILABLE"));
 }
 
 
