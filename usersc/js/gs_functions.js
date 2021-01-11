@@ -309,7 +309,7 @@ function GS_match_installation_script_to_version(version_list_id, script_list_id
 	var current_version = version_list.options[version_list.selectedIndex].text;
 
 	// Find currently selected version in the data array
-	for (var i=0; i<data.length; i++)
+	for (var i=0; i<data.length; i++) {
 		if (current_version == data[i]["version"]) {
 			script_list.value = data[i]["uniqueid"];
 			
@@ -323,6 +323,7 @@ function GS_match_installation_script_to_version(version_list_id, script_list_id
 			} else
 				changelog_group.style.display = "none";
 		}
+	}
 }
 
 // Display installation script (in the edit form) assigned to the selected mod version
@@ -443,6 +444,24 @@ function GS_activate_convertlink_modal() {
 				convertlink_modal_accept.style.display = convertlink_modal_filename.value.length > 0 ? 'block' : 'none';
 			}
 		}
+
+		if (convertlink_modal_link.value.search('ds-servers.com') >= 0) {
+			var id_pos = convertlink_modal_link.value.search('/gf/');
+			
+			if (id_pos >= 0)
+				convertlink_modal_group_filename.style.display = 'block';
+		}
+		
+		if (convertlink_modal_link.value.search('armaholic.com/page.php\\?id=') >= 0) {
+			convertlink_modal_group_filename.style.display = 'block';
+		}
+		
+		if (convertlink_modal_link.value.search('ofpec.com') >= 0) {
+			var id_pos = convertlink_modal_link.value.search('id=');
+			
+			if (id_pos >= 0)
+				convertlink_modal_group_filename.style.display = 'block';
+		}
 	}
 
 	convertlink_modal_filename.oninput = function() {
@@ -503,6 +522,18 @@ function GS_activate_convertlink_modal() {
 		if (convertlink_modal_link.value.indexOf('gamefront.com/games/') >= 0) {
 			var last_slash = convertlink_modal_link.value.lastIndexOf('/');
 			final_url      = convertlink_modal_link.value + ' ' + convertlink_modal_link.value.substring(last_slash+1) + '/download expires= ';
+		}
+		
+		if (convertlink_modal_link.value.search('ds-servers.com') >= 0) {
+			final_url = convertlink_modal_link.value + (convertlink_modal_link.value.search('files/gf/')>=0 ? ' store.node ' : ' files/gf/ store.node ');
+		}
+		
+		if (convertlink_modal_link.value.search('armaholic.com/page.php\\?id=') >= 0) {
+			final_url = convertlink_modal_link.value + ' download_file= ';
+		}
+
+		if (convertlink_modal_link.value.search('ofpec.com') >= 0) {
+			final_url = convertlink_modal_link.value + (convertlink_modal_link.value.search('download.php')>=0 ? ' ' : ' download.php ');				
 		}
 		
 		if (final_url.length > 0 && convertlink_modal_filename.value.length > 0) {

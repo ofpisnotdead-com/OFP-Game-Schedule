@@ -29,6 +29,7 @@ if (!class_exists('DB')) {
 	
 	require_once "users/classes/Config.php";
 	require_once "users/classes/DB.php";
+	require_once "users/classes/Parsedown.php";
 	DB::getDB([]);
 }
 

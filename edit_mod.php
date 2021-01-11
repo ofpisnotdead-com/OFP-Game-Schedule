@@ -13,6 +13,9 @@ $js_modal = "
 			<li><b>ModDB</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
 			<li><b>Mediafire</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
 			<li><b>GameFront</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
+			<li><b>DSServers</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
+			<li><b>ArmaHolic</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
+			<li><b>OFPEC</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
 		</ul>
 		<br>
 		
@@ -203,8 +206,6 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	if ($form->hidden["display_form"] == "Edit")
 		$form->change_control(["convertlink_field", "scripttext", "size", "sizetype"], "remove");
 	
-	$form->data["description"] = htmlspecialchars($form->data["description"]);
-	
 	$form->add_button("action", $form->hidden["display_form"], lang(GS_FORM_ACTIONS[$form->hidden["display_form"]]), "btn-mods btn-lg");
 }	
 
@@ -271,7 +272,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->add_button("action", "DeleteLink", lang("GS_STR_INDEX_DELETE"), "btn-danger btn-sm", "SubmitButton");
 	}
 	
-	$form->add_html("<br><br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a>");
+	$form->add_html("<br><br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a><br><br><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/2fs4hbYZ1VY?start=82\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>");
 	$form->change_control(["size", "sizetype"], ["Inline"=>3]);
 	
 
@@ -549,9 +550,9 @@ if ($form->hidden["display_form"] == "Update")
 		$rules[]      = isset($update["Link"]) ? $update["Link"] : "";
 
 		$js_update_list["data"][] = [
-			"version" => $update["version"],
-			"uniqueid" => $update["uniqueid"],
-			"changelog" => $update["changelog"]
+			"version"    => $update["version"],
+			"uniqueid"   => $update["uniqueid"],
+			"changelog"  => $update["changelog"]
 		];
 		$js_script_list["data"][] = [
 			"uniqueid"   => $update["uniqueid"],
@@ -570,7 +571,7 @@ if ($form->hidden["display_form"] == "Update")
 			$highest = $update["version"];
 
 		$fromver   = $update["version"];
-		//$changelog = htmlentities($update["changelog"]); 
+		$changelog = html_entity_decode($update["changelog"], ENT_QUOTES);
 	}
 	
 	$form->add_js_var($js_update_list);

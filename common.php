@@ -1,5 +1,5 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,7,12,0,11,13,32,617,120,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2020,12,31,4,1,27,54,348,60,FALSE]");
 define("GS_VERSION", 0.54);
 define("GS_ENCRYPT_KEY", 2997);
 define("GS_MODULUS_KEY", 20131);
@@ -1348,8 +1348,10 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						$output["info"][$id]["sqf"]    = "_mod_name=\"\"{$row["name"]}\"\";_mod_forcename=".($row["forcename"]=="1" ? "true" : "false").";";
 						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]} \"$alias\"";
 						
-						if ($add_description)
-							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".str_replace("\"", "\"\"\"\"", strip_tags($row["description"]))."\"\";";
+						if ($add_description) {
+							$Parsedown = new Parsedown();
+							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".str_replace("\"", "\"\"\"\"", html_entity_decode(strip_tags($Parsedown->line($row["description"])),ENT_QUOTES))."\"\";";
+						}
 					}
 
 					$output["id"][$id] = $row["uniqueid"];
@@ -2378,8 +2380,12 @@ function GS_scripting_highlighting($code) {
 					$is_switch = true;
 			
 			// If not a valid command line
-			if ($i==0 && $comm_index===FALSE && !$is_url)
+			if ($i==0 && $comm_index===FALSE && !$is_url) {
+				if (!empty($line))
+					$line = "<span class=\"scripting_command_comment\">$line</span>";
+				
 				break;
+			}
 			
 			// Determine argument type
 			if ($is_url) {

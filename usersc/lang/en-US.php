@@ -22,6 +22,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_MENU_STEAMFORUM" => "Discuss on Steam",
 	"GS_STR_MENU_BI" => "BI Forum",
 	"GS_STR_MENU_BIFORUM" => "Discuss on BI Forum",
+	"GS_STR_MENU_GOG" => "GOG Forum",
+	"GS_STR_MENU_GOGFORUM" => "Discuss on GOG Forum",
 	"GS_STR_MENU_FACEBOOK" => "Facebook",
 	"GS_STR_MENU_FACEBOOKFORUM" => "Discuss on Facebook",
 	"GS_STR_MENU_VK" => "VK",
@@ -42,7 +44,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_QUICKSTART_FORPLAYERS_WAITINSTALL" => "Wait for the installer to finish. Playing the game or even quitting it won't affect the installation",
 	"GS_STR_QUICKSTART_FORPLAYERS_CONNECT" => "Once it's done go to the server options again and double-click on the \"Connect\"",
 	"GS_STR_QUICKSTART_FORPLAYERS_HAVEFUN" => "Have fun playing!",
-	"GS_STR_QUICKSTART_HOWTO_CONNECT" => "How to connect",
+	"GS_STR_QUICKSTART_HOWTO_CONNECT" => "How to join",
 	"GS_STR_QUICKSTART_HOWTO_INSTALL" => "How to install",
 	
 	"GS_STR_INDEX_WELCOME" => "Welcome to the OFP Game Schedule",

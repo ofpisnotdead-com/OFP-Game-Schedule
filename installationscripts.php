@@ -1,6 +1,7 @@
 <?php
 require_once 'users/init.php';
 require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
+require_once "common.php";
 ?>
 
 <div id="page-wrapper">
@@ -11,9 +12,10 @@ require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
 		<h1 align="center">How to Write Installation Instructions</h1>
 		<p align="center" class="text-muted">These scripts will determine how your mod is going to be installed</p>
 		<p align="center" style="font-size: 1em;">
-			<a href="#auto_installation">Auto</a> &nbsp;
-			<a href="#links">Links</a> &nbsp;
-			<a href="#manual_installation">Manual</a> &nbsp;
+			<a href="#auto_installation">Automatic</a> &nbsp;
+			<a href="#links">URL Format</a> &nbsp;
+			<a href="#manual_installation">Commands</a> &nbsp;
+			<a href="#missions">Missions</a> &nbsp;
 			<a href="#installation_examples">Examples</a> &nbsp;
 			<a href="#testing">Testing</a> &nbsp;
 			<a href="#changelog">Changelog</a>
@@ -24,7 +26,7 @@ require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
 	
 	<a name="auto_installation"></a><br>
 	<div class="panel panel-default betweencommands">
-		<div class="panel-heading"><strong>Auto Installation</strong></div>
+		<div class="panel-heading"><strong>Automatic Installation</strong></div>
 		<div class="panel-body">
 			<p>Simply paste the link to the file and the installator will figure out what to do on its own. Write download to each file in a new line.</p>
 			
@@ -48,9 +50,9 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 
 			<p>When installer encounters a directory it will read its name:</p>
 			<ul>
-				<li>If it matches modfolder name then it will be moved to the game directory. Other modfolders will be ignored (exception: unless dir name is contained in the downloaded filename)</li>
+				<li>If it matches modfolder name then it will be moved to the game directory. Other modfolders will be ignored.</li>
 				<li>If it matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code> then it will be moved to the modfolder</li>
-				<li>If it has a dot in its name (aka it's an unpacked mission) then it will be moved to the <code>Missions</code> or <code>MPMissions</code> directory in the modfolder</li>
+				<li>If it has a dot in its name and contains <code>mission.sqm</code> file then it will be moved to the <code>Missions</code> or <code>MPMissions</code> directory in the modfolder</li>
 				<li>In any other case it will go through the contents of a directory and apply the same rules for each file and folder there</p>
 			</ul></p>
 
@@ -63,14 +65,14 @@ ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar</code></pre>
 
 	<a name="links"></a><br>
 	<div class="panel panel-default betweencommands">
-		<div class="panel-heading"><strong>Link Format</strong></div>	
+		<div class="panel-heading"><strong>URL Format</strong></div>	
 		<div class="panel-body">
 			<p>Links must start with the protocol. Spaces should be replaced with <code>%20</code>. It's preferable to use direct links to files:</p>
 			<pre><code>ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar</code></pre>
 			
 			<p>If a direct link is not available then add more links to jump through the intermediate pages:</p>
 <pre><code><span class="fake_link">&lt;starting url&gt;</span>  &lt;optionally intermediate links&gt;  <span class="download_filename">&lt;file name&gt;</span></code></pre>
-			<p>You don't actually have to type in intermediary full urls but only the unique parts. Last argument is always a file name. If it contains spaces then put it in quotation marks. Examples:</p>
+			<p>You don't actually have to type in full intermediary urls but only the unique parts. Last argument is always a destination file name. If it contains spaces then put it in quotation marks. Examples:</p>
 		
 <pre><code><span class="fake_link">https://www.moddb.com/downloads/start/36064</span>  /downloads/mirror/  <span class="download_filename">ww4mod25rel.rar</span>
 <span class="fake_link">http://www.mediafire.com/file/4rm6uf16ihe36ce</span>  ://download  <span class="download_filename">wgl512_2006-11-12.rar</span>
@@ -96,7 +98,7 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Manual Installation</strong></div>
 		<div class="panel-body">
-		<p>There's a bunch of commands to make installer do exactly what you want:</p>
+		<p>There are commands to make installer do exactly what you want:</p>
 		
 		<ul>
 		<li><a href="#unpack">Unpack, Extract</a></li>
@@ -121,7 +123,7 @@ To enable backup links add <code>/mirror</code> switch. If download failed then 
 		<p>I recommend to capitalize command names for readability.</p>
 		<p>Invalid command names will be ignored.</p>
 		<p>Leading and trailing spaces will be ignored.</p>
-		<p>Script can have both auto installation links and manual commands.</p>
+		<p>Script can consist both of auto installation and commands.</p>
 		
 <a name="unpack"></a><hr class="betweencommands">
 <h3 class="commandtitle">Unpack, Extract</h3>
@@ -194,7 +196,7 @@ to the<br>
 
 <br><br>
 
-<p>To rename a file write new name after the destination path.</p>	
+<p>To rename the file that's being moved write new name after the destination path.</p>	
 <pre><code>MOVE  misc\readme.txt  docs  readme_old.txt</code></pre>
 <p>Use dot if you don’t want to change location.</p>	
 <pre><code>MOVE  misc\readme.txt  .  readme_old.txt</code></pre>
@@ -248,7 +250,7 @@ to the<br>
 <a name="makepbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">MakePBO</h3>
 <pre><code>MAKEPBO  &lt;folder&gt;  /no_delete</code></pre>
-<p>Creates PBO file (no compression) from a directory in the modfolder and then removes the source.</p>
+<p>Creates PBO file (no compression) out of a directory in the modfolder and then removes the source.</p>
 
 <br><br>
 <p>Example:</p>
@@ -268,17 +270,17 @@ to the<br>
 <h3 class="commandtitle">Edit</h3>
 <pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
 <p>Replaces text line in the selected file from the modfolder.</p>
-<p>If the text you want to already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
+<p>If new text already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
 
 <br><br>
 <p>Example:</p>
 <pre><code>EDIT addons\FDF_Suursaari\config.cpp 58 >>@cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};@</code></pre>
 
 <br><br>
-<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the selected line number is zero or exceeds the number of lines in a file then text will be added at the end.</p>
+<p>Add switch <code>/insert</code> to add a new line instead of replacing. If the selected line number is zero or exceeds the number of lines in a file then the text will be added at the end.</p>
 <p>Add switch <code>/append</code> to append to the line instead of replacing.</p>
 <p>Add switch <code>/newfile</code> to create a new file. Existing file will be trashed.</p>
-<p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code>.</p>
+<p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code> as the first argument.</p>
 
 
 
@@ -307,9 +309,9 @@ to the<br>
 <pre><code>IF_VERSION  &lt;operator&gt;  &lt;number&gt;
 ELSE
 ENDIF</code></pre>
-<p>Runs instructions if your game version matches given number.</p>
-<p>If it’s correct then following instructions are executed until the end of the script or until <code>endif</code> command is encountered. Content between else and <code>endif</code> will be ignored.</p>
-<p>If condition wasn’t correct then commands are skipped until the end of script or until <code>else</code> or <code>endif</code> commands.</p>
+<p>Executes selected commands only if your game version matches given number.</p>
+<p>If it does then following instructions are executed until the end of the script or until <code>endif</code> command is encountered. Content between <code>else</code> and <code>endif</code> will be ignored.</p>
+<p>If condition wasn’t correct then following commands are skipped until the end of script or until <code>else</code> or <code>endif</code> commands.</p>
 <p>Allowed comparison operators are: <code>=</code>, <code>==</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;&gt;</code>, <code>!=</code>. If there’s no operator then equality is assumed.</p>
 <p>Conditions can be nested.</p>
 
@@ -331,8 +333,8 @@ ENDIF</code></pre>
 <a name="alias"></a><hr class="betweencommands">
 <h3 class="commandtitle">Alias</h3>
 <pre><code>ALIAS  &lt;name1&gt;  &lt;name2&gt;  &lt;...&gt;</code></pre>
-<p>Adds one or more alternative names for the mod. It's relevant for auto installation and for the <code>Move</code> command: folders with selected name will be merged with the mod.</p>
-<p>Use this command without arguments to clear all the names.</p>
+<p>Adds one or more alternative names of the mod. It's relevant for auto installation and for the <code>Move</code> command: directories with selected name(s) will be merged with the modfolder.</p>
+<p>Use this command without any arguments to clear all the names.</p>
 <br><br>
 <p>Example:</p>
 <pre><code>ALIAS  @ww4mod21</code></pre>
@@ -417,117 +419,229 @@ If the file is in the modfolder then start the path with <code>&lt;mod&gt;</code
 	</div><!-- /panel -->
 
 
+
+	<a name="missions"></a><br>
+	<div class="panel panel-default betweencommands">
+		<div class="panel-heading"><strong>Mission Files</strong></div>	
+		<div class="panel-body">
+			<p>Original game only makes use of the <code>modfolder\Campaigns</code> but with Fwatch 1.16 you can now store any kind of mission in the modfolder:</p>
+			
+			<ul>
+				<li><code>modfolder\Missions</code></li>
+				<li><code>modfolder\MPMissions</code></li>
+				<li><code>modfolder\Templates</code></li>
+				<li><code>modfolder\SPTemplates</code></li>
+			</ul>
+			
+			<p>Fwatch will move files and folders from the listed locations to their counterparts in the game directory when you launch the game with this mod.</p>
+		</div>
+	</div><!-- /panel -->	
+	
+	
+
 	<a name="installation_examples"></a><br>
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Example Installation Scripts</strong></div>
 		<div class="panel-body">
 			<p>This is a script for installing WW4 2.5 mod</p>
 
-<pre><code>UNPACK  ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar  /mirror
+<pre><code><?php
+echo GS_scripting_highlighting("; Three possible download sources for the main mod files. Download the archive and unpack it in a temporary location
+UNPACK  ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar  /mirror
 UNPACK  https://www.moddb.com/downloads/start/36064  /downloads/mirror/  ww4mod25rel.rar  /mirror
 UNPACK  https://ofp.today/download/unofaddons2/ww4mod25rel.7z
+
+; Move all the unpacked content (including folders) to the modfolder (will be created if it doesn't exist) in the game directory
 MOVE    *  /match_dir
 
+; Two download sources for the mod update
 UNPACK  ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25patch1.rar  /mirror
 UNPACK  https://ofp.today/download/unofaddons2/ww4mod25patch1.7z
+
+; Move all the text files to the modfolder root
 MOVE    *.txt
-MOVE    *.pbo  addons  /match_dir
+
+; Move all the pbo files to the modfolder\\addons (will be created)
+MOVE    *.pbo  addons
+
+; Move all the remaining files (including folders) to the modfolder\\Bonus
 MOVE    *  Bonus  /match_dir
 
+; Replace modfolder\\bin\\resource.cpp (defines user interface) for widescreen compatibility
 UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
 MOVE    Files\WW4mod25\Resource.cpp  bin
 
+; Replace modfolder\\dta\\anims.pbo (island cutscenes) so that message shows up in the main menu when Fwatch is enabled
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
-MOVE    Files\WW4mod25\Anims.pbo  dta</code></pre>
+MOVE    Files\\WW4mod25\\Anims.pbo  dta");
+?></code></pre>
 
 <hr class="betweencommands">
 
-<p>This is a script for installing FDF 1.4 mod</p>
+<p>This is a script for installing Finnish Defence Forces 1.4 mod</p>
 
-<pre><code>UNPACK  ftp://ftp.armedassault.info/ofpd/mods/fdfmod13_installer.exe /mirror
+<pre><code><?php
+echo GS_scripting_highlighting('; Four possible download sources for the FDF 1.3. Download the archive and unpack it in a temporary location
+UNPACK  ftp://ftp.armedassault.info/ofpd/mods/fdfmod13_installer.exe /mirror
 UNPACK  http://pulverizer.pp.fi/ewe/mods/fdfmod13_installer.exe /mirror
 UNPACK  http://fdfmod.dreamhosters.com/ofp/fdfmod13_installer.exe /mirror
-UNPACK  <SPAN STYLE="font-size:0.75em">https://www.gamefront.com/games/operation-flashpoint-resistance/file/finnish-defence-forces  finnish-defence-forces/download  expires=  fdfmod13_installer.exe</SPAN>
-MOVE  * /match_dir
-MOVE  "<mod>\Missions\FDF MOD\*"  Missions
-DELETE  "Missions\FDF MOD"
+UNPACK  https://www.gamefront.com/games/operation-flashpoint-resistance/file/finnish-defence-forces  finnish-defence-forces/download  expires=  fdfmod13_installer.exe
 
+; Move all the unpacked content (including folders) to the modfolder
+MOVE  * /match_dir
+
+; Move single-player missions (in the modfolder) to the parent directory (they don\'t need to be in a subdirectory)
+MOVE  "<mod>\\Missions\\FDF MOD\\*"  Missions
+
+; Remove directory modfolder\\Missions\\FDF Mod (it\'s empty now)
+DELETE  "Missions\\FDF MOD"
+
+; Five possible download sources for the FDF 1.4. Download the archive and unpack it in a temporary location
 UNPACK  ftp://ftp.armedassault.info/ofpd/mods/fdfmod14_ww2.rar  /mirror
 UNPACK  http://pulverizer.pp.fi/ewe/mods/fdfmod14_ww2.rar  /mirror
 UNPACK  http://fdfmod.dreamhosters.com/ofp/fdfmod14_ww2.rar  /mirror
 UNPACK  https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod  fdf-mod/download  expires=  fdfmod14_ww2.rar  /mirror
 UNPACK  https://ofp.today/download/mods/fdfmod14_ww2.7z
-MOVE  *  /match_dir
-MOVE  "<mod>\Missions\FDF WW2\*"  Missions
-DELETE  "Missions\FDF WW2"
 
+; Move all the unpacked content (including folders) to the modfolder
+MOVE  *  /match_dir
+
+; Move single-player missions (in the modfolder) to the parent directory
+MOVE  "<mod>\\Missions\\FDF WW2\\*"  Missions
+
+; Remove modfolder\\Missions\\FDF WW2 (it\'s empty now)
+DELETE  "Missions\\FDF WW2"
+
+; Three possible download sources for the FDF Desert Pack. Download the archive and unpack it in a temporary location
 UNPACK  ftp://ftp.armedassault.info/ofpd/mods/FDF_desert_pack.rar  /mirror
 UNPACK  http://fdfmod.dreamhosters.com/ofp/FDF_desert_pack.rar  /mirror
 UNPACK  https://ofp.today/download/mods/FDF_desert_pack.7z
-MOVE  "FDF Mod - Al Maldajah - Readme.txt" readme_addons
-MOVE  * /match_dir
-MOVE  "<mod>\Missions\FDF MOD\*" Missions
-DELETE  "Missions\FDF MOD"
 
+; Move readme file to the modfolder\\readme_addons
+MOVE  "FDF Mod - Al Maldajah - Readme.txt" readme_addons
+
+; Move all the unpacked content (including folders) to the modfolder
+MOVE  * /match_dir
+
+; Move single-player missions (in the modfolder) to the parent directory
+MOVE  "<mod>\\Missions\\FDF MOD\\*" Missions
+
+; Remove modfolder\\Missions\\FDF Mod (it\'s empty now)
+DELETE  "Missions\\FDF MOD"
+
+; Three possible for an FDF island. Download the archive and unpack it in a temporary location
 UNPACK  ftp://ftp.armedassault.info/ofpd/islands2/fdf_winter_maldevic.rar /mirror
 UNPACK  http://fdfmod.dreamhosters.com/ofp/fdf_winter_maldevic.rar /mirror
 UNPACK  https://ofp.today/file/islands2/fdf_winter_maldevic.7z
+
+; Archive contains folder with the same name as the mod being currently installed. Merge its contents with the modfolder
 MOVE  finmod
-MOVE  "Missions\FDF Mod\*" Missions
+
+; Move single-player missions to the modfolder\\missions
+MOVE  "Missions\\FDF Mod\\*" Missions
+
+; Move readme file to the modfolder\\readme_addons
 MOVE  "FDF Mod - Winter Maldevic - Readme.txt" readme_addons
 
+; Three possible for an FDF island. Download the archive and unpack it in a temporary location
 UNPACK  ftp://ftp.armedassault.info/ofpd/islands/Suursaari_release_v10.zip  /mirror
 UNPACK  http://fdfmod.dreamhosters.com/ofp/Suursaari_release_v10.zip  /mirror
 UNPACK  https://ofp.today/download/islands/Suursaari_release_v10.7z
+
+; Move addon the modfolder\\addons
 MOVE    FDF_Suursaari.pbo  addons
+
+; Move folder with island cutscenes to the modfolder\\addons
 MOVE    Suursaari_anim  addons
+
+; Move all the remaining files to the modfolder\\readme_addons
 MOVE    *  readme_addons
 
-UNPBO  addons\FDF_Suursaari.pbo
-EDIT   addons\FDF_Suursaari\config.cpp  58  "cutscenes[]      = {"..\finmod\addons\suursaari_anim\intro"};"
+; Extract addon modfolder\addons\FDF_Suursaari.pbo 
+UNPBO  addons\\FDF_Suursaari.pbo
+
+; Edit addon config so that the game will open island cutscene from the proper modfolder location
+EDIT   addons\\FDF_Suursaari\\config.cpp  58  "cutscenes[]      = {"..\\finmod\\addons\\suursaari_anim\\intro"};"
+
+; Generate pbo file out of the recently extracted addon (FDF_Suursaari.pbo) and remove the source
 MAKEPBO
 
+; Replace modfolder\\bin\\resource.cpp (defines user interface) for widescreen compatibility
 UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
-MOVE    Files\FDF\Resource.cpp  bin
+MOVE    Files\\FDF\\Resource.cpp  bin
 
+; Replace modfolder\\dta\\anims.pbo (island cutscenes) so that message shows up in the main menu when Fwatch is enabled
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
-MOVE    Files\FDF\Anims.pbo  dta</code></pre>
+MOVE    Files\\FDF\\Anims.pbo  dta');
+?></code></pre>
 
 <hr class="betweencommands">
 
-<p>This is a script for installing WGL 5.12 mod</p>
+<p>This is a script for installing WarGames League 5.12 mod</p>
 
-<pre><code>ftp://ftp.armedassault.info/ofpd/unofaddons2/WGL5.1_Setup.exe  /mirror
+<pre><code><?php
+echo GS_scripting_highlighting("
+; Three possible download sources for the main WGL files. Installer will automatically download it, extract it and move files to the game directory
+ftp://ftp.armedassault.info/ofpd/unofaddons2/WGL5.1_Setup.exe  /mirror
 https://www.moddb.com/downloads/start/93621  /downloads/mirror/  WGL5.1_Setup.exe  /mirror
 https://ofp.today/Addons?dir=mods  file=WGL5.1_Setup.exe  WGL5.1_Setup.exe
 
+; Three possible download sources for the WGL patch files. Installer will automatically download it, extract it and move files to the game directory
 http://pulverizer.pp.fi/ewe/mods/wgl512_2006-11-12.rar  /mirror
 https://www.moddb.com/downloads/start/93801  /downloads/mirror/  wgl512_2006-11-12.rar  /mirror
 http://www.mediafire.com/file/4rm6uf16ihe36ce  ://download  wgl512_2006-11-12.rar
 
+; If user has 1.96 version of the game or older
 IF_VERSION  <=  1.96
-	UNPBO  &lt;game&gt;\Res\Dta\HWTL\data.pbo  dta\HWTL
-	COPY   &lt;mod&gt;\newdata\*.pa?           dta\HWTL\Data
+	; Extract Res\\Dta\\HWTL\\data.pbo (contains game textures) to the modfolder\\dta\\hwtl
+	UNPBO  &lt;game&gt;\\Res\\Dta\\HWTL\\data.pbo  dta\\HWTL
+	
+	; Copy all paa and pac files from the modfolder\\newdata to the modfolder\\dta\\hwtl\\data
+	COPY   &lt;mod&gt;\\newdata\\*.pa?           dta\\HWTL\\Data
+	
+	; Generate pbo file out of the recently extracted addon (data.pbo) and remove the source
 	MAKEPBO
 	
-	UNPBO  &lt;game&gt;\Res\Dta\HWTL\data3d.pbo  dta\HTWL
-	COPY   &lt;mod&gt;\newdata\*.p3d             dta\HWTL\data3d
+	; Extract Res\\Dta\\HWTL\\data3d.pbo (contains game models) to the modfolder\\dta\\hwtl
+	UNPBO  &lt;game&gt;\\Res\\Dta\\HWTL\\data3d.pbo  dta\\HTWL
+	
+	; Copy all p3d files from the modfolder\\newdata to the modfolder\\dta\\hwtl\\data3d
+	COPY   &lt;mod&gt;\\newdata\\*.p3d             dta\\HWTL\\data3d
+	
+	; Generate pbo file out of the recently extracted addon (data3d.pbo) and remove the source
 	MAKEPBO
+	
+; For game versions newer than 1.96
 ELSE
-	UNPBO  &lt;game&gt;\DTA\Data.pbo  dta
-	COPY   &lt;mod&gt;\newdata\*.pa?  dta\Data
+	; Extract Dta\\data.pbo (contains game textures) to the modfolder\\dta
+	UNPBO  &lt;game&gt;\\DTA\\Data.pbo  dta
+	
+	; Copy all paa and pac files from the modfolder\\newdata to the modfolder\\dta\\data
+	COPY   &lt;mod&gt;\\newdata\\*.pa?  dta\\Data
+	
+	; Generate pbo file out of the recently extracted addon (data.pbo) and remove the source
 	MAKEPBO
 	
-	UNPBO  &lt;game&gt;\DTA\Data3D.pbo  dta
-	COPY   &lt;mod&gt;\newdata\*.p3d    dta\Data3D
+	; Extract Dta\\HWTL\\data3d.pbo (contains game models) to the modfolder\\dta
+	UNPBO  &lt;game&gt;\\DTA\\Data3D.pbo  dta
+	
+	; Copy all p3d files from the modfolder\\newdata to the modfolder\\dta\\data3d
+	COPY   &lt;mod&gt;\\newdata\\*.p3d    dta\\Data3D
+	
+	; Generate pbo file out of the recently extracted addon (data3d.pbo) and remove the source
 	MAKEPBO
+	
+; Close section of commands that depend on the game version
 ENDIF
 
+; Replace modfolder\\bin\\resource.cpp (defines user interface) for widescreen compatibility
 UNPACK  http://ofp-faguss.com/fwatch/download/ofp_aspect_ratio207.rar
-MOVE    Files\WGL\Resource.cpp  bin
+MOVE    Files\\WGL\\Resource.cpp  bin
 
+; Replace modfolder\\dta\\anims.pbo (island cutscenes) so that message shows up in the main menu when Fwatch is enabled
 UNPACK  http://ofp-faguss.com/fwatch/download/anims_fwatch.rar
-MOVE    Files\WGL\Anims.pbo  dta</code></pre>
+MOVE    Files\\WGL\\Anims.pbo  dta");
+?></code></pre>
 
 		</div>
 	</div><!-- /panel -->
@@ -535,18 +649,18 @@ MOVE    Files\WGL\Anims.pbo  dta</code></pre>
 
 	<a name="testing"></a><br>
 	<div class="panel panel-default betweencommands">
-		<div class="panel-heading"><strong>Testing Scripts</strong></div>
+		<div class="panel-heading"><strong>How To Test Scripts</strong></div>
 		<div class="panel-body">
 <ul>
 <li>Write your installation script in the <span class="courier">fwatch\data\addonInstaller_test.txt</span></li>
 <li>Run <span class="courier">addonInstaller.exe</span> with parameters <code>-testmod=&lt;mod name&gt;</code> and optionally <code>-testdir=&lt;folder name&gt;</code></span></li>
 </ul>
 
-<p>Example: <code>-testmod=@ww4mod25 -testdir=@test</code>. Folder <span class="courier">@test</span> will be treated as <span class="courier">@ww4mod25</span>.</p>
-<p>See <span class="courier">fwatch\data\addonInstallerLog.txt</span> for feedback on the installation process.</p>
+<p>Example: <code>-testmod=@ww4mod25 -testdir=@test</code>. Folder <span class="courier">@test</span> will be treated as if it's <span class="courier">@ww4mod25</span>.</p>
+<p>See <span class="courier">fwatch\data\addonInstallerLog.txt</span> for the feedback on the installation process.</p>
 <p>Add parameter <code>-gameversion=&lt;number&gt;</code> for testing conditions.</p>
 <br>
-<p>In testing mode downloaded files won't be removed so you won't have to redownload them every time you run installator.</p>
+<p>In testing mode downloaded files won't be removed so you won't have to redownload them every time you run the installator.</p>
 <br>
 <p>Installer will generate <span class="courier">fwatch\tmp\__downloadtoken</span> file which you can use to find intermediate download links:</p>
 <ul>

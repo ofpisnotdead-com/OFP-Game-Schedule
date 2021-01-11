@@ -17,6 +17,17 @@
 .scripting_command_arg3 {color: rgb(128,128,128);}
 .scripting_command_arg4 {color: #E40909;}
 
+.scripting_command_comment {
+	color: #008000;
+	font-family: "Lucida Console", "Lucida Sans Typewriter", monaco, "Bitstream Vera Sans Mono", monospace;
+	display: inline-block;
+	margin-top: 1em;
+	margin-bottom: 0.5em;
+	margin-left: 2em;
+	word-break: keep-all;
+	font-size: smaller;
+}
+
 .btn-overflow {
 	text-overflow: ellipsis;
 	white-space: normal;
