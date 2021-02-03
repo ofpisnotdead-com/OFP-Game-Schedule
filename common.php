@@ -1,6 +1,6 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2020,12,31,4,1,27,54,348,60,FALSE]");
-define("GS_VERSION", 0.54);
+define("GS_FWATCH_LAST_UPDATE","[2021,1,25,1,13,58,18,712,60,FALSE]");
+define("GS_VERSION", 0.55);
 define("GS_ENCRYPT_KEY", 2997);
 define("GS_MODULUS_KEY", 20131);
 define("GS_DECRYPT_KEY", 10333);
@@ -45,7 +45,7 @@ define("GS_VOICE", [
 define("GS_MAX_TXT_INPUT_LENGTH"   , 100);
 define("GS_MAX_MSG_INPUT_LENGTH"   , 255);
 define("GS_MAX_CODE_INPUT_LENGTH"  , 10);
-define("GS_MAX_SCRIPT_INPUT_LENGTH", 8192);
+define("GS_MAX_SCRIPT_INPUT_LENGTH", 10000);
 
 // Log codes
 define("GS_LOG_UNKNOWN"              , 0);
@@ -1266,6 +1266,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				gs_mods_scripts.modified AS modified3,
 				gs_mods_links.fromver,
 				gs_mods_links.removed,
+				gs_mods_links.alwaysnewest,
 				scripts2.id       AS scriptid2,
 				scripts2.size     AS size2,
 				scripts2.script   AS script2,
@@ -1365,7 +1366,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						$output["lastmodified"] = strtotime($row["modified$i"]);
 
 				if (isset($row["fromver"])) {
-					$columns_to_copy = ["fromver", "version", "scriptid2", "size2", "script2", "removed"];
+					$columns_to_copy = ["fromver", "version", "scriptid2", "size2", "script2", "removed", "alwaysnewest"];
 					$link_num        = count($mods_links[$id]);
 					
 					foreach($columns_to_copy as $column)
@@ -1430,13 +1431,27 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				// Look for a valid jump between versions
 				foreach ($mods_links[$id] as $link) {
 					if (!$link["removed"]) {
-						$parse_result = GS_parse_jump_rule($link["fromver"], $current_version, $link["version"]);
+						$parse_result = $link["alwaysnewest"] ? true : GS_parse_jump_rule($link["fromver"], $current_version, $link["version"]);
 
 						if ($parse_result === TRUE) {
 							$toversion = $link["version"];
 							$script_id = $link["scriptid2"];
 							$size      = $link["size2"];
 							$script    = $link["script2"];
+							
+							if ($link["alwaysnewest"]) {
+								$keys      = array_keys($updates);
+								$newest    = $updates[$keys[count($keys)-1]];
+								$toversion = $newest["version"];
+							}
+							
+							// Find date of the update that is being jumped to
+							for($i=0; $i<count($updates); $i++)
+								if ($updates[$i]["version"] == $toversion) {
+									$date = $updates[$i]["update_created"];
+									break;
+								}
+							
 							break;
 						}
 					}
@@ -2280,9 +2295,6 @@ function GS_convert_cyrillic($input, $to_latin=false) {
 
 // Code highlighting for addon installer scripting language
 function GS_scripting_highlighting($code) {
-	$code         = str_replace("&amp;", "&", htmlspecialchars($code));
-	$html         = "";
-	$lines        = preg_split( "/(\n)/", $code);
 	$all_commands = [
 		"auto_install" => "auto_installation",
 		"download"     => "get",
@@ -2312,9 +2324,8 @@ function GS_scripting_highlighting($code) {
 		"begin_ver"    => "",
 		"alias"        => "alias"
 	];
-	$switches = [
-		"/mirror",
-		"/password",
+	$command_switches_names = [
+		"/password:",
 		"/no_overwrite",
 		"/match_dir",
 		"/no_delete",
@@ -2322,119 +2333,175 @@ function GS_scripting_highlighting($code) {
 		"/newfile",
 		"/append"
 	];
+	$word_begin            = -1;
+	$word_count            = 1;
+	$word_line_num         = 1;
+	$command_id            = -1;
+	$last_command_line_num = -1;
+	$last_url_list_id      = -1;
+	$in_quote              = false;
+	$remove_quotes         = true;
+	$url_block             = false;
+	$url_line              = false;
+	$instruction_id        = [];
+	$instruction_line      = [];
+	$instruction_arg       = [];
+	$instruction_arg_id    = [];
+	$url_list              = [];
+	$url_list_id           = [];
+	$output                = "";
+	$is_url                = function ($text) {return substr($text,0,7)=="http://" || substr($text,0,8)=="https://" || substr($text,0,6)=="ftp://" || substr($text,0,4)=="www.";};
 	
-	foreach($lines as $line) {
-		$line            = str_replace("\r", "", $line);
-		$arguments       = [];
-		$arguments_begin = [];
-		$arguments_end   = [];
-		$in_quote        = false;
-		$begin           = -1;
-		$offset          = 0;
-		$found_url       = false;
-		$argument_num    = 1;
+	for($i=0; $i<=strlen($code); $i++) {
+		$end_of_word = $i==strlen($code) || ctype_space($code[$i]);
 		
-		// Custom tokenization
-		for($i=0; $i<=strlen($line); $i++) {
-			if (substr($line, $i, 6) == "&quot;") {
-				if ($in_quote)
-					$i += 6;
-				
-				$in_quote = !$in_quote;
+		// When quote
+		if ($code[$i]=="\"")
+			$in_quote = !$in_quote;
+		
+		if (substr($code,$i,6) == "&quot;") {
+			$in_quote = !$in_quote;
+		}
+		
+		// If beginning of an url block
+		if ($code[$i]=="{" && $word_begin<0) {
+			$url_block = true;
+	
+			// if bracket is the first thing in the line then it's auto installation
+			if ($word_count == 1) {
+				$last_command_line_num = $word_line_num;
+				$instruction_id[]      = 0;
+				$instruction_line[]    = $word_line_num;
 			}
 			
-			$is_token = $i==strlen($line) || ctype_space($line[$i]);
+			$output .= "{";
+			continue;
+		}
+		
+		// If ending of an url block
+		if ($code[$i]=="}" && $url_block) {
+			$end_of_word = true;
 			
-			// Mark beginning of the word
-			if (!$is_token && $begin<0) {
-				$begin = $i;
-				
-				// Custom delimiter
-				if (substr($line, $begin, 8) == "&gt;&gt;") {
-					$end      = strpos($line, substr($line,$i+8,1), $i+9);
-					$is_token = true;
-					$i        = $end===FALSE ? strlen($line) : $end+1;
-				}
+			// If there's space between last word and the closing bracket
+			if ($word_begin == -1) {	
+				$url_block = false;
+				$url_line  = false;
+				$word_count++;
+				$output .= "}";
+				continue;
 			}
+		}
+		
+		// Remember beginning of the word
+		if (!$end_of_word && $word_begin<0) {
+			$word_begin = $i;
 			
-			// Mark end of the word
-			if ($is_token  &&  $begin>=0  &&  !$in_quote) {
-				$arguments[]       = substr($line, $begin, $i-$begin);
-				$arguments_begin[] = $begin;
-				$arguments_end[]   = $i;
-				$begin             = -1;
+			// If custom delimeter - jump to the end of the argument
+			if (substr($code,$i,2) == ">>" || substr($code,$i,8) == "&gt;&gt;") {
+				$offset        = substr($code,$i,2) == ">>" ? 2 : 8;
+				$separator     = $code[$i + $offset];
+				$end           = strpos($code, $separator, $i+$offset+1);
+				$end_of_word   = true;
+				$i             = $end===false ? count($code)-1 : $end+1;
+				$remove_quotes = false;
 			}
 		}
 
-		// Check word type
-		foreach($arguments as $i=>$argument) {
-			$argumentL  = strtolower($argument);
-			$class      = "";
-			$comm_index = FALSE;
-			$is_switch  = false;
-			$is_url     = substr($argumentL,0,7)=="http://" || substr($argumentL,0,8)=="https://" || substr($argumentL,0,6)=="ftp://" || substr($argumentL,0,4)=="www.";
-			$comm_index = array_search($argumentL, array_keys($all_commands));
-			
-			for($j=0; $j<count($switches); $j++)
-				if ($switches[$j] == substr($argumentL,0,strlen($switches[$j])))
-					$is_switch = true;
-			
-			// If not a valid command line
-			if ($i==0 && $comm_index===FALSE && !$is_url) {
-				if (!empty($line))
-					$line = "<span class=\"scripting_command_comment\">$line</span>";
+		// When hit end of the word
+		if ($end_of_word && $word_begin>=0 && !$in_quote) {
+			$word = substr($code, $word_begin, $i-$word_begin);
 				
-				break;
-			}
-			
-			// Determine argument type
-			if ($is_url) {
-				$found_url = true;
-				$class     = "scripting_command_url";
-			} else			
-				if ($i==0 && $comm_index!==FALSE)
-					$class = "scripting_command";
-				else
-					if ($is_switch)
-						$class = "scripting_command_switch";
-					else 
-						if ($argument == "|") {
-							$found_url = false;
-							$argument_num++;
-						} else {
-							$class = "scripting_command_arg$argument_num";
-							$argument_num++;
-						}
-			
-			// Add style
-			if ($class != "") {
-				if ($found_url && substr($class,0,21) == "scripting_command_arg")
-					continue;
+			// If first word in the line
+			if ($word_count == 1 && !$url_block) {
+				$command_id = -1;
 				
-				$start = "<span class=\"$class\">";
-				$end   = "</span>";
-				
-				if (in_array($class,["scripting_command_url","scripting_command"])) {
-					$url = $argument;
+				// Check if it's a valid command
+				if ($is_url($word))
+					$command_id = 0;
+				else {
+					$command_names = array_keys($all_commands);
 					
-					if ($comm_index !== FALSE)
-						$url = "install_scripts#{$all_commands[array_keys($all_commands)[$comm_index]]}";
-					
-					$start = "<a href=\"$url\" target=\"_blank\">$start";
-					$end  .= "</a>";
+					for ($j=0; $j<count($command_names) && $command_id==-1; $j++)
+						if (strcasecmp($word, $command_names[$j]) == 0)
+							$command_id = $j;
 				}
+
+				// If so then add it to database, otherwise skip this line
+				if ($command_id != -1) {
+					$last_command_line_num = $word_line_num;
+					$instruction_id[]      = $command_id;
+					$instruction_line[]    = $word_line_num;
+					
+					// If command is an URL then add it to the url database
+					if ($command_id == 0) {
+						$url_line         = true;
+						$last_url_list_id = count($url_list_id);
+						$url_list[]       = $word;
+						$url_list_id[]    = $last_command_line_num;
+						$output          .= "<a class=\"scripting_command_url\" href=\"$word\">$word</a>";
+					} else
+						$output .= "<a class=\"scripting_command\" href=\"install_scripts#{$all_commands[array_keys($all_commands)[$command_id]]}\" target=\"_blank\">$word</a>";
+				} else {
+					$end  = strpos($code,"\n", $i);
+					$i    = ($end===false ? strlen($code) : $end) - 1;
+					$word = substr($code, $word_begin, $i-$word_begin);
+					$output .= "<span class=\"scripting_command_comment\">$word</span>";
+				}
+			} else {
+				// Check if URL starts here
+				if (!$url_line)
+					$url_line = $is_url($word);
 				
-				$line    = substr_replace($line, $start, $arguments_begin[$i]+$offset, 0);
-				$offset += strlen($start);
+				// Check if it's a valid command switch
+				$is_switch = false;
 				
-				$line    = substr_replace($line, $end  , $arguments_end[$i]+$offset  , 0);
-				$offset += strlen($end);
+				for ($j=0; $j<count($command_switches_names) && !$is_switch; $j++)
+					$is_switch = strcasecmp(substr($word,0,strlen($command_switches_names[$j])), $command_switches_names[$j]) == 0;
+
+				// Add word to the URL database or the arguments database
+				if ($url_line && !$is_switch) {
+					if ($last_url_list_id == -1) {
+						$last_url_list_id = count($url_list_id);
+						$url_list[]       = $word;
+						$url_list_id[]    = $last_command_line_num;
+						$output          .= "<a class=\"scripting_command_url\" href=\"$word\">$word</a>";
+					} else {
+						$url_list[$last_url_list_id] .= " " . $word;
+						$output .= $word;
+					}
+				} else {
+					$instruction_arg[]    = $word;
+					$instruction_arg_id[] = $last_command_line_num;
+					
+					if ($is_switch)
+						$output .= "<span class=\"scripting_command_switch\">$word</span>";
+					else
+						$output .= "<span class=\"scripting_command_arg".($word_count-1)."\">$word</span>";
+				}
 			}
+			
+			// If ending of an url block
+			if ($code[$i] == "}" && $url_block) {
+				$url_block = false;
+				$url_line  = false;
+			}
+
+			$word_begin = -1;
+			$word_count++;
 		}
-		
-		$html .= $line . "\n";
+
+		// When new line			
+		if (!$in_quote && $code[$i]=="\n") {
+			$word_count       = 1;
+			$url_line         = false;
+			$last_url_list_id = -1;
+			$word_line_num++;
+		}
+
+		if ($i < strlen($code) && $word_begin==-1)
+			$output .= $code[$i];
 	}
 	
-	return $html;
+	return $output;
 }
 ?>

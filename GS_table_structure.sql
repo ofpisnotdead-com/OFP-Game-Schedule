@@ -2,13 +2,13 @@ ALTER TABLE `users` ADD `timezone` VARCHAR(255) NOT NULL DEFAULT 'Europe/Warsaw'
 UPDATE `settings` SET `us_css3` = '../usersc/css/custom.css' WHERE `settings`.`id` = 1;
 
 -- phpMyAdmin SQL Dump
--- version 4.8.4
+-- version 4.9.5
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 28, 2020 at 03:28 AM
--- Server version: 5.5.63-MariaDB
--- PHP Version: 7.0.32
+-- Generation Time: Feb 03, 2021 at 02:27 AM
+-- Server version: 10.2.36-MariaDB
+-- PHP Version: 7.3.17
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -33,8 +33,8 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `gs_announce` (
   `id` int(11) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `created` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `text` text COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -47,9 +47,23 @@ CREATE TABLE `gs_announce` (
 CREATE TABLE `gs_log` (
   `id` int(11) NOT NULL,
   `userid` int(11) NOT NULL,
-  `itemid` int(11) NOT NULL DEFAULT '0',
-  `type` int(11) NOT NULL DEFAULT '0',
-  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `itemid` int(11) NOT NULL DEFAULT 0,
+  `type` int(11) NOT NULL DEFAULT 0,
+  `added` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gs_log_serv_mods`
+--
+
+CREATE TABLE `gs_log_serv_mods` (
+  `id` int(11) NOT NULL,
+  `logid` int(11) NOT NULL,
+  `serverid` int(11) NOT NULL,
+  `modid` int(11) NOT NULL,
+  `loadorder` int(11) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -63,15 +77,16 @@ CREATE TABLE `gs_mods` (
   `name` varchar(100) NOT NULL,
   `description` text NOT NULL,
   `uniqueid` varchar(10) NOT NULL,
-  `removed` tinyint(1) NOT NULL DEFAULT '0',
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `removed` tinyint(1) NOT NULL DEFAULT 0,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0',
-  `access` tinyint(1) NOT NULL DEFAULT '1',
-  `forcename` tinyint(4) NOT NULL DEFAULT '0',
+  `modifiedby` int(11) NOT NULL DEFAULT 0,
+  `access` tinyint(1) NOT NULL DEFAULT 1,
+  `forcename` tinyint(4) NOT NULL DEFAULT 0,
   `type` int(11) NOT NULL,
-  `alias` varchar(255) NOT NULL
+  `alias` varchar(255) NOT NULL,
+  `is_mp` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -84,13 +99,13 @@ CREATE TABLE `gs_mods_admins` (
   `id` int(11) NOT NULL,
   `modid` int(11) NOT NULL,
   `userid` int(11) NOT NULL,
-  `isowner` tinyint(1) NOT NULL DEFAULT '0',
-  `right_edit` tinyint(1) NOT NULL DEFAULT '0',
-  `right_update` tinyint(1) NOT NULL DEFAULT '0',
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `isowner` tinyint(1) NOT NULL DEFAULT 0,
+  `right_edit` tinyint(1) NOT NULL DEFAULT 0,
+  `right_update` tinyint(1) NOT NULL DEFAULT 0,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0'
+  `modifiedby` int(11) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -105,11 +120,12 @@ CREATE TABLE `gs_mods_links` (
   `updateid` int(11) NOT NULL,
   `scriptid` int(11) NOT NULL,
   `fromver` varchar(255) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0',
-  `removed` tinyint(4) NOT NULL DEFAULT '0'
+  `modifiedby` int(11) NOT NULL DEFAULT 0,
+  `removed` tinyint(4) NOT NULL DEFAULT 0,
+  `alwaysnewest` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -123,10 +139,10 @@ CREATE TABLE `gs_mods_scripts` (
   `size` varchar(100) NOT NULL,
   `script` text NOT NULL,
   `uniqueid` varchar(10) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0'
+  `modifiedby` int(11) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -139,12 +155,12 @@ CREATE TABLE `gs_mods_updates` (
   `id` int(11) NOT NULL,
   `modid` int(11) NOT NULL,
   `scriptid` int(11) NOT NULL,
-  `version` float NOT NULL DEFAULT '1',
+  `version` float NOT NULL DEFAULT 1,
   `changelog` text NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0'
+  `modifiedby` int(11) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -157,21 +173,21 @@ CREATE TABLE `gs_serv` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `ip` varchar(100) NOT NULL,
-  `port` int(11) NOT NULL DEFAULT '0',
+  `port` int(11) NOT NULL DEFAULT 0,
   `password` varchar(100) NOT NULL,
-  `version` float NOT NULL DEFAULT '1.99',
-  `equalmodreq` tinyint(1) NOT NULL DEFAULT '0',
+  `version` float NOT NULL DEFAULT 1.99,
+  `equalmodreq` tinyint(1) NOT NULL DEFAULT 0,
   `languages` varchar(100) NOT NULL,
   `location` varchar(100) NOT NULL,
   `message` varchar(255) NOT NULL,
   `website` varchar(100) NOT NULL,
   `logo` varchar(100) NOT NULL,
   `uniqueid` varchar(10) NOT NULL,
-  `removed` tinyint(1) NOT NULL DEFAULT '0',
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `removed` tinyint(1) NOT NULL DEFAULT 0,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0',
+  `modifiedby` int(11) NOT NULL DEFAULT 0,
   `access` varchar(10) NOT NULL,
   `maxcustomfilesize` varchar(10) NOT NULL,
   `voice` text NOT NULL
@@ -187,14 +203,14 @@ CREATE TABLE `gs_serv_admins` (
   `id` int(11) NOT NULL,
   `serverid` int(11) NOT NULL,
   `userid` int(11) NOT NULL,
-  `isowner` tinyint(1) NOT NULL DEFAULT '0',
-  `right_edit` tinyint(1) NOT NULL DEFAULT '0',
-  `right_schedule` tinyint(1) NOT NULL DEFAULT '0',
-  `right_mods` tinyint(1) NOT NULL DEFAULT '0',
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `isowner` tinyint(1) NOT NULL DEFAULT 0,
+  `right_edit` tinyint(1) NOT NULL DEFAULT 0,
+  `right_schedule` tinyint(1) NOT NULL DEFAULT 0,
+  `right_mods` tinyint(1) NOT NULL DEFAULT 0,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0'
+  `modifiedby` int(11) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -205,15 +221,14 @@ CREATE TABLE `gs_serv_admins` (
 
 CREATE TABLE `gs_serv_mods` (
   `id` int(11) NOT NULL,
-  `modid` int(11) NOT NULL,
   `serverid` int(11) NOT NULL,
-  `uniqueid` varchar(10) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `createdby` int(11) NOT NULL DEFAULT '0',
-  `modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `modifiedby` int(11) NOT NULL DEFAULT '0',
-  `removed` tinyint(4) NOT NULL DEFAULT '0',
-  `loadorder` int(11) NOT NULL DEFAULT '0'
+  `modid` int(11) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdby` int(11) NOT NULL DEFAULT 0,
+  `modified` timestamp NOT NULL DEFAULT current_timestamp(),
+  `modifiedby` int(11) NOT NULL DEFAULT 0,
+  `removed` tinyint(4) NOT NULL DEFAULT 0,
+  `loadorder` int(11) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -226,16 +241,16 @@ CREATE TABLE `gs_serv_times` (
   `id` int(11) NOT NULL,
   `serverid` int(11) NOT NULL,
   `userid` int(11) NOT NULL,
-  `type` int(11) NOT NULL DEFAULT '0',
-  `starttime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` int(11) NOT NULL DEFAULT 0,
+  `starttime` timestamp NOT NULL DEFAULT current_timestamp(),
   `timezone` varchar(100) NOT NULL DEFAULT 'Europe/Warsaw',
-  `duration` int(11) NOT NULL DEFAULT '60',
+  `duration` int(11) NOT NULL DEFAULT 60,
   `uniqueid` varchar(10) NOT NULL,
   `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `createdby` int(11) NOT NULL DEFAULT '0',
+  `createdby` int(11) NOT NULL DEFAULT 0,
   `modified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL DEFAULT '0',
-  `removed` tinyint(4) NOT NULL DEFAULT '0'
+  `modifiedby` int(11) NOT NULL DEFAULT 0,
+  `removed` tinyint(4) NOT NULL DEFAULT 0
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -252,6 +267,12 @@ ALTER TABLE `gs_announce`
 -- Indexes for table `gs_log`
 --
 ALTER TABLE `gs_log`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `gs_log_serv_mods`
+--
+ALTER TABLE `gs_log_serv_mods`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -316,8 +337,7 @@ ALTER TABLE `gs_serv_admins`
 ALTER TABLE `gs_serv_mods`
   ADD PRIMARY KEY (`id`),
   ADD KEY `ModID` (`modid`),
-  ADD KEY `ServerID` (`serverid`),
-  ADD KEY `uniqueID` (`uniqueid`);
+  ADD KEY `ServerID` (`serverid`);
 
 --
 -- Indexes for table `gs_serv_times`
@@ -342,6 +362,12 @@ ALTER TABLE `gs_announce`
 -- AUTO_INCREMENT for table `gs_log`
 --
 ALTER TABLE `gs_log`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `gs_log_serv_mods`
+--
+ALTER TABLE `gs_log_serv_mods`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

@@ -440,7 +440,9 @@ function GS_activate_convertlink_modal() {
 			pos     = sub.indexOf('/');
 
 			if (pos >= 0) {
-				convertlink_modal_filename.value = sub.substring(pos+1);
+				pos++;
+				var end = sub.indexOf('/', pos);
+				convertlink_modal_filename.value = sub.substring(pos, end==-1 ? sub.length : end);
 				convertlink_modal_accept.style.display = convertlink_modal_filename.value.length > 0 ? 'block' : 'none';
 			}
 		}
@@ -461,6 +463,17 @@ function GS_activate_convertlink_modal() {
 			
 			if (id_pos >= 0)
 				convertlink_modal_group_filename.style.display = 'block';
+		}
+		
+		if (convertlink_modal_link.value.search('sendspace.com') >= 0) {
+			var id_pos = convertlink_modal_link.value.search('/file/');
+			
+			if (id_pos >= 0)
+				convertlink_modal_group_filename.style.display = 'block';
+		}
+
+		if (convertlink_modal_link.value.indexOf('lonebullet.com') >= 0) {
+			convertlink_modal_group_filename.style.display = 'block';
 		}
 	}
 
@@ -534,6 +547,14 @@ function GS_activate_convertlink_modal() {
 
 		if (convertlink_modal_link.value.search('ofpec.com') >= 0) {
 			final_url = convertlink_modal_link.value + (convertlink_modal_link.value.search('download.php')>=0 ? ' ' : ' download.php ');				
+		}
+
+		if (convertlink_modal_link.value.search('sendspace.com') >= 0) {
+			final_url = convertlink_modal_link.value + ' sendspace.com/dl ';
+		}
+
+		if (convertlink_modal_link.value.search('lonebullet.com') >= 0) {
+			final_url = convertlink_modal_link.value + ' /file/ files.lonebullet.com ';
 		}
 		
 		if (final_url.length > 0 && convertlink_modal_filename.value.length > 0) {
@@ -680,13 +701,13 @@ function GS_convert_server_events(starttime, duration, types, started, stringtab
 				
 				case 1 : 
 					if (!started[i][j])
-						description += start2.format("Do MMMM[. ]");
+						description += start2.format("Do MMMM[. ] ");
 					description += stringtable[start.format("d")]; 
 					break;
 					
 				case 2 : 
 					if (!started[i][j])
-						description += start2.format("MMMM Do YYYY, h:mm:ss a");
+						description += start2.format("MMMM Do YYYY, ");
 					description += stringtable["Daily"]; 
 					break;
 			}

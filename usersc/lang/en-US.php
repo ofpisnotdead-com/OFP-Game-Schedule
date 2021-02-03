@@ -205,6 +205,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_LINK_FROM_HINT" => "Condition to jump from the earlier versions. Comparison operators, \"and\", \"or\", parentheses can be used. Word \"version\" or \"ver\" or \"v\" indicates user's version.",
 	"GS_STR_MOD_LINK_TO" => "To version",
 	"GS_STR_MOD_LINK_TO_HINT" => "Result of the link",
+	"GS_STR_MOD_LINK_TO_NEWEST" => "Always Newest",
 	"GS_STR_MOD_PATCHNOTES" => "Patch Notes",
 	"GS_STR_MOD_PATCHNOTES_HINT" => "What changed in this update?",
 	"GS_STR_MOD_PATCHNOTES_EXAMPLE" => "added new unit",
@@ -250,7 +251,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_LINK_INVALID_ERROR" => "Invalid link",
 	
 	"GS_STR_MOD_CONVERTLINK" => "Convert Download Link",
-	"GS_STR_MOD_CONVERTLINK_DESC" => "Convert link from one of the four sites to a format usable by the installer",
+	"GS_STR_MOD_CONVERTLINK_DESC" => "Convert link (from any of the sites listed below) to a format usable by the installer",
 	"GS_STR_MOD_CONVERTLINK_SHAREABLE" => "shareable link",
 	"GS_STR_MOD_CONVERTLINK_PAGE" => "download page address",
 	"GS_STR_MOD_CONVERTLINK_FILENAME" => "File name",

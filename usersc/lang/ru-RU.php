@@ -206,6 +206,7 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_LINK_FROM_HINT" => "Возможность переключиться с более ранних версий. Возможно сравнение содержимого с помощью \"and\", \"or\". Слова \"version\" или \"ver\" или \"v\" указывают на версию игрока.",
 	"GS_STR_MOD_LINK_TO" => "К версии",
 	"GS_STR_MOD_LINK_TO_HINT" => "Финальная версия",
+	"GS_STR_MOD_LINK_TO_NEWEST" => "всегда самая новая версия",
 	"GS_STR_MOD_PATCHNOTES" => "Описание патча",
 	"GS_STR_MOD_PATCHNOTES_HINT" => "Что изменилось с этим обновлением?",
 	"GS_STR_MOD_PATCHNOTES_EXAMPLE" => "Добавлен новый объект",
@@ -251,7 +252,7 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_LINK_INVALID_ERROR" => "Недействительная ссылка",
 	
 	"GS_STR_MOD_CONVERTLINK" => "Конвертировать ссылку для скачивания",
-	"GS_STR_MOD_CONVERTLINK_DESC" => "Конвертировать ссылку в формат, используемый мастером установки, с одного из четырех веб-сайтов",
+	"GS_STR_MOD_CONVERTLINK_DESC" => "Конвертировать ссылку в формат, используемый мастером установки, с одного из предложенных ниже веб-сайтов",
 	"GS_STR_MOD_CONVERTLINK_SHAREABLE" => "Доступ по ссылке",
 	"GS_STR_MOD_CONVERTLINK_PAGE" => "Страница скачивания",
 	"GS_STR_MOD_CONVERTLINK_FILENAME" => "Имя файла",

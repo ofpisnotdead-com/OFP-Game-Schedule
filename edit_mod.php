@@ -9,13 +9,15 @@ $js_modal = "
 	
 		<p>".lang("GS_STR_MOD_CONVERTLINK_DESC")."</p>
 		<ul>
-			<li><b>Google Drive</b> - ".lang("GS_STR_MOD_CONVERTLINK_SHAREABLE")."</li>
-			<li><b>ModDB</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
-			<li><b>Mediafire</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
-			<li><b>GameFront</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
-			<li><b>DSServers</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
-			<li><b>ArmaHolic</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
-			<li><b>OFPEC</b> - ".lang("GS_STR_MOD_CONVERTLINK_PAGE")."</li>
+			<li><b>Google Drive</b> - <span style=\"font-size:x-small;\">https://drive.google.com/file/d/1_53Xmwek8ffHlHElhKb8vNaQEkJ0PWFj/view?usp=sharing</span></li>
+			<li><b>ModDB</b> - <span style=\"font-size:x-small;\">https://www.moddb.com/mods/sanctuary1/downloads/ww4-modpack-25</span></li>
+			<li><b>Mediafire</b> - <span style=\"font-size:x-small;\">http://www.mediafire.com/file/4rm6uf16ihe36ce/wgl512_2006-11-12.rar/file</span></li>
+			<li><b>GameFront</b> - <span style=\"font-size:x-small;\">https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod</span></li>
+			<li><b>DSServers</b> - <span style=\"font-size:x-small;\">https://ds-servers.com/gf/operation-flashpoint/modifications/miscellaneous/fdf-mod-v1-4.html</span></li>
+			<li><b>ArmaHolic</b> - <span style=\"font-size:x-small;\">https://www.armaholic.com/page.php?id=34273</span></li>
+			<li><b>OFPEC</b> - <span style=\"font-size:x-small;\">https://www.ofpec.com/addons_depot/index.php?action=details&id=69</span></li>
+			<li><b>SendSpace</b> - <span style=\"font-size:x-small;\">https://www.sendspace.com/file/8r9g4z</span></li>
+			<li><b>LoneBullet</b> - <span style=\"font-size:x-small;\">https://www.lonebullet.com/mods/download-ecp-1085e-tgs-operation-flashpoint-resistance-mod-free-52029.htm</span></li>
 		</ul>
 		<br>
 		
@@ -58,7 +60,7 @@ $js_modal = "
 </div>
 
 <script type=\"text/javascript\">
-	document.getElementById('convertlink_field').innerHTML = '<a>".lang("GS_STR_MOD_CONVERTLINK")."</a>';
+	document.getElementById('convertlink_field').innerHTML = '<a style=\"cursor:pointer; font-weight:bold; font-size:medium;\">".lang("GS_STR_MOD_CONVERTLINK")."</a>';
 	GS_activate_convertlink_modal()
 </script>";
 
@@ -272,7 +274,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->add_button("action", "DeleteLink", lang("GS_STR_INDEX_DELETE"), "btn-danger btn-sm", "SubmitButton");
 	}
 	
-	$form->add_html("<br><br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a><br><br><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/2fs4hbYZ1VY?start=82\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>");
+	$form->add_html("<br><br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a><br><br><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/2fs4hbYZ1VY?start=82&end=154\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>");
 	$form->change_control(["size", "sizetype"], ["Inline"=>3]);
 	
 
@@ -290,9 +292,21 @@ if ($form->hidden["display_form"] == "Update")
 		$updateid      = NULL;
 		$is_ok         = false;
 		$custom_errors = [];
-		$result        = GS_parse_jump_rule($data["fromver"], 0, $data["version"]);
+	
+		// Get the highest version number for this mod
+		if (in_array($form->hidden["display_subform"],["Add","Link"])) {
+			$highest = $db->cell("gs_mods_updates.MAX(version)",["modid","=",$id]);
+			
+			if (isset($highest))
+				$highest = floatval(sprintf("%01.3f", $highest));
+			else {
+				$form->alert(lang("GS_STR_MOD_RECENTVER_ERROR"));
+				$is_ok = false;
+			}
+		}
 		
-		// Validate rule
+		// Validate jump rule
+		$result = GS_parse_jump_rule($data["fromver"], 0, $data["version"]=="-1" ? $highest : $data["version"]);
 		if (is_string($result))
 			$custom_errors[] = [lang("GS_STR_MOD_CONDITION_ERROR").": $result", "fromver"];
 		else
@@ -304,22 +318,10 @@ if ($form->hidden["display_form"] == "Update")
 			$data["version"] = strval($data["version"]);
 		}
 		
-		// Get highest version number for this mod
-		if ($form->hidden["display_subform"] == "Add") {
-			$highest = $db->cell("gs_mods_updates.MAX(version)",["modid","=",$id]);
-			
-			if (isset($highest))
-				$highest = floatval(sprintf("%01.3f", $highest));
-			else {
-				$form->alert(lang("GS_STR_MOD_RECENTVER_ERROR"));
-				$is_ok = false;
-			}
-		}
-		
 		
 		// Find update id by version number
 		if ($form->hidden["display_subform"] == "Link") {
-			$updateid = $db->cell("gs_mods_updates.id",["and",["modid","=",$id],["version","LIKE",$data["version"]]]);
+			$updateid = $db->cell("gs_mods_updates.id",["and",["modid","=",$id],["version","LIKE",$data["version"]=="-1" ? $highest : $data["version"]]]);
 
 			if (!isset($updateid)) {
 				$form->alert(lang("GS_STR_MOD_LINKVER_ERROR"));
@@ -346,7 +348,7 @@ if ($form->hidden["display_form"] == "Update")
 			$form->add_validation_rules(["version"], [">"=>$highest, "unique"=>$unique_array]);
 		
 		if ($form->hidden["display_subform"] == "Link") {
-			$form->add_validation_rules(["fromver"], ["max"=>GS_MAX_MSG_INPUT_LENGTH]);
+			$form->add_validation_rules(["fromver"]   , ["max"=>GS_MAX_MSG_INPUT_LENGTH]);
 			$form->add_validation_rules(["scripttext"], ["required"=>false]);
 		}
 
@@ -366,9 +368,10 @@ if ($form->hidden["display_form"] == "Update")
 			];
 
 			$link_fields = [
-				"updateid" => $updateid,
-				"scriptid" => $data["script"],
-				"fromver"  => $data["fromver"]
+				"updateid"     => $updateid,
+				"scriptid"     => $data["script"],
+				"fromver"      => $data["fromver"],
+				"alwaysnewest" => $data["version"] == "-1"
 			];
 
 			$script_fields["modified"]   = date("Y-m-d H:i:s");
@@ -576,6 +579,9 @@ if ($form->hidden["display_form"] == "Update")
 	
 	$form->add_js_var($js_update_list);
 	
+	if ($form->hidden["display_subform"] == "Link")
+		$to_version[] = [lang("GS_STR_MOD_LINK_TO_NEWEST"), "-1"];
+	
 
 		
 
@@ -658,7 +664,7 @@ if ($form->hidden["display_form"] == "Update")
 			$js_link_list["data"][] = [
 				"uniqueid"       => $link["uniqueid"],
 				"fromver"        => $link["fromver"],
-				"version"        => $link["version"],
+				"version"        => $link["alwaysnewest"] ? "-1" : $link["version"],
 				"scriptUniqueID" => $link["scriptUniqueID"]
 			];
 			$js_script_list["data"][] = [
