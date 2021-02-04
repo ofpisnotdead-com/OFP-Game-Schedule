@@ -1395,6 +1395,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$output["info"][$id]["modified"]    = $row["modified1"];
 					$output["info"][$id]["alias"]       = $row["alias"];
 					$output["info"][$id]["is_mp"]       = $row["is_mp"];
+					$output["info"][$id]["allversions"] = ["0"];
 				}
 			}
 		}
@@ -1493,20 +1494,23 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						$update_index = count($output["info"][$id]["updates"])-1;
 				}
 
-				// Add patch notes for every version above input mod version			
-				if ($request_type=="website"  &&  ($input_version==0 || $toversion>$input_version)) {
+				if ($request_type == "website") {
+					$output["info"][$id]["allversions"][] = $update["version"];
 
-					// If there was a jump or script was duplicated then add to the existing array (and refresh date)
-					if ($update_index !== FALSE)
-						$output["info"][$id]["updates"][$update_index]["date"] = $date;
-					else
-						// otherwise add to the last array
-						$update_index = !empty($output["info"][$id]["updates"]) ? count($output["info"][$id]["updates"])-1 : 0;
+					// Add patch notes for every version above input mod version			
+					if ($input_version==0 || $toversion>$input_version) {
+						// If there was a jump or script was duplicated then add to the existing array (and refresh date)
+						if ($update_index !== FALSE)
+							$output["info"][$id]["updates"][$update_index]["date"] = $date;
+						else
+							// otherwise add to the last array
+							$update_index = !empty($output["info"][$id]["updates"]) ? count($output["info"][$id]["updates"])-1 : 0;
 
-					$output["info"][$id]["updates"][$update_index]["note"][]         = $changelog;
-					$output["info"][$id]["updates"][$update_index]["note_date"][]    = $date;
-					$output["info"][$id]["updates"][$update_index]["note_version"][] = $update["version"];
-					$output["info"][$id]["updates"][$update_index]["note_author"][]  = $update["update_createdby"];
+						$output["info"][$id]["updates"][$update_index]["note"][]         = $changelog;
+						$output["info"][$id]["updates"][$update_index]["note_date"][]    = $date;
+						$output["info"][$id]["updates"][$update_index]["note_version"][] = $update["version"];
+						$output["info"][$id]["updates"][$update_index]["note_author"][]  = $update["update_createdby"];
+					}
 				}
 			}
 
@@ -2438,7 +2442,7 @@ function GS_scripting_highlighting($code) {
 						$last_url_list_id = count($url_list_id);
 						$url_list[]       = $word;
 						$url_list_id[]    = $last_command_line_num;
-						$output          .= "<a class=\"scripting_command_url\" href=\"$word\">$word</a>";
+						$output          .= "<a class=\"scripting_command_url\" href=\"$word\" target=\"_blank\">$word</a>";
 					} else
 						$output .= "<a class=\"scripting_command\" href=\"install_scripts#{$all_commands[array_keys($all_commands)[$command_id]]}\" target=\"_blank\">$word</a>";
 				} else {
@@ -2464,7 +2468,7 @@ function GS_scripting_highlighting($code) {
 						$last_url_list_id = count($url_list_id);
 						$url_list[]       = $word;
 						$url_list_id[]    = $last_command_line_num;
-						$output          .= "<a class=\"scripting_command_url\" href=\"$word\">$word</a>";
+						$output          .= "<a class=\"scripting_command_url\" href=\"$word\" target=\"_blank\">$word</a>";
 					} else {
 						$url_list[$last_url_list_id] .= " " . $word;
 						$output .= $word;

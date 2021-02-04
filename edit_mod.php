@@ -262,7 +262,7 @@ if ($form->hidden["display_form"] == "Update")
 	
 	
 	if (in_array($form->hidden["display_subform"], ["Add", "Edit"])) {
-		$description_hint = lang("GS_STR_MOD_PATCHNOTES_HINT") . ". <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
+		$description_hint = lang("GS_STR_MOD_PATCHNOTES_HINT") . " <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
 		$form->add_text("changelog", lang("GS_STR_MOD_PATCHNOTES"), $description_hint, lang("GS_STR_MOD_PATCHNOTES_EXAMPLE"), "", -1);
 	}
 

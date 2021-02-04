@@ -44,7 +44,7 @@ if (!$db->query($sql,$user_id_list)->error())
 		$user_list[$row["id"]] = $row["username"];
 
 
-foreach($input["mod"] as $uniqueid) {
+foreach($input["mod"] as $input_index=>$uniqueid) {
 	$id = array_search($uniqueid, $mods["id"]);
 	if ($id === FALSE)
 		continue;
@@ -99,9 +99,19 @@ foreach($input["mod"] as $uniqueid) {
 	</div></div>";
 			
 	if (!$input_onlylog)
-		echo "<p>" . lang("GS_STR_MOD_PREVIEW_INSTSCRIPT", ["<a target=\"_blank\" href=\"install_scripts\">", "</a>"]) . "</p>";
+		echo "<p>" . lang("GS_STR_MOD_PREVIEW_INSTSCRIPT", ["<a target=\"_blank\" href=\"install_scripts\">", "</a>"]);
 	else
-		echo "<p style=\"font-size:10px;\">" . lang("GS_STR_MOD_SHOW_INSTSCRIPT", ["<a href=\"?mod=".implode(",",$input["mod"])."\">", "</a>"]) . "</p>";
+		echo "<p style=\"font-size:10px;\">" . lang("GS_STR_MOD_SHOW_INSTSCRIPT", ["<a href=\"?mod=".implode(",",$input["mod"])."\">", "</a>"]);
+		
+	
+	// Show version select option
+	echo " &nbsp; " . lang("GS_STR_MOD_LINK_FROM") . ": &nbsp; <select onChange=\"GS_mod_version_selection(this, $input_index)\">";
+
+	foreach($mod["allversions"] as $version)
+		echo "<option value=\"$version\"". ($input["modver"][$mod["uniqueid"]]==$version ? " selected=\"selected\"" : "") .">$version</option>";
+		
+	echo "</select></p>";
+	
 	
 	foreach($mod["updates"] as $update_index=>$update) {
 		echo "<div class=\"panel panel-default\">
@@ -145,11 +155,38 @@ if (!empty($js_addedon)) {
 		case "ru-RU" : $locale_file="ru"; break;
 	}
 	
+	// Write page url and query string as JS vars so that GS_mod_version_selection() can reload the page
+	$url        = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	$url_tokens = parse_url($url);
+	parse_str($url_tokens["query"], $query_string_vars);
+	
+	$url_tokens["query"] = "";
+	foreach($query_string_vars as $key=>$value)
+		if ($key!="mod" && $key!="ver")
+			$url_tokens["query"] .= (empty($url_tokens["query"]) ? "" : "&") . "$key=$value";
+			
+	// https://stackoverflow.com/questions/4354904/php-parse-url-reverse-parsed-url
+	$build_url = function(array $parts) {
+		return (isset($parts['scheme']) ? "{$parts['scheme']}:" : '') . 
+			((isset($parts['user']) || isset($parts['host'])) ? '//' : '') . 
+			(isset($parts['user']) ? "{$parts['user']}" : '') . 
+			(isset($parts['pass']) ? ":{$parts['pass']}" : '') . 
+			(isset($parts['user']) ? '@' : '') . 
+			(isset($parts['host']) ? "{$parts['host']}" : '') . 
+			(isset($parts['port']) ? ":{$parts['port']}" : '') . 
+			(isset($parts['path']) ? "{$parts['path']}" : '') . 
+			(isset($parts['query']) ? "?{$parts['query']}" : '') . 
+			(isset($parts['fragment']) ? "#{$parts['fragment']}" : '');
+	};
+	
 	echo "
 	<script type=\"text/javascript\" src=\"usersc/js/gs_functions.js\"></script>
 	<script type=\"text/javascript\" src=\"usersc/js/moment.js\"></script>
 	<script type=\"text/javascript\" src=\"usersc/js/{$locale_file}.js\"></script>
 	<script type=\"text/javascript\">
+		var GS_input_mods = ".json_encode(array_keys($input["modver"])).";
+		var GS_input_vers = ".json_encode(array_values($input["modver"])).";
+		var GS_input_url  = '".$build_url($url_tokens)."';
 		GS_convert_addedon_date('mod_addedon',".json_encode($js_addedon).");
 	</script>
 	";

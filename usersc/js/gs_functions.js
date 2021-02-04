@@ -438,13 +438,6 @@ function GS_activate_convertlink_modal() {
 			var pos = convertlink_modal_link.value.indexOf('mediafire.com/file/');
 			var sub = convertlink_modal_link.value.substring(pos+19);
 			pos     = sub.indexOf('/');
-
-			if (pos >= 0) {
-				pos++;
-				var end = sub.indexOf('/', pos);
-				convertlink_modal_filename.value = sub.substring(pos, end==-1 ? sub.length : end);
-				convertlink_modal_accept.style.display = convertlink_modal_filename.value.length > 0 ? 'block' : 'none';
-			}
 		}
 
 		if (convertlink_modal_link.value.search('ds-servers.com') >= 0) {
@@ -474,6 +467,16 @@ function GS_activate_convertlink_modal() {
 
 		if (convertlink_modal_link.value.indexOf('lonebullet.com') >= 0) {
 			convertlink_modal_group_filename.style.display = 'block';
+		}
+		
+		if (convertlink_modal_group_filename.style.display == 'block') {
+			$(convertlink_modal_filename).addClass('schedule_modal_loader');
+			$.post('js_request.php', {"filenamefromurl":convertlink_modal_link.value}, function(responseText) {
+					$(convertlink_modal_filename).removeClass('schedule_modal_loader');
+					convertlink_modal_filename.value       = responseText;
+					convertlink_modal_accept.style.display = responseText.length > 0 ? 'block' : 'none';
+				}
+			);
 		}
 	}
 
@@ -731,4 +734,19 @@ function GS_convert_addedon_date(classname, dates) {
 	
 	for (var i=0; i<all_tags.length; i++)
 		all_tags[i].innerHTML = moment(dates[i]).format("Do MMMM YYYY");
+}
+
+// Reload website with different query string argument for mod version
+function GS_mod_version_selection(select_id, index) {
+	GS_input_vers[index] = select_id.options[select_id.selectedIndex].value;
+	
+	var mods = "mod=";
+	var vers = "&ver=";
+	
+	for (var i=0; i<GS_input_vers.length; i++) {
+		mods += (i>0 ? "," : "") + GS_input_mods[i];
+		vers += (i>0 ? "," : "") + GS_input_vers[i];
+	}
+
+	window.location.replace(GS_input_url + (GS_input_url.slice(-1)=="?" ? "" : "&") + mods + vers);
 }
