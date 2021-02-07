@@ -429,6 +429,8 @@ if ($form->hidden["display_form"] == "Mods")
 			gs_mods.removed,
 			gs_mods.access,
 			gs_mods.type,
+			gs_mods.createdby,
+			users.username AS addedby,
 			gs_serv_mods.id AS gs_serv_mods_id,
 			gs_serv_mods.removed AS gs_serv_mods_removed,
 			gs_serv_mods.serverid, 
@@ -447,6 +449,9 @@ if ($form->hidden["display_form"] == "Mods")
 				LEFT JOIN gs_mods_admins 
 					ON gs_mods.id            = gs_mods_admins.modid AND 
 					   gs_mods_admins.userid = ?
+					   
+				LEFT JOIN users
+					ON gs_mods.createdby = users.id
 					   
 		WHERE
 			gs_mods.is_mp = 1 AND 
@@ -473,34 +478,6 @@ if ($form->hidden["display_form"] == "Mods")
 	
 	foreach ($modfolders as $key=>$value)
 		$modfolders_id[] = $value["id"];
-		
-	// Get all mod authors
-	$sql_authorsmods = "
-		SELECT 
-			gs_mods.id, 
-            users.username
-			
-		FROM 
-			gs_mods JOIN gs_mods_admins 
-				ON gs_mods.id = gs_mods_admins.modid 
-				
-			JOIN users 
-				ON gs_mods_admins.userid = users.id
-					   
-		WHERE
-        	gs_mods.id IN (". implode(',', $modfolders_id).") AND
-            gs_mods_admins.isowner=1
-	";
-	
-	$db->query($sql_authorsmods);
-	$mod_authors = $db->results(true);
-	
-	foreach ($mod_authors as $key=>$value)
-		foreach ($modfolders as $key2=>$value2)
-			if ($value["id"] == $value2["id"]) {
-				$modfolders[$key2]["Curator"] = $value["username"];
-				break;
-			}
 	
 	
 
@@ -574,34 +551,6 @@ if ($form->hidden["display_form"] == "Mods")
 			
 			foreach ($modfolders as $key=>$value)
 				$modfolders_id[] = $value["id"];
-				
-			// Get all mod authors
-			$sql_authorsmods = "
-				SELECT 
-					gs_mods.id, 
-					users.username
-					
-				FROM 
-					gs_mods JOIN gs_mods_admins 
-						ON gs_mods.id = gs_mods_admins.modid 
-						
-					JOIN users 
-						ON gs_mods_admins.userid = users.id
-							   
-				WHERE
-					gs_mods.id IN (". implode(',', $modfolders_id).") AND
-					gs_mods_admins.isowner=1
-			";
-			
-			$db->query($sql_authorsmods);
-			$mod_authors = $db->results(true);
-			
-			foreach ($mod_authors as $key=>$value)
-				foreach ($modfolders as $key2=>$value2)
-					if ($value["id"] == $value2["id"]) {
-						$modfolders[$key2]["Curator"] = $value["username"];
-						break;
-					}
 		}
 	}
 
@@ -656,7 +605,7 @@ if ($form->hidden["display_form"] == "Mods")
 		<tr>
 			<th>".lang("GS_STR_MOD")."</th>
 			<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>
-			<th>".lang("GS_STR_MOD_CURATOR")."</th>
+			<th>".ucfirst(lang("GS_STR_ADDED_BY"))."</th>
 			<th>".lang("GS_STR_MOD_PREVIEW_INST")."</th>
 			<th style=\"width:135px;\"></th>
 		</tr>
@@ -670,7 +619,7 @@ if ($form->hidden["display_form"] == "Mods")
 		<tr id=\"{$modfolders[$i]["uniqueid"]}\">
 			<td><b>{$modfolders[$i]["name"]}</b></td>
 			<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
-			<td>{$modfolders[$i]["Curator"]}</td>
+			<td>{$modfolders[$i]["addedby"]}</td>
 			<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\">{$modfolders[$i]["uniqueid"]}</a><input type=\"hidden\" name=\"mod_to_assign[]\" value=\"{$modfolders[$i]["uniqueid"]}\" /></td>
 			<td>
 				<button onclick=\"GS_table_rows_swap('up','{$modfolders[$i]["uniqueid"]}','$mod_parameter_field')\" type='button' class=\"btn btn-mods btn-xs\"><span class=\"fa fa-fw fa-arrow-up\"></span></button>
@@ -717,7 +666,7 @@ if ($form->hidden["display_form"] == "Mods")
 				<tr>
 					<th>".lang("GS_STR_MOD")."</th>
 					<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>
-					<th>".lang("GS_STR_MOD_CURATOR")."</th>
+					<th>".ucfirst(lang("GS_STR_ADDED_BY"))."</th>
 					<th>".lang("GS_STR_MOD_PREVIEW_INST")."</th>
 					<th></th>
 				</tr>
@@ -731,7 +680,7 @@ if ($form->hidden["display_form"] == "Mods")
 				<tr id=\"{$modfolders[$i]["uniqueid"]}\">
 					<td><b>{$modfolders[$i]["name"]}</b></td>
 					<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
-					<td>{$modfolders[$i]["Curator"]}</td>
+					<td>{$modfolders[$i]["addedby"]}</td>
 					<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\">{$modfolders[$i]["uniqueid"]}</a></td>
 					<td><button onclick=\"GS_table_row_transfer('$table_name','$currentmods_table_id','{$modfolders[$i]["uniqueid"]}','$mod_parameter_field',".GS_PERMISSION_MAX_SERV_MODS[$gs_my_permission_level].",'".lang("GS_STR_SERVER_MOD_FULL")."')\" type=\"button\" class=\"btn btn-mods btn-xs\">".lang("GS_STR_SERVER_MOD_ASSIGN")."</button></td>
 				</tr>

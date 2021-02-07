@@ -24,14 +24,18 @@ $Parsedown = new Parsedown();
 			gs_mods.description, 
 			gs_mods.removed,
 			gs_mods.access,
-			gs_mods.type
+			gs_mods.type,
+			gs_mods.createdby,
+			users.username AS addedby
 			
 		FROM 
-			gs_mods
+			gs_mods,
+			users
 					   
 		WHERE
-			gs_mods.removed = 0 AND 
-			gs_mods.access  = 1
+			gs_mods.createdby = users.id AND
+			gs_mods.removed   = 0 AND 
+			gs_mods.access    = 1
 					   
 		ORDER BY 
 			gs_mods.name
@@ -44,36 +48,9 @@ $Parsedown = new Parsedown();
 	
 	foreach ($modfolders as $key=>$value)
 		$modfolders_id[] = $value["id"];
-		
-	// Get all mod authors
-	$sql_authorsmods = "
-		SELECT 
-			gs_mods.id, 
-            users.username
-			
-		FROM 
-			gs_mods JOIN gs_mods_admins 
-				ON gs_mods.id = gs_mods_admins.modid 
-				
-			JOIN users 
-				ON gs_mods_admins.userid = users.id
-					   
-		WHERE
-        	gs_mods.id IN (". implode(',', $modfolders_id).") AND
-            gs_mods_admins.isowner=1
-	";
-	
-	$db->query($sql_authorsmods);
-	$mod_authors = $db->results(true);
-	
-	foreach ($mod_authors as $key=>$value)
-		foreach ($modfolders as $key2=>$value2)
-			if ($value["id"] == $value2["id"]) {
-				$modfolders[$key2]["Curator"] = $value["username"];
-				break;
-			}
-			
 
+
+	// Sort mods
 	$mod_labels = [];
 	$anchors    = ["replacement", "addonpack", "supplement", "missionpack"];
 	for ($i=0; $i<4; $i++)
@@ -88,6 +65,8 @@ $Parsedown = new Parsedown();
 		$added_labels[$label]  = true;
 	}
 
+
+	// Display tables
 	$html = "";
 	foreach ($mod_labels as $key=>$label) {
 		$label_description = "";
@@ -107,7 +86,7 @@ $Parsedown = new Parsedown();
 			<tr>
 				<th>".lang("GS_STR_MOD")."</th>
 				<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>
-				<th>".lang("GS_STR_MOD_CURATOR")."</th>
+				<th>".ucfirst(lang("GS_STR_ADDED_BY"))."</th>
 				<th></th>
 			</tr>
 			";
@@ -120,7 +99,7 @@ $Parsedown = new Parsedown();
 			<tr>
 				<td><b>{$modfolders[$i]["name"]}</b></td>
 				<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
-				<td>{$modfolders[$i]["Curator"]}</td>
+				<td>{$modfolders[$i]["addedby"]}</td>
 				<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\"><span class=\"glyphicon glyphicon-link\"></span></a></td>
 			</tr>
 			";

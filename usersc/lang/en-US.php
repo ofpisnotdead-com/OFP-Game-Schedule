@@ -6,6 +6,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_ENABLED" => "Enabled",
 	"GS_STR_ADDED_BY" => "added by",
 	"GS_STR_ADDED_BY_ON" => "Added by %m1% on %m2%",
+	"GS_STR_MANAGED_BY_SINCE" => "Managed by %m1% since %m2%",
 	"GS_STR_ERROR_EXPIRED" => "Page expired. Try again from home page",
 	"GS_STR_ERROR_GET_DB_RECORD" => "Couldn't load data",
 	"GS_STR_ERROR_FORMDATA" => "Incorrect form data",

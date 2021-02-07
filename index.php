@@ -155,8 +155,8 @@ if(isset($user) && $user->isLoggedIn()){
 	
 
 // Get servers and mods
-$servers = GS_list_servers(["current"], [], "website", 0);
-$mods    = GS_list_mods($servers["mods"], [], [], [], "website", $servers["lastmodified"]);
+$servers = GS_list_servers(["current"], [], GS_REQTYPE_WEBSITE, 0);
+$mods    = GS_list_mods($servers["mods"], [], [], [], GS_REQTYPE_WEBSITE, $servers["lastmodified"]);
 
 // Show servers
 echo "<div class=\"row\">" . GS_format_server_info($servers, $mods, 12) . "</div>";

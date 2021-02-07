@@ -1,9 +1,9 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2021,1,25,1,13,58,18,712,60,FALSE]");
-define("GS_VERSION", 0.55);
-define("GS_ENCRYPT_KEY", 2997);
-define("GS_MODULUS_KEY", 20131);
-define("GS_DECRYPT_KEY", 10333);
+define("GS_FWATCH_LAST_UPDATE","[2021,2,5,5,3,46,51,539,60,FALSE]");
+define("GS_VERSION", 0.56);
+define("GS_ENCRYPT_KEY", 0);
+define("GS_MODULUS_KEY", 0);
+define("GS_DECRYPT_KEY", 0);
 define("GS_LOGO_FOLDER", "logo");	// Folder to save uploaded images in
 define("GS_OTHER_URL", []);			// Links to other schedule websites
 define("GS_SIZE_TYPES", ["KB", "MB", "GB"]);
@@ -127,7 +127,7 @@ define("GS_PERMISSION_MAX_MOD_CONTRIBUTORS", GS_PERMISSION_MAX_SERV_CONTRIBUTORS
 $gs_my_permission_level = GS_PERM_NOUSER;
 
 // Check user's permission level
-if(isset($user) && $user->isLoggedIn()){
+if (isset($user) && $user->isLoggedIn()) {
 	$sql = "
 		SELECT 
 			permission_id 
@@ -156,6 +156,11 @@ if(isset($user) && $user->isLoggedIn()){
 			$gs_my_permission_level = $row["permission_id"];
 	}
 }
+
+// Request types for GS_list_servers and GS_list_mods
+define("GS_REQTYPE_WEBSITE", 0);
+define("GS_REQTYPE_GAME", 1);
+define("GS_REQTYPE_GAME_DOWNLOAD_MODS", 2);
 
 
 
@@ -902,7 +907,7 @@ function GS_decrypt($string, $decrypt_key, $modulus_key) {
 }
 
 // List servers with upcoming events
-function GS_list_servers($server_id_list, $password, $request_type, $last_modified, $language="English") {
+function GS_list_servers($server_id_list, $password, $request_type, $last_modified, $language="English", $user=NULL) {
 	$output          = ["info"=>[], "mods"=>[], "id"=>[], "lastmodified"=>$last_modified];
 	$specific_server = "";
 	$ignore_outdated = true;
@@ -916,6 +921,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 		$specific_server = "AND gs_serv.uniqueid IN (".substr( str_repeat(",?",count($server_id_list)), 1).")";
 		$ignore_outdated = false;
 	}
+
 	// Get server list
 	$sql = "
 		SELECT 
@@ -943,14 +949,20 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			gs_serv_times.starttime, 
 			gs_serv_times.timezone, 
 			gs_serv_times.duration,
-			gs_serv_times.modified AS modified2
+			gs_serv_times.modified AS modified2,
+			gs_serv_admins.userid AS admin,
+			gs_serv_admins.modified AS adminsince
 			
 		FROM 
 			gs_serv LEFT JOIN gs_serv_times 
 				ON gs_serv.id=gs_serv_times.serverid  AND  gs_serv_times.removed=0
+				
+			LEFT JOIN gs_serv_admins
+				on gs_serv.id = gs_serv_admins.serverid
 			
 		WHERE 
-			gs_serv.removed = 0
+			gs_serv.removed        = 0 AND
+			gs_serv_admins.isowner = 1
 			$specific_server
 			
 		ORDER BY 
@@ -962,19 +974,45 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 
 	if (!$db->query($sql,$server_id_list)->error()) {
 		$last_id    = -1;
-		$table_rows = [];
+		$table_rows = $db->results(true);
 		
-		foreach($db->results(true) as $row) {
+		// First check for private servers
+		$private_servers = [];
+		
+		foreach($table_rows as $row)
+			if ($row["access"]!="" && array_search($row["access"],$password)===FALSE)
+				$private_servers[] = $row["id"];
+
+		// Check if logged-in user can preview these mods
+		if (!empty($private_servers) && isset($user) && $user->isLoggedIn()) {
+			$sql = "
+			SELECT 
+				gs_serv_admins.serverid
+				
+			FROM 
+				gs_serv, 
+				gs_serv_admins
+				
+			WHERE 
+				gs_serv.id            = gs_serv_admins.serverid AND
+				gs_serv_admins.userid = ".$user->data()->id." AND
+				gs_serv.id in (". implode(',',$private_servers) .") AND
+				(gs_serv_admins.isowner=1 OR gs_serv_admins.right_edit=1 OR gs_serv_admins.right_schedule=1 OR gs_serv_admins.right_mods=1)
+			";
+			
+			if (!$db->query($sql)->error())
+				foreach($db->results(true) as $row)
+					$private_servers = array_diff($private_servers, $row["serverid"]);
+		}	
+		
+		
+		// For every server
+		foreach($table_rows as $row) {
 			$id = $row["id"];
 			
-			// Required fields
-			if ($row["ip"]=="")
+			// If address not given or restricted access
+			if ($row["ip"]=="" || in_array($id,$private_servers))
 				continue;
-			
-			// Check access code
-			if ($row["access"] != "")
-				if (array_search($row["access"], $password) === FALSE)
-					continue;
 
 			for ($i=1; $i<=2; $i++)
 				if (strtotime($row["modified$i"]) > $output["lastmodified"])
@@ -1015,7 +1053,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 					//$date   = getdate(date_timestamp_get($start_date));		// date object to array
 					$valid  = true;
 									
-					if ($request_type == "game") {
+					if ($request_type == GS_REQTYPE_GAME) {
 						//$date_orig = getdate(date_timestamp_get($start_date_orig));
 						$year     = $start_date_orig->format("Y");
 						$month    = $start_date_orig->format("n");
@@ -1027,7 +1065,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 						$playtime = "[{$row["type"]},[$year,$month,$day,$dayname,$hours,$minutes,$seconds,0,$offset,false],{$row["duration"]}]";
 					}
 					
-					if ($request_type == "website") {
+					if ($request_type == GS_REQTYPE_WEBSITE) {
 						// Convert date to universal
 						$start_date->setTimezone(new DateTimeZone("UTC"));
 						
@@ -1068,7 +1106,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 				$output["info"][$id]["events"] = [];
 				$output["id"][$id]             = $row["uniqueid"];
 
-				if ($request_type == "game") {
+				if ($request_type == GS_REQTYPE_GAME) {
 					foreach ($row as $key=>$value) {
 						$value     = html_entity_decode($value, ENT_QUOTES);
 						$new_value = $value;
@@ -1147,7 +1185,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 						$output["info"][$id]["sqf"] .= "_server_encrypted=false;";
 				}
 					
-				if ($request_type == "website")
+				if ($request_type == GS_REQTYPE_WEBSITE)
 					$output["info"][$id] = $row;
 			}
 
@@ -1186,9 +1224,9 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 	
 		if (!$db->query($sql,array_keys($output["info"]))->error()) {
 			$last_id    = -1;
-			$table_rows = [];
+			$table_rows = $db->results(true);
 		
-			foreach($db->results(true) as $row) {
+			foreach($table_rows as $row) {
 				if (strtotime($row["modified"]) > $output["lastmodified"])
 					$output["lastmodified"] = strtotime($row["modified"]);
 			
@@ -1212,16 +1250,16 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 }
 
 // List mods details
-function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $password, $request_type, $last_modified) {
-	$output          = ["info"=>[], "id"=>[], "lastmodified"=>$last_modified];
+function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $password, $request_type, $last_modified, $user=NULL) {
+	$output          = ["info"=>[], "id"=>[], "lastmodified"=>$last_modified, "userlist"=>[]];
 	$mods_links      = [];
 	$mods_updates    = [];
 	$where_condition = "";
 	$argument_list   = [];
 	$add_description = false;
 	
-	if ($request_type == "game_download_mods") {
-		$request_type    = "game";
+	if ($request_type == GS_REQTYPE_GAME_DOWNLOAD_MODS) {
+		$request_type    = GS_REQTYPE_GAME;
 		$add_description = true;
 	}
 
@@ -1270,7 +1308,9 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				scripts2.id       AS scriptid2,
 				scripts2.size     AS size2,
 				scripts2.script   AS script2,
-				scripts2.modified AS modified4
+				scripts2.modified AS modified4,
+                gs_mods_admins.userid AS admin,
+				gs_mods_admins.modified AS adminsince
 
 			FROM
 				gs_mods 
@@ -1285,8 +1325,12 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					
 					LEFT JOIN gs_mods_scripts scripts2
 						ON gs_mods_links.scriptid = scripts2.id
+                        
+                    LEFT JOIN gs_mods_admins
+                    	on gs_mods.id = gs_mods_admins.modid
 				
 			WHERE
+				gs_mods_admins.isowner = 1 AND
 				$where_condition
 				
 			ORDER BY
@@ -1300,15 +1344,16 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 		if (!$db->query($sql,$argument_list)->error()) {
 			$table_rows = $db->results(true);
 			
-				// First check for private mods
-				$private_mods = [];
-				
-				foreach($table_rows as $row)
-					if ($row["access"] == 0 && !in_array($row["id"],$mods_id_list) && !in_array($row["id"],$private_mods))
-						$private_mods[] = $row["id"];
-				
+			// First check for private mods
+			$private_mods = [];
+			
+			foreach($table_rows as $row)
+				if ($row["access"] == 0 && !in_array($row["id"],$mods_id_list) && !in_array($row["id"],$private_mods))
+					$private_mods[] = $row["id"];
+			
+			if (!empty($private_mods)) {
 				// Check if these private mods are used on any servers
-				if (!empty($private_mods) && !empty($password)) {
+				if (!empty($password)) {
 					$sql = "
 					SELECT 
 						gs_mods.id
@@ -1330,11 +1375,36 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						foreach($db->results(true) as $row)
 							$private_mods = array_diff($private_mods, $row["id"]);
 				}
+				
+				// Check if logged-in user can preview these mods
+				if (isset($user) && $user->isLoggedIn()) {
+					$sql = "
+					SELECT 
+						gs_mods_admins.modid
+						
+					FROM 
+						gs_mods, 
+						gs_mods_admins
+						
+					WHERE 
+						gs_mods.id            = gs_mods_admins.modid AND
+						gs_mods_admins.userid = ".$user->data()->id." AND
+						gs_mods.id in (". implode(',',$private_mods) .") AND
+						(gs_mods_admins.isowner=1 OR gs_mods_admins.right_edit=1 OR gs_mods_admins.right_update=1)
+					";
+					
+					// If so then allow to display it
+					if (!$db->query($sql)->error())
+						foreach($db->results(true) as $row)
+							$private_mods = array_diff($private_mods, $row["modid"]);
+				}
+			}
+
 
 			// Copy table rows to arrays
 			$last_id      = -1;
 			$last_version = 0;	
-			
+
 			foreach($table_rows as $row) {
 				$id      = $row["id"];
 				$version = $row["version"];
@@ -1344,7 +1414,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						continue;
 
 				if ($last_id != $id) {
-					if ($request_type == "game") {
+					if ($request_type == GS_REQTYPE_GAME) {
 						$alias = $row["alias"]=="" ? "?" : $row["alias"];
 						$output["info"][$id]["sqf"]    = "_mod_name=\"\"{$row["name"]}\"\";_mod_forcename=".($row["forcename"]=="1" ? "true" : "false").";";
 						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]} \"$alias\"";
@@ -1370,19 +1440,19 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$link_num        = count($mods_links[$id]);
 					
 					foreach($columns_to_copy as $column)
-						$mods_links[$id][$link_num][$column] = $request_type=="game" ? html_entity_decode($row[$column], ENT_QUOTES) : $row[$column];
+						$mods_links[$id][$link_num][$column] = $request_type==GS_REQTYPE_GAME ? html_entity_decode($row[$column], ENT_QUOTES) : $row[$column];
 				}
 
 				if ($last_version != $version) {
 					$last_version    = $version;
 					$columns_to_copy = ["version", "scriptid", "size", "script", "update_created", "changelog", "update_createdby"];
 					$update_num      = count($mods_updates[$id]);
-					
+									
 					foreach($columns_to_copy as $column)
-						$mods_updates[$id][$update_num][$column] = $request_type=="game" ? html_entity_decode($row[$column], ENT_QUOTES) : $row[$column];
+						$mods_updates[$id][$update_num][$column] = $request_type==GS_REQTYPE_GAME ? html_entity_decode($row[$column], ENT_QUOTES) : $row[$column];
 				}
 				
-				if ($request_type == "website") {
+				if ($request_type == GS_REQTYPE_WEBSITE) {
 					$output["info"][$id]["name"]        = $row["name"];
 					$output["info"][$id]["description"] = $row["description"];
 					$output["info"][$id]["version"]     = $version;
@@ -1395,7 +1465,15 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$output["info"][$id]["modified"]    = $row["modified1"];
 					$output["info"][$id]["alias"]       = $row["alias"];
 					$output["info"][$id]["is_mp"]       = $row["is_mp"];
-					$output["info"][$id]["allversions"] = ["0"];
+					$output["info"][$id]["allversions"] = [];
+					$output["info"][$id]["admin"]       = $row["admin"];
+					$output["info"][$id]["adminsince"]  = $row["adminsince"];
+					
+					if (!in_array($row["createdby"], $output["userlist"]))
+						$output["userlist"][] = $row["createdby"];
+						
+					if (!in_array($row["admin"], $output["userlist"]))
+						$output["userlist"][] = $row["admin"];
 				}
 			}
 		}
@@ -1414,7 +1492,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 			$download_size                  = [0   , 0   , 0   ];
 			$download_size_unit             = ["gb", "mb", "kb"];
 			
-			if ($request_type == "website")
+			if ($request_type == GS_REQTYPE_WEBSITE)
 				$output["info"][$id]["installversion"] = $current_version;
 
 			// Go through every version of this mod
@@ -1469,7 +1547,10 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					// If script is not duplicated then add it
 					if (!in_array($script_id,$temp_scripts_id)) {
 						$temp_scripts_id[] = $script_id;
-						$output["info"][$id]["updates"][] = ["version"=>$toversion, "date"=>$date, "script"=>$script];
+						$output["info"][$id]["updates"][] = ["version"=>$toversion, "date"=>$date, "script"=>$script, "createdby"=>$update["update_createdby"]];
+
+						if (!in_array($update["update_createdby"], $output["userlist"]))
+							$output["userlist"][] = $update["update_createdby"];
 
 						if (count($size_array) > 1) {
 							$size_number = floatval($size_array[0]);
@@ -1494,7 +1575,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						$update_index = count($output["info"][$id]["updates"])-1;
 				}
 
-				if ($request_type == "website") {
+				if ($request_type == GS_REQTYPE_WEBSITE) {
 					$output["info"][$id]["allversions"][] = $update["version"];
 
 					// Add patch notes for every version above input mod version			
@@ -1510,6 +1591,9 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						$output["info"][$id]["updates"][$update_index]["note_date"][]    = $date;
 						$output["info"][$id]["updates"][$update_index]["note_version"][] = $update["version"];
 						$output["info"][$id]["updates"][$update_index]["note_author"][]  = $update["update_createdby"];
+						
+						if (!in_array($update["update_createdby"], $output["userlist"]))
+							$output["userlist"][] = $update["update_createdby"];
 					}
 				}
 			}
@@ -1542,12 +1626,12 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					if ($download_size[2] > 0)
 						$formatted_download_size = floatval(sprintf("%01.0f", $download_size[2])) . " KB";
 			
-			if ($request_type == "website") {
+			if ($request_type == GS_REQTYPE_WEBSITE) {
 				$output["info"][$id]["size"]      = $formatted_download_size;
 				$output["info"][$id]["sizearray"] = "[" . implode(",", $download_size) . "]";			
 			}
 
-			if ($request_type == "game") {
+			if ($request_type == GS_REQTYPE_GAME) {
 				$output["info"][$id]["sqf"]    .= "_mod_version={$current_version};_mod_size=\"\"{$formatted_download_size}\"\";_mod_sizearray=[" . implode(",",$download_size) . "];";
 				$output["info"][$id]["version"] = $current_version;
 				
@@ -1599,8 +1683,13 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 	if ($extended_info) {
 		$user_id_list = [];
 		
-		foreach ($servers["info"] as $server_id=>$server)
-			$user_id_list[] = $server["createdby"];
+		foreach ($servers["info"] as $server_id=>$server) {
+			if (!in_array($server["createdby"], $user_id_list))
+				$user_id_list[] = $server["createdby"];
+				
+			if (!in_array($server["admin"], $user_id_list))
+				$user_id_list[] = $server["admin"];
+		}
 			
 		$db  = DB::getInstance();
 		$sql = "SELECT users.username, users.id FROM users WHERE users.id IN (". substr(str_repeat(",?",count($user_id_list)), 1) . ")";
@@ -1712,7 +1801,10 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 
 		if (isset($user_list[$server["createdby"]])) {
 			$js_addedon[] = date("c",strtotime($server["created"]));
-			$html .= "<span style=\"float:right;\">".lang("GS_STR_ADDED_BY_ON",[$user_list[$server["createdby"]],"<span class=\"server_addedon\">".date("jS M Y",strtotime($server["created"]))."</span>"])."</span>";
+			$html .= "<small><span style=\"float:right;\">".lang("GS_STR_ADDED_BY_ON",[$user_list[$server["createdby"]],"<span class=\"server_addedon\">".date("jS M Y",strtotime($server["created"]))."</span>"])."</span></small>";
+			
+			if ($server["admin"] != $server["createdby"])
+				$html .= "<br><small><span style=\"float:right;\">".lang("GS_STR_MANAGED_BY_SINCE", [$user_list[$server["admin"]], date("jS M Y",strtotime($server["adminsince"]))])."</small>";
 		}
 		
 		$html .= "</div>
@@ -2326,19 +2418,21 @@ function GS_scripting_highlighting($code) {
 		"unpbo"        => "unpbo",
 		"edit"         => "edit",
 		"begin_ver"    => "",
-		"alias"        => "alias"
+		"alias"        => "alias",
+		"merge_with"   => "alias"
 	];
 	$command_switches_names = [
 		"/password:",
 		"/no_overwrite",
 		"/match_dir",
-		"/no_delete",
+		"/keep_source",
 		"/insert",
 		"/newfile",
 		"/append"
 	];
 	$word_begin            = -1;
 	$word_count            = 1;
+	$arg_count             = 1;
 	$word_line_num         = 1;
 	$command_id            = -1;
 	$last_command_line_num = -1;
@@ -2418,6 +2512,7 @@ function GS_scripting_highlighting($code) {
 			// If first word in the line
 			if ($word_count == 1 && !$url_block) {
 				$command_id = -1;
+				$arg_count  = 1;
 				
 				// Check if it's a valid command
 				if ($is_url($word))
@@ -2480,7 +2575,7 @@ function GS_scripting_highlighting($code) {
 					if ($is_switch)
 						$output .= "<span class=\"scripting_command_switch\">$word</span>";
 					else
-						$output .= "<span class=\"scripting_command_arg".($word_count-1)."\">$word</span>";
+						$output .= "<span class=\"scripting_command_arg".($arg_count++)."\">$word</span>";
 				}
 			}
 			
@@ -2496,6 +2591,7 @@ function GS_scripting_highlighting($code) {
 
 		// When new line			
 		if (!$in_quote && $code[$i]=="\n") {
+			$arg_count        = 1;
 			$word_count       = 1;
 			$url_line         = false;
 			$last_url_list_id = -1;

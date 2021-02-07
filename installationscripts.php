@@ -44,22 +44,27 @@ echo GS_scripting_highlighting("http://example.com/locked.rar  /password:123");?
 
 			<p>Installer checks the extension of the downloaded file:
 			<ul>
-				<li>If it's <code>.rar</code>, <code>.zip</code>, <code>.7z</code>, <code>.ace</code> or <code>.exe</code> then it will extract it and inspect its contents</li>
-				<li>If an <code>.exe</code> couldn't be unpacked then it will ask the user to run it</li>
-				<li>If it's <code>.pbo</code> then it will move it to the <code>addons</code>, <code>Missions</code> or <code>MPMissions</code> directory in the modfolder.</li>
-				<li>Other types of files are ignored</li>
+				<li>If it's <code>.rar</code>, <code>.zip</code>, <code>.7z</code>, <code>.ace</code>, <code>.exe</code> or <code>.cab</code> then it will extract it and inspect its contents.</li>
+				<li>If an <code>.exe</code> couldn't be unpacked and nothing else was copied up until that point then it will ask the user to run it.</li>
+				<li>If it's a <code>.pbo</code> then it will detect its type move it to the <code>addons</code>, <code>Missions</code>, <code>MPMissions</code>, <code>Templates</code> or <code>SPTemplates</code> directory in the modfolder.</li>
+				<li>Other types of files are ignored.</li>
 			</ul></p>
 
-			<p>When installer encounters a directory it will read its name:</p>
+			<p>When installer encounters a directory it will check its name and contents:</p>
 			<ul>
-				<li>If it matches modfolder name then it will be moved to the game directory. Other modfolders will be ignored.</li>
-				<li>If it matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code> then it will be moved to the modfolder</li>
-				<li>If it has a dot in its name and contains <code>mission.sqm</code> file then it will be moved to the <code>Missions</code> or <code>MPMissions</code> directory in the modfolder</li>
-				<li>In any other case it will go through the contents of a directory and apply the same rules for each file and folder there</p>
+				<li>If the name matches the name of the mod being installed then it will be moved to the game directory. All other files and folders (except for other mods) from this location will be moved to the modfolder. If directory <code>addons</code> is present then it will be merged with <code>IslandCutscenes</code> in the modfolder.</li>
+				<li>Other modfolders will be ignored (exceptions: 1. <code>Res</code> folder 2. if downloaded archive contains a single folder then that one won't be skipped).</li>
+				<br>
+				<li>If the name matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code>, <code>Templates</code>, <code>SPTemplates</code>, <code>MissionsUsers</code>, <code>MPMissionsUsers</code> or <code>IslandCutscenes</code> then it will be moved to the modfolder. If <code>Missions</code> or <code>MPMissions</code> contains only a single folder inside then that folder will be moved instead.</li>
+				<li>If it contains <code>overview.html</code> then it will be moved to the <code>Missions</code> folder.</li>
+				<br>
+				<li>If the name ends with "anim", "_anim" or "_anims" then it will be moved to the <code>IslandCutscenes</code>. If any parent folder was named "res" or had words "res" and "addons" then it will be moved to the <code>IslandCutscenes\_Res</code> instead.</li>
+				<li>If it's a mission then it will detect its type and move it to the <code>Missions</code>, <code>MPMissions</code>, <code>Templates</code> or <code>SPTemplates</code> directory in the modfolder. If folder name contains words "demo" or "template" or if any parent folder name contained words "user" or "mission" and "demo/editor/template" then it will be moved to the <code>MissionsUsers</code> or <code>MPMissionsUsers</code> instead.</li>
+				<br>
+				<li>In any other case it will go through the contents of a directory and apply the same rules for each folder (first) and file there.</p>
 			</ul></p>
 
-			<p>Existing files will be overwritten. Destination directories that don't exist will be created.<br>
-			Installer will handle only the first encountered executable and ignore all others.</p>
+			<p>Existing files will be overwritten. Destination directories that don't exist will be created.</p>
 
 		</div>
 	</div><!-- /panel -->
@@ -120,7 +125,7 @@ echo GS_scripting_highlighting("{
 		<li><a href="#edit">Edit</a></li>
 		<li><a href="#delete">Delete, Remove</a></li>
 		<li><a href="#if_version">If_version, else, endif</a></li>
-		<li><a href="#alias">Alias</a></li>
+		<li><a href="#alias">Merge_with, Alias</a></li>
 		<li><a href="#rename">Rename</a></li>
 		<li><a href="#makedir">Makedir, Newfolder</a></li>
 		<li><a href="#get">Get, Download</a></li>
@@ -261,7 +266,7 @@ to the<br>
 
 <a name="makepbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">MakePBO</h3>
-<pre><code>MAKEPBO  &lt;folder&gt;  /no_delete</code></pre>
+<pre><code>MAKEPBO  &lt;folder&gt;  /keep_source</code></pre>
 <p>Creates PBO file (no compression) out of a directory in the modfolder and then removes the source.</p>
 
 <br><br>
@@ -269,8 +274,8 @@ to the<br>
 <pre><code><?php echo GS_scripting_highlighting("MAKEPBO  addons\\ww4_fx");?></code></pre>
 
 <br><br>
-<p>Add switch <code>/no_delete</code> to keep the original folder.</p>
-<pre><code><?php echo GS_scripting_highlighting("MAKEPBO  addons\\ww4_fx  /no_delete");?></code></pre>
+<p>Add switch <code>/keep_source</code> to keep the original folder.</p>
+<pre><code><?php echo GS_scripting_highlighting("MAKEPBO  addons\\ww4_fx  /keep_source");?></code></pre>
 
 <br><br>
 <p>Use this command without writing file name to pack the last addon extracted with <code>UnPBO</code>.</p>
@@ -343,13 +348,14 @@ ENDIF");?></code></pre>
 
 
 <a name="alias"></a><hr class="betweencommands">
-<h3 class="commandtitle">Alias</h3>
-<pre><code>ALIAS  &lt;...&gt;</code></pre>
-<p>Adds one or more alternative names of the mod. It's relevant for auto installation and for the <code>Move</code> command: directories with selected name(s) will be merged with the modfolder.</p>
+<h3 class="commandtitle">Merge_with, Alias</h3>
+<pre><code>MERGE_WITH  &lt;name1&gt; &lt;name2&gt; &lt;...&gt;</code></pre>
+<p>It makes auto installation, <code>Move</code> and <code>Copy</code> commands to merge contents of selected folders with the modfolder currently being installed.</p>
+<p>For example: mod @wgl5 is being installed. Archive "CoC_UA110_Setup.exe" was downloaded which contains folders: @CoC and @wgl5. Normally auto installation will copy @wgl5 and ignore @CoC but if you'll write:</p>
+<pre><code><?php echo GS_scripting_highlighting("MERGE_WITH  @CoC
+https://files.ofpisnotdead.com/files/ofpd/unofaddons2/CoC_UA110_Setup.exe");?></code></pre>
+<p>then auto installation won't skip @CoC but move its contents to the @wgl5 in the game directory.</p>
 <p>Use this command without any arguments to clear all the names.</p>
-<br><br>
-<p>Example:</p>
-<pre><code><?php echo GS_scripting_highlighting("ALIAS  @ww4mod21  @ww4mod1");?></code></pre>
 
 
 
@@ -766,10 +772,107 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Version History</strong></div>
 		<div class="panel-body">
-<strong>0.1</strong> (03.03.17)<br>
-First release.<br>
+<strong>0.56</strong> (05.02.21)<br>
+<ul>
+<li>Auto Install - will try to extract .cab files</li>
+<li>Auto Install - will detect if mission is a wizard template and move it to the "Templates" or "SPTemplates"</li>
+<li>Auto Install - will detect if "MPMissions" folder contains a single folder inside and move it instead (previously it only did that for "Missions")</li>
+<li>Auto Install - will not ignore "Res" folder</li>
+<li>Auto Install - if downloaded archive contains a single folder then that folder won't be ignored (previously it could have been treated as a different mod and skipped)</li>
+<li>Auto Install - if a folder contains "overview.html" then it will be copied to "Missions"</li>
+<li>Auto Install - if a directory contains wanted modfolder then installer will move all files and folders from that dir (except for other modfolders). Folder "addons" will be copied as "IslandCutscenes"</li>
+<li>Auto Install - will try open all executables; will ask user to run it if nothing else was copied (instead of asking about the first encountered)</li>
+<li>Auto Install - will move directories ending with "anim", "_anim", "_anims" to the "IslandCutscenes" or "IslandCutscenes\_Res" if parent was named "res" or had words "res" and "addons"</li>
+<li>Auto Install - will move mission directories containing words "demo" or "template" to the "MissionsUsers" or "MPMissionsUsers"</li>
+<li>Auto Install - will move folders "Templates", "SPTemplates", "MissionsUsers", "MPMissionsUsers", "IslandCutscenes" to the modfolder</li>
+<li>Auto Install - will scan directories before files (previously it was alphabetic)</li>
+<li>Auto Install - will move mission folder to the to the "MissionsUsers" or "MPMissionsUsers" if one of the parent folders contained word "user" or words "mission" and "demo/editor/template"</li>
+<li><code>MakePBO</code> - renamed switch <code>/no_delete</code> to <code>/keep_source</code></li>
+<li><code>Alias</code> - added alternative name for this command: <code>Merge_With</code></li>
+</ul>
+
 <br>
 <br>
+
+<strong>0.55</strong> (12.01.21)<br>
+<ul>
+<li>Removed <code>/mirror</code> switch. Instead there are now url blocks indicated by curly brackets</li>
+<li><code>Move</code> – curly brackets are now used (instead of a vertical bar) to separate url arguments from move arguments</li>
+</ul>
+
+<br>
+<br>
+
+<strong>0.53</strong> (01.03.20)<br>
+<ul>
+<li><code>Alias</code> – effect now lasts until the end of the script (instead of throughout the entire installation)</li>
+<li>Added shorter name <code>UnPBO</code> for the command <code>UnpackPBO</code></li>
+</ul>
+
+<br>
+<br>
+
+<strong>0.52</strong> (16.02.20)<br>
+<ul>
+<li>Command arguments can now be escaped with custom delimiters (relevant for the <code>Edit</code> command)</li>
+</ul>
+
+<br>
+<br>
+
+<strong>0.51</strong> (14.02.20)<br>
+<ul>
+<li>Added command: <code>Alias</code></li>
+<li>Auto installation - reverted change from 0.31: file name irrelevant for auto installation again (use command Alias instead)</li>
+<li>Auto installation - now detects if mission is SP or MP and copies it to the correct folder</li>
+<li><code>Edit</code> – added <code>/append</code> switch</li>
+<li><code>MakePBO</code> – fixed bug where it wouldn't work with files with spaces in their names</li>
+</ul>
+
+<br>
+<br>
+
+<strong>0.4</strong> (15.07.19)<br>
+<ul>
+<li><code>Edit</code> – added <code>/newfile</code> switch</li>
+<li><code>Edit</code> – switch <code>/insert</code> can now be used to append text at the end</li>
+</ul>
+
+<br>
+<br>
+
+<strong>0.31</strong> (06.04.19)<br>
+<ul>
+<li>Auto installation - doesn't ignore modfolders if their name is contained in downloaded filename</li>
+</ul>
+
+<br>
+<br>
+
+<strong>0.3</strong> (02.04.19)<br>
+<ul>
+<li>Download links can now be followed with <code>/mirror</code> switch</li>
+<li>Download links can now be followed with extra arguments for multi-step downloading</li>
+<br>
+<li><code>Move</code> – wildcard with <code>/match_dir</code> will move modfolder to the game dir but not recursively</li>
+<li><code>Move</code> – added vertical bar to separate download arguments from move arguments</li>
+<br>
+<li><code>Ask_Get</code> – doesn't make a request if file already exists</li>
+<li><code>Ask_Get</code> – asks user to select download directory and saves its location</li>
+<li><code>Ask_Get</code> – automatically moves file to the <span class="courier">fwatch\tmp\</span></li>
+<br>
+<li><code>Ask_Run</code> – executes the file instead of opening folder with it</li>
+<li><code>Ask_Run</code> - restores "Aspect_Ratio.hpp" from before executing the file in order to keep user's settings</li>
+<br>
+<li><code>Get</code> - now considered active again</li>
+<li><code>Get</code> - cannot pass custom wget arguments anymore</li>
+<br>
+<li>added <code>-testdir</code> parameter</li>
+</ul>
+
+<br>
+<br>
+
 <strong>0.2</strong> (11.03.19)<br>
 <ul>
 <li>added commands: <code>Ask_Download</code>, <code>Delete</code>, <code>Rename</code>, <code>If_version</code>, <code>else</code>, <code>endif</code>, <code>Makepbo</code>, <code>UnpackPBO</code>, <code>Edit</code></li>
@@ -802,79 +905,9 @@ First release.<br>
 
 <br>
 <br>
-<strong>0.3</strong> (02.04.19)<br>
-<ul>
-<li>Download links can now be followed with <code>/mirror</code> switch</li>
-<li>Download links can now be followed with extra arguments for multi-step downloading</li>
-<br>
-<li><code>Move</code> – wildcard with <code>/match_dir</code> will move modfolder to the game dir but not recursively</li>
-<li><code>Move</code> – added vertical bar to separate download arguments from move arguments</li>
-<br>
-<li><code>Ask_Get</code> – doesn't make a request if file already exists</li>
-<li><code>Ask_Get</code> – asks user to select download directory and saves its location</li>
-<li><code>Ask_Get</code> – automatically moves file to the <span class="courier">fwatch\tmp\</span></li>
-<br>
-<li><code>Ask_Run</code> – executes the file instead of opening folder with it</li>
-<li><code>Ask_Run</code> - restores "Aspect_Ratio.hpp" from before executing the file in order to keep user's settings</li>
-<br>
-<li><code>Get</code> - now considered active again</li>
-<li><code>Get</code> - cannot pass custom wget arguments anymore</li>
-<br>
-<li>added <code>-testdir</code> parameter</li>
-</ul>
 
-<br>
-<br>
-<strong>0.31</strong> (06.04.19)<br>
-<ul>
-<li>Auto installation - doesn't ignore modfolders if their name is contained in downloaded filename</li>
-</ul>
-
-<br>
-<br>
-<strong>0.4</strong> (15.07.19)<br>
-<ul>
-<li><code>Edit</code> – added <code>/newfile</code> switch</li>
-<li><code>Edit</code> – switch <code>/insert</code> can now be used to append text at the end</li>
-</ul>
-
-<br>
-<br>
-<strong>0.51</strong> (14.02.20)<br>
-<ul>
-<li>Added command: <code>Alias</code></li>
-<li>Auto installation - reverted change from 0.31: file name irrelevant for auto installation again (use command Alias instead)</li>
-<li>Auto installation - now detects if mission is SP or MP and copies it to the correct folder</li>
-<li><code>Edit</code> – added <code>/append</code> switch</li>
-<li><code>MakePBO</code> – fixed bug where it wouldn't work with files with spaces in their names</li>
-</ul>
-
-<br>
-<br>
-<strong>0.52</strong> (16.02.20)<br>
-<ul>
-<li>Command arguments can now be escaped with custom delimiters (relevant for the <code>Edit</code> command)</li>
-</ul>
-
-<br>
-<br>
-<strong>0.53</strong> (01.03.20)<br>
-<ul>
-<li><code>Alias</code> – effect now lasts until the end of the script (instead of throughout the entire installation)</li>
-<li>Added shorter name <code>UnPBO</code> for the command <code>UnpackPBO</code></li>
-</ul>
-
-<br>
-<br>
-<strong>0.55</strong> (12.01.21)<br>
-<ul>
-<li>Removed <code>/mirror</code> switch. Instead there are now url blocks indicated by curly brackets</li>
-<li><code>Move</code> – curly brackets are now used (instead of a vertical bar) to separate url arguments from move arguments</li>
-</ul>
-
-
-
-
+<strong>0.1</strong> (03.03.17)<br>
+First release.<br>
 		</div>
 	</div><!-- /panel -->	
 	

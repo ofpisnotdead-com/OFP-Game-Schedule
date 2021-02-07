@@ -11,8 +11,8 @@ $output     = "";
 if ($db) {
 	// Handle schedule request
 	if (in_array($input_mode,["schedule","lastmodified"])) {
-		$servers = GS_list_servers($input["server"], $input["password"], "game", GS_fwatch_date_to_timestamp(GS_FWATCH_LAST_UPDATE), $language);
-		$mods    = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], "game", $servers["lastmodified"]);
+		$servers = GS_list_servers($input["server"], $input["password"], GS_REQTYPE_GAME, GS_fwatch_date_to_timestamp(GS_FWATCH_LAST_UPDATE), $language);
+		$mods    = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_GAME, $servers["lastmodified"]);
 
 		// If user wants the last modification date
 		if ($input_mode == "lastmodified") {
@@ -74,14 +74,14 @@ if ($db) {
 
 	// Handle request for mod installation script
 	if ($input_mode == "install") {
-		$mods = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], "game", 0);
+		$mods = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_GAME, 0);
 
 		foreach ($mods["info"] as $mod)
 			$output .= (empty($output) ? "" : "\n") . $mod["script"];
 	}
 	
 	if ($input_mode == "mods") {
-		$mods = GS_list_mods([], $input["mod"], $input["modver"], $input["password"], "game_download_mods", 0);
+		$mods = GS_list_mods([], $input["mod"], $input["modver"], $input["password"], GS_REQTYPE_GAME_DOWNLOAD_MODS, 0);
 		
 		$output .= "GS_FWATCH_LAST_UPDATE=". GS_FWATCH_LAST_UPDATE . "; SCHEDULE_LAST_UPDATE=GS_FWATCH_LAST_UPDATE; GS_VERSION=" . GS_VERSION . ";GS_URLS=[";
 

@@ -8,12 +8,15 @@ require_once "common.php";
 	<div class="container">
 
 <?php
-// Get data from the database
+// Get servers and mods info from database
 $input         = GS_get_common_input();
 $input_onlylog = isset($_GET['onlychangelog']) ? $_GET['onlychangelog'] : 0;
-$servers       = GS_list_servers($input["server"], $input["password"], "website", 0);
-$mods          = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], "website", 0);
+$servers       = GS_list_servers($input["server"], $input["password"], GS_REQTYPE_WEBSITE, 0, $lang["THIS_LANGUAGE"], $user);
+$mods          = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_WEBSITE, 0, $user);
 
+
+
+// Display servers
 echo "<DIV CLASS=\"row\">" . GS_format_server_info($servers, $mods, 12, 1, $input["server"]) . "</div>";
 
 if (!empty($servers["info"]))
@@ -24,26 +27,20 @@ if (!empty($servers["info"]))
 
 
 
-
 echo "<div class=\"row\">";
 $user_list  = [];
 $js_addedon = [];
-$Parsedown   = new Parsedown();
+$Parsedown  = new Parsedown();
 
-// Get user list first
-$user_id_list = [];
-
-foreach($mods["info"] as $id=>$mod)
-	$user_id_list[] = $mod["createdby"];
-	
+// Get user names from user id list
 $db  = DB::getInstance();
-$sql = "SELECT users.username, users.id FROM users WHERE users.id IN (". substr(str_repeat(",?",count($user_id_list)), 1) . ")";
+$sql = "SELECT users.username, users.id FROM users WHERE users.id IN (". substr(str_repeat(",?",count($mods["userlist"])), 1) . ")";
 
-if (!$db->query($sql,$user_id_list)->error())
+if (!$db->query($sql,$mods["userlist"])->error())
 	foreach($db->results(true) as $row)
 		$user_list[$row["id"]] = $row["username"];
 
-
+// Display mods
 foreach($input["mod"] as $input_index=>$uniqueid) {
 	$id = array_search($uniqueid, $mods["id"]);
 	if ($id === FALSE)
@@ -86,7 +83,10 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 	
 	if (isset($user_list[$mod["createdby"]])) {
 		$js_addedon[] = date("c",strtotime($mod["created"]));
-		echo "<span style=\"float:right;\">".lang("GS_STR_ADDED_BY_ON",[$user_list[$mod["createdby"]],"<span class=\"mod_addedon\">".date("jS M Y",strtotime($mod["created"]))."</span>"])."</span>";
+		echo "<small><span style=\"float:right;\">".lang("GS_STR_ADDED_BY_ON",[$user_list[$mod["createdby"]],"<span class=\"mod_addedon\">".date("jS M Y",strtotime($mod["created"]))."</span>"])."</span></small>";
+		
+		if ($mod["admin"] != $mod["createdby"])
+			echo "<br><small><span style=\"float:right;\">".lang("GS_STR_MANAGED_BY_SINCE", [$user_list[$mod["admin"]], date("jS M Y",strtotime($mod["adminsince"]))])."</small>";
 	}
 	
 	echo "</div>
@@ -105,21 +105,35 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 		
 	
 	// Show version select option
-	echo " &nbsp; " . lang("GS_STR_MOD_LINK_FROM") . ": &nbsp; <select onChange=\"GS_mod_version_selection(this, $input_index)\">";
+	array_pop($mod["allversions"]);
+	if (count($mod["allversions"]) > 0) {
+		echo " &nbsp; &nbsp; " . lang("GS_STR_MOD_LINK_FROM") . ": &nbsp; <select onChange=\"GS_mod_version_selection(this, $input_index)\">";
+		echo "<option value=\"0\"". ($input["modver"][$mod["uniqueid"]]==0 ? " selected=\"selected\"" : "") .">0</option>";
 
-	foreach($mod["allversions"] as $version)
-		echo "<option value=\"$version\"". ($input["modver"][$mod["uniqueid"]]==$version ? " selected=\"selected\"" : "") .">$version</option>";
-		
-	echo "</select></p>";
+		foreach($mod["allversions"] as $version)
+			echo "<option value=\"$version\"". ($input["modver"][$mod["uniqueid"]]==$version ? " selected=\"selected\"" : "") .">$version</option>";
+			
+		echo "</select></p>";
+	}
 	
-	
+	// Show mod updates
 	foreach($mod["updates"] as $update_index=>$update) {
+		// Version, date and author (if different from original owner)
 		echo "<div class=\"panel panel-default\">
-				<div class=\"panel-heading\"><strong>{$update["version"]}<span style=\"font-size:10px;float:right;\">{$update["date"]}</span></strong></div>";
+				<div class=\"panel-heading\"><strong>{$update["version"]}<span style=\"font-size:10px;float:right;\">";
 
+		if ($update["createdby"] != $mod["createdby"])		
+			echo lang("GS_STR_ADDED_BY_ON",[$user_list[$update["createdby"]],$update["date"]]);
+		else
+			echo $update["date"];
+		
+		echo "</span></strong></div>";
+
+		// Show script
 		if (!$input_onlylog)
 			echo "<pre style=\"margin:0;border:0;\"><code>". GS_scripting_highlighting($update["script"]) . "</code></pre>";
 		
+		// Show changelog
 		$number_of_notes = 0;
 		foreach ($update["note"] as $note)
 			if (!empty($note)) {
@@ -133,8 +147,16 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 			foreach($update["note"] as $note_index=>$note) {
 				echo "<p>";
 
-				if ($number_of_notes > 1)
-					echo "<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}<span style=\"float:right;\">{$update["note_date"][$note_index]}</span></span><br>";
+				if ($number_of_notes > 1) {
+					echo "<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}<span style=\"float:right;\">";
+					
+					if ($update["note_author"][$note_index] != $mod["createdby"])
+						echo lang("GS_STR_ADDED_BY_ON",[$user_list[$update["note_author"][$note_index]],$update["note_date"][$note_index]]);
+					else
+						echo $update["note_date"][$note_index];
+						
+					echo "</span></span><br>";
+				}
 
 				echo $Parsedown->line(html_entity_decode($note, ENT_QUOTES))."</p>";
 			}
@@ -148,6 +170,8 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 	echo "</div><br><hr><br>";
 }
 
+
+// Add javascript
 if (!empty($js_addedon)) {
 	$locale_file = "en-gb";
 	
@@ -193,6 +217,8 @@ if (!empty($js_addedon)) {
 }
 
 echo "</div>";
+
+
 
 if (!empty($_GET['mod']))
 	echo 

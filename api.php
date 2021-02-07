@@ -9,8 +9,8 @@ header('Content-type: application/json');
 // Get data from db
 $input   = GS_get_common_input();
 $db      = DB::getInstance();
-$servers = GS_list_servers($input["server"], $input["password"], "website", 0);
-$mods    = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], "website", $servers["lastmodified"]);
+$servers = GS_list_servers($input["server"], $input["password"], GS_REQTYPE_WEBSITE, 0);
+$mods    = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_WEBSITE, $servers["lastmodified"]);
 
 $servers_keys = array_keys($servers["info"]);
 $mod_keys     = array_keys($mods["info"]);
