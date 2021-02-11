@@ -74,10 +74,11 @@ if ($db) {
 
 	// Handle request for mod installation script
 	if ($input_mode == "install") {
-		$mods = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_GAME, 0);
-
+		$output .= "install_version " . GS_VERSION . "\n";
+		$mods    = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_GAME, 0);
+		
 		foreach ($mods["info"] as $mod)
-			$output .= (empty($output) ? "" : "\n") . $mod["script"];
+			$output .= $mod["script"];
 	}
 	
 	if ($input_mode == "mods") {

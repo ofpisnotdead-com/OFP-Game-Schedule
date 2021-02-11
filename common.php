@@ -1,6 +1,6 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2021,2,5,5,3,46,51,539,60,FALSE]");
-define("GS_VERSION", 0.56);
+define("GS_FWATCH_LAST_UPDATE","[2021,2,11,4,22,9,25,228,60,FALSE]");
+define("GS_VERSION", 0.57);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
 define("GS_DECRYPT_KEY", 0);
@@ -2419,7 +2419,8 @@ function GS_scripting_highlighting($code) {
 		"edit"         => "edit",
 		"begin_ver"    => "",
 		"alias"        => "alias",
-		"merge_with"   => "alias"
+		"merge_with"   => "alias",
+		"filedate"     => "filedate"
 	];
 	$command_switches_names = [
 		"/password:",

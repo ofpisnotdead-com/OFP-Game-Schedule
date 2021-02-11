@@ -128,6 +128,7 @@ echo GS_scripting_highlighting("{
 		<li><a href="#alias">Merge_with, Alias</a></li>
 		<li><a href="#rename">Rename</a></li>
 		<li><a href="#makedir">Makedir, Newfolder</a></li>
+		<li><a href="#filedate">Filedate</a></li>
 		<li><a href="#get">Get, Download</a></li>
 		<li><a href="#ask_get">Ask_get, Ask_download</a></li>
 		<li><a href="#ask_run">Ask_run, Ask_execute</a></li>
@@ -390,6 +391,17 @@ MAKEDIR  dta\\hwtl");?></code></pre>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\addons</span><br>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta</span><br>
 <span class="courier" style="margin-left:2em;">&lt;game folder&gt;\&lt;modfolder&gt;\dta\hwtl</span><br>
+
+
+
+
+<a name="filedate"></a><hr class="betweencommands">
+<h3 class="commandtitle">Filedate</h3>
+<pre><code>FILEDATE  &lt;file&gt;  &lt;date&gt;</code></pre>
+<p>Changes modification date of a seleted file in the modfolder. Date must be in GMT timezone, in ISO 8601 format (YYYY MM DD HH MM SS) or Unix timestamp.</p>
+<br><br>
+<p>Example:</p>
+<pre><code><?php echo GS_scripting_highlighting("FILEDATE  addons\\example.pbo  \"2021-02-11 21:36:37\"");?></code></pre>
 
 
 
@@ -772,6 +784,14 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Version History</strong></div>
 		<div class="panel-body">
+<strong>0.57</strong> (11.02.21)<br>
+<ul>
+<li>Added <code>FILEDATE</code> command</li>
+</ul>
+
+<br>
+<br>
+
 <strong>0.56</strong> (05.02.21)<br>
 <ul>
 <li>Auto Install - will try to extract .cab files</li>
