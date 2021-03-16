@@ -55,7 +55,7 @@ echo GS_scripting_highlighting("http://example.com/locked.rar  /password:123");?
 				<li>If the name matches the name of the mod being installed then it will be moved to the game directory. All other files and folders (except for other mods) from this location will be moved to the modfolder. If directory <code>addons</code> is present then it will be merged with <code>IslandCutscenes</code> in the modfolder.</li>
 				<li>Other modfolders will be ignored (exceptions: 1. <code>Res</code> folder 2. if downloaded archive contains a single folder then that one won't be skipped).</li>
 				<br>
-				<li>If the name matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code>, <code>Templates</code>, <code>SPTemplates</code>, <code>MissionsUsers</code>, <code>MPMissionsUsers</code> or <code>IslandCutscenes</code> then it will be moved to the modfolder. If <code>Missions</code> or <code>MPMissions</code> contains only a single folder inside then that folder will be moved instead.</li>
+				<li>If the name matches <code>addons</code>, <code>bin</code>, <code>campaigns</code>, <code>dta</code>, <code>worlds</code>, <code>Missions</code>, <code>MPMissions</code>, <code>Templates</code>, <code>SPTemplates</code>, <code>MissionsUsers</code>, <code>MPMissionsUsers</code> or <code>IslandCutscenes</code> then it will be moved to the modfolder (contents will be merged). If <code>MPMissions</code> contains only a single folder inside then that folder will be moved instead. If <code>Missions</code> contains only a single folder that matches mod name then its contents will be merged with the mod missions. If it doesn't match then it will be moved as a separate folder.</li>
 				<li>If it contains <code>overview.html</code> then it will be moved to the <code>Missions</code> folder.</li>
 				<br>
 				<li>If the name ends with "anim", "_anim" or "_anims" then it will be moved to the <code>IslandCutscenes</code>. If any parent folder was named "res" or had words "res" and "addons" then it will be moved to the <code>IslandCutscenes\_Res</code> instead.</li>
@@ -104,6 +104,8 @@ echo GS_scripting_highlighting("{
 	http://fdfmod.dreamhosters.com/ofp/fdfmod14_ww2.rar
 	https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod  fdf-mod/download  expires=  fdfmod14_ww2.rar
 }");?></code></pre>
+<br>
+<p>To save disk space downloaded file is deleted when the next download starts. To have more than one file at once use <a href="#get">GET</a> command.</p>
 
 
 		</div>
@@ -132,6 +134,7 @@ echo GS_scripting_highlighting("{
 		<li><a href="#get">Get, Download</a></li>
 		<li><a href="#ask_get">Ask_get, Ask_download</a></li>
 		<li><a href="#ask_run">Ask_run, Ask_execute</a></li>
+		<li><a href="#exit">Exit, Quit</a></li>
 		</ul>
 		<br>		
 		
@@ -166,7 +169,7 @@ UNPACK  _extracted\\_extracted\\third.rar");?></code></pre>
 
 <a name="move"></a><hr class="betweencommands">
 <h3 class="commandtitle">Move, Copy</h3>
-<pre><code>MOVE  &lt;file or url&gt;  &lt;destination&gt;  &lt;new name&gt;  /no_overwrite  /match_dir</code></pre>
+<pre><code>MOVE  &lt;file or url&gt;  &lt;destination&gt;  &lt;new name&gt;  /no_overwrite  /match_dir  /match_dir_only</code></pre>
 <p>Moves or copies selected file or folder from the <span class="courier">fwatch\tmp\_extracted</span> directory to the modfolder.</p>
 <p>Overwrites files.</p>
 <p>Automatically creates sub-directories in the destination path.</p>
@@ -209,8 +212,9 @@ to the<br>
 
 <p>Wildcards (<a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a>, <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
 <pre><code><?php echo GS_scripting_highlighting("MOVE  *.pbo  addons");?></code></pre>
-<p>To match both files and folders add <code>/match_dir</code> switch.</p>
-<pre><code><?php echo GS_scripting_highlighting("MOVE  *  /match_dir");?></code></pre>
+<p>To match both files and folders add <code>/match_dir</code> switch. To match exclusively folders use <code>/match_dir_only</code> instead.</p>
+<pre><code><?php echo GS_scripting_highlighting("MOVE  *  /match_dir
+MOVE  *  /match_dir_only");?></code></pre>
 
 <br><br>
 
@@ -268,7 +272,7 @@ to the<br>
 <a name="makepbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">MakePBO</h3>
 <pre><code>MAKEPBO  &lt;folder&gt;  /keep_source</code></pre>
-<p>Creates PBO file (no compression) out of a directory in the modfolder and then removes the source.</p>
+<p>Creates PBO file (no compression) out of a directory in the modfolder and then removes the source. PBO file modification date will be set to the day the specific mod version was added.</p>
 
 <br><br>
 <p>Example:</p>
@@ -289,6 +293,7 @@ to the<br>
 <pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
 <p>Replaces text line in the selected file from the modfolder.</p>
 <p>If new text already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
+<p>File modification date will be set to the day the specific mod version was added.</p>
 
 <br><br>
 <p>Example:</p>
@@ -351,7 +356,8 @@ ENDIF");?></code></pre>
 <a name="alias"></a><hr class="betweencommands">
 <h3 class="commandtitle">Merge_with, Alias</h3>
 <pre><code>MERGE_WITH  &lt;name1&gt; &lt;name2&gt; &lt;...&gt;</code></pre>
-<p>It makes auto installation, <code>Move</code> and <code>Copy</code> commands to merge contents of selected folders with the modfolder currently being installed.</p>
+<p>Enables auto installation, <code>Move</code> and <code>Copy</code> to merge specified folder with the modfolder being installed. Effect lasts until end of the current script (to make it work for all versions check the mod details page).</p>
+<br><br>
 <p>For example: mod @wgl5 is being installed. Archive "CoC_UA110_Setup.exe" was downloaded which contains folders: @CoC and @wgl5. Normally auto installation will copy @wgl5 and ignore @CoC but if you'll write:</p>
 <pre><code><?php echo GS_scripting_highlighting("MERGE_WITH  @CoC
 https://files.ofpisnotdead.com/files/ofpd/unofaddons2/CoC_UA110_Setup.exe");?></code></pre>
@@ -398,10 +404,10 @@ MAKEDIR  dta\\hwtl");?></code></pre>
 <a name="filedate"></a><hr class="betweencommands">
 <h3 class="commandtitle">Filedate</h3>
 <pre><code>FILEDATE  &lt;file&gt;  &lt;date&gt;</code></pre>
-<p>Changes modification date of a seleted file in the modfolder. Date must be in GMT timezone, in ISO 8601 format (YYYY MM DD HH MM SS) or Unix timestamp.</p>
+<p>Changes modification date of a seleted file in the modfolder. Date must be in GMT timezone, in ISO 8601 format (YYYY MM DD HH MM SS) or as Unix timestamp.</p>
 <br><br>
 <p>Example:</p>
-<pre><code><?php echo GS_scripting_highlighting("FILEDATE  addons\\example.pbo  \"2021-02-11 21:36:37\"");?></code></pre>
+<pre><code><?php echo GS_scripting_highlighting("FILEDATE  addons\\example.pbo  2021-02-11T21:36:37");?></code></pre>
 
 
 
@@ -409,10 +415,11 @@ MAKEDIR  dta\\hwtl");?></code></pre>
 <a name="get"></a><hr class="betweencommands">
 <h3 class="commandtitle">Get, Download</h3>
 <pre><code>GET  &lt;url&gt;</code></pre>
-<p>Downloads a file to the <span class="courier">fwatch\tmp\</span> directory.</p>
+<p>Downloads a file to the <span class="courier">fwatch\tmp\</span> directory. It will be removed at the end of the current installation script.</p>
 <br><br>
 <p>Example:</p>
-<pre><code><?php echo GS_scripting_highlighting("GET  ftp://ftp.armedassault.info/ofpd/unofaddons2/ww4mod25rel.rar");?></code></pre>
+<pre><code><?php echo GS_scripting_highlighting("GET  http://example.com/part1.rar
+GET  http://example.com/part2.rar");?></code></pre>
 
 
 
@@ -443,6 +450,13 @@ If the file is in the modfolder then start the path with <code>&lt;mod&gt;</code
 <br><br>
 <p>Use this command without any arguments to run the last downloaded file.</p>
 
+
+
+
+<a name="exit"></a><hr class="betweencommands">
+<h3 class="commandtitle">Exit, Quit</h3>
+<pre><code>EXIT</code></pre>
+<p>Causes the installer to skip all other commands in the current script.</p>
 
 
 		</div>
@@ -559,45 +573,32 @@ MOVE    Files\\WW4mod25\\Anims.pbo  dta");
 <p>This is a script for installing Finnish Defence Forces 1.4 mod</p>
 
 <pre><code><?php
-echo GS_scripting_highlighting('; Download archive from one of these four sources and then extract it to a temporary location
-UNPACK {
-	ftp://ftp.armedassault.info/ofpd/mods/fdfmod13_installer.exe
-	http://pulverizer.pp.fi/ewe/mods/fdfmod13_installer.exe
+echo GS_scripting_highlighting('; Download base version of the mod from one of these five sources and then run automatic installation
+{
+	http://files.ofpisnotdead.com/files/ofpd/mods/fdfmod13_installer.exe
 	http://fdfmod.dreamhosters.com/ofp/fdfmod13_installer.exe
-	https://www.gamefront.com/games/operation-flashpoint-resistance/file/finnish-defence-forces  finnish-defence-forces/download  expires=  fdfmod13_installer.exe
+	ftp://ftp.armedassault.info/ofpd/mods/fdfmod13_installer.exe
+	https://www.gamefront.com/games/operation-flashpoint-resistance/file/finnish-defence-forces finnish-defence-forces/download expires= fdfmod13_installer.exe
+	http://pulverizer.pp.fi/ewe/mods/fdfmod13_installer.exe
 }
 
-; Move all the unpacked content (including folders) to the modfolder in the game directory (will be created if it doesn\'t exist)
-MOVE  * /match_dir
 
-; Move single-player missions (in the modfolder) to the parent directory (they don\'t need to be in a subdirectory)
-MOVE  "<mod>\\Missions\\FDF MOD\\*"  Missions
-
-; Remove directory modfolder\\Missions\\FDF Mod that is now empty
-DELETE  "Missions\\FDF MOD"
-
-; Download and extract
-UNPACK {
-	ftp://ftp.armedassault.info/ofpd/mods/fdfmod14_ww2.rar
-	http://pulverizer.pp.fi/ewe/mods/fdfmod14_ww2.rar
+; Download update from one of these six sources and then run automatic installation
+{
+	http://files.ofpisnotdead.com/files/ofpd/mods/fdfmod14_ww2.rar
 	http://fdfmod.dreamhosters.com/ofp/fdfmod14_ww2.rar
-	https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod  fdf-mod/download  expires=  fdfmod14_ww2.rar
+	ftp://ftp.armedassault.info/ofpd/mods/fdfmod14_ww2.rar
+	https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod fdf-mod/download expires= fdfmod14_ww2.rar
 	https://ofp.today/download/mods/fdfmod14_ww2.7z
+	http://pulverizer.pp.fi/ewe/mods/fdfmod14_ww2.rar
 }
 
-; Move everything to the modfolder
-MOVE  *  /match_dir
 
-; Move SP missions to parent
-MOVE  "<mod>\\Missions\\FDF WW2\\*"  Missions
-
-; Remove empty folder
-DELETE  "Missions\\FDF WW2"
-
-; Download and extract
+; Download and extract desert pack
 UNPACK {
-	ftp://ftp.armedassault.info/ofpd/mods/FDF_desert_pack.rar
+	http://files.ofpisnotdead.com/files/ofpd/mods/FDF_desert_pack.rar
 	http://fdfmod.dreamhosters.com/ofp/FDF_desert_pack.rar
+	ftp://ftp.armedassault.info/ofpd/mods/FDF_desert_pack.rar
 	https://ofp.today/download/mods/FDF_desert_pack.7z
 }
 
@@ -607,41 +608,35 @@ MOVE  "FDF Mod - Al Maldajah - Readme.txt" readme_addons
 ; Move remaining content to the modfolder
 MOVE  * /match_dir
 
-; Move SP missions to parent
-MOVE  "<mod>\\Missions\\FDF MOD\\*" Missions
 
-; Remove empty folder
-DELETE  "Missions\\FDF MOD"
-
-; Download and extract
+; Download and extract Winter Maldevic island
 UNPACK {
-	ftp://ftp.armedassault.info/ofpd/islands2/fdf_winter_maldevic.rar
+	http://files.ofpisnotdead.com/files/ofpd/islands2/fdf_winter_maldevic.rar
 	http://fdfmod.dreamhosters.com/ofp/fdf_winter_maldevic.rar
+	ftp://ftp.armedassault.info/ofpd/islands2/fdf_winter_maldevic.rar
 	https://ofp.today/file/islands2/fdf_winter_maldevic.7z
 }
 
-; This archive contains folder with the same name as the mod being currently installed
-; Merge its contents with the modfolder
-MOVE  finmod
-
-; Move single-player missions to the modfolder\\missions
-MOVE  "Missions\\FDF Mod\\*" Missions
-
-; Move readme file
+; Move readme file to the modfolder\\readme_addons
 MOVE  "FDF Mod - Winter Maldevic - Readme.txt" readme_addons
 
-; Download and extract
+; Move remaining content to the modfolder
+MOVE  * /match_dir
+
+
+; Download and extract Suursaari island
 UNPACK {
-	ftp://ftp.armedassault.info/ofpd/islands/Suursaari_release_v10.zip
+	http://files.ofpisnotdead.com/files/ofpd/islands/Suursaari_release_v10.zip
 	http://fdfmod.dreamhosters.com/ofp/Suursaari_release_v10.zip
+	ftp://ftp.armedassault.info/ofpd/islands/Suursaari_release_v10.zip
 	https://ofp.today/download/islands/Suursaari_release_v10.7z
 }
 
 ; Move addon the modfolder\\addons
 MOVE    FDF_Suursaari.pbo  addons
 
-; Move folder containing island cutscenes to the modfolder\\addons
-MOVE    Suursaari_anim  addons
+; Move folder containing island cutscenes to the modfolder\\IslandCutscenes
+MOVE    Suursaari_anim  IslandCutscenes
 
 ; Move remaining files to the modfolder\\readme_addons
 MOVE    *  readme_addons
@@ -649,11 +644,63 @@ MOVE    *  readme_addons
 ; Extract addon modfolder\addons\FDF_Suursaari.pbo 
 UNPBO  addons\\FDF_Suursaari.pbo
 
-; Edit addon config so that the game will open island cutscene from the proper modfolder location
-EDIT   addons\\FDF_Suursaari\\config.cpp  58  "cutscenes[]      = {"..\\finmod\\addons\\suursaari_anim\\intro"};"
 
-; Generate pbo file out of the recently opened addon (FDF_Suursaari.pbo) and then remove the source
-MAKEPBO
+; Download and extract Winter Kolgujev island
+UNPACK {
+	http://files.ofpisnotdead.com/files/ofpd/islands/WinterNogojev11.zip
+	https://fdfmod.dreamhosters.com/ofp/WinterNogojev11.zip
+	ftp://ftp.armedassault.info/ofpd/islands/WinterNogojev11.zip
+	https://www.gamefront.com/games/operation-flashpoint-resistance/file/winternogojev11-zip winternogojev11-zip/download expires= winternogojev11.zip
+	https://ds-servers.com/gf/operation-flashpoint-resistance/modifications/islands/winternogojev11-zip.html files/gf/ store.node winternogojev11.zip
+	https://www.lonebullet.com/mods/download-winternogojev11-operation-flashpoint-resistance-mod-free-42045.htm /file/ files.lonebullet.com winternogojev11.zip
+}
+
+; Move addons the modfolder\\addons
+MOVE    *.pbo  addons
+
+; Move readme file to the modfolder\\readme_addons
+MOVE    "Readme-Winter Nogojev.txt"  readme_addons
+
+; Move folder containing island cutscenes to the modfolder\\IslandCutscenes
+MOVE    KEGnoecainS_anim  IslandCutscenes
+
+
+; Download and extract MT-LB addon
+UNPACK {
+	http://fdfmod.dreamhosters.com/ofp/mt-lb22.zip
+	http://ofp-faguss.com/addon/finmod/mt-lb22.7z
+	http://faguss.paradoxstudio.uk/addon/finmod/mt-lb22.7z
+}
+
+; Move addons the modfolder\\addons
+MOVE    *.pbo  addons
+
+; Move readme file to the modfolder\\readme_addons and rename it to mt-lb22_release_info.txt
+MOVE    release_info.txt  readme_addons  mt-lb22_release_info.txt
+
+
+; Download and extract Russians Weapons Pack
+UNPACK {
+	http://files.ofpisnotdead.com/files/ofpd/unofaddons/RussianWeaponsPack11.zip
+	http://fdfmod.dreamhosters.com/ofp/RussianWeaponsPack11.zip 
+	ftp://ftp.armedassault.info/ofpd/unofaddons/RussianWeaponsPack11.zip
+	https://ofp.today/download/unofaddons/RussianWeaponsPack11.7z
+}
+
+; Move addons the modfolder\\addons
+MOVE    *.pbo  addons
+
+; Move readme file to the modfolder\\readme_addons and rename it to RussianWeaponsPack11_readme.txt
+MOVE    readme.txt  readme_addons  RussianWeaponsPack11_readme.txt
+
+
+; Automatically install fixed version of Smith & Wesson Revolvers Addon
+{
+	http://ofp-faguss.com/addon/finmod/SWRevolvers10_fixed.7z
+	http://faguss.paradoxstudio.uk/addon/finmod/SWRevolvers10_fixed.7z
+	https://docs.google.com/uc?export=download&id=1wAoTEeAuEvveYe2EZnVu_Gic7Nib-7qO SWRevolvers10_fixed.7z
+}
+
 
 ; Replace resource.cpp for widescreen
 UNPACK {
@@ -667,7 +714,11 @@ UNPACK {
 	http://ofp-faguss.com/fwatch/download/anims_fwatch.7z 
 	http://faguss.paradoxstudio.uk/fwatch/download/anims_fwatch.7z
 }
-MOVE    Files\\FDF\\Anims.pbo  dta');
+MOVE    Files\\FDF\\Anims.pbo  dta
+
+
+; Create a UI config for Fwatch - it will enlarge action menu and chat and make them blue
+EDIT    bin\config_fwatch_hud.cfg  0  ACTION_ROWS=43;CHAT_ROWS=12;CHAT_Y=0.56;GROUPDIR_Y=0.5;ACTION_COLORTEXT=[1,1,1,1];ACTION_COLORSEL=[0.133333,0.643137,1,1];CHAT_COLORTEAM=[0.133333,0.643137,1,1];  /newfile');
 ?></code></pre>
 
 <hr class="betweencommands">
@@ -784,11 +835,37 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Version History</strong></div>
 		<div class="panel-body">
+<a name="changelog0.59"></a>
+<br>
+<br>
+
+<strong>0.59</strong> (05.03.21)<br>
+<ul>
+<li>Auto Install -  If "Missions" contains only a single folder inside then that subfolder will be merged with "&lt;mod&gt;\Missions" only if its name matches the mod name. Otherwise it will be moved as a separate subfolder</li>
+</ul>
+
+<a name="changelog0.58"></a>
+<br>
+<br>
+
+<strong>0.58</strong> (25.02.21)<br>
+<ul>
+<li>Added <code>EXIT</code> command</li>
+<li><code>Move</code> – added switch <code>/match_dir_only</code></li>
+<li>Installer removes previously downloaded file when starting download for a new file except when using <code>GET</code> command</li>
+<li>Intermediary URL part may contain phrase <code>href="</code> and installer will read the link following that phrase</li>
+</ul>
+
+<a name="changelog0.57"></a>
+<br>
+<br>
+
 <strong>0.57</strong> (11.02.21)<br>
 <ul>
 <li>Added <code>FILEDATE</code> command</li>
 </ul>
 
+<a name="changelog0.56"></a>
 <br>
 <br>
 
@@ -811,6 +888,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li><code>Alias</code> - added alternative name for this command: <code>Merge_With</code></li>
 </ul>
 
+<a name="changelog0.55"></a>
 <br>
 <br>
 
@@ -820,6 +898,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li><code>Move</code> – curly brackets are now used (instead of a vertical bar) to separate url arguments from move arguments</li>
 </ul>
 
+<a name="changelog0.53"></a>
 <br>
 <br>
 
@@ -829,6 +908,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li>Added shorter name <code>UnPBO</code> for the command <code>UnpackPBO</code></li>
 </ul>
 
+<a name="changelog0.52"></a>
 <br>
 <br>
 
@@ -837,6 +917,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li>Command arguments can now be escaped with custom delimiters (relevant for the <code>Edit</code> command)</li>
 </ul>
 
+<a name="changelog0.51"></a>
 <br>
 <br>
 
@@ -849,6 +930,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li><code>MakePBO</code> – fixed bug where it wouldn't work with files with spaces in their names</li>
 </ul>
 
+<a name="changelog0.4"></a>
 <br>
 <br>
 
@@ -858,6 +940,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li><code>Edit</code> – switch <code>/insert</code> can now be used to append text at the end</li>
 </ul>
 
+<a name="changelog0.31"></a>
 <br>
 <br>
 
@@ -866,6 +949,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li>Auto installation - doesn't ignore modfolders if their name is contained in downloaded filename</li>
 </ul>
 
+<a name="changelog0.3"></a>
 <br>
 <br>
 
@@ -890,6 +974,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li>added <code>-testdir</code> parameter</li>
 </ul>
 
+<a name="changelog0.2"></a>
 <br>
 <br>
 
@@ -923,6 +1008,7 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 <li>added <code>-testmod</code> parameter</li>
 </ul>
 
+<a name="changelog0.1"></a>
 <br>
 <br>
 

@@ -35,7 +35,7 @@ $Parsedown = new Parsedown();
 		WHERE
 			gs_mods.createdby = users.id AND
 			gs_mods.removed   = 0 AND 
-			gs_mods.access    = 1
+			gs_mods.access    = ''
 					   
 		ORDER BY 
 			gs_mods.name

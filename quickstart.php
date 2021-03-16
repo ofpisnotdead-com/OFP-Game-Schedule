@@ -29,6 +29,7 @@ $strings = [
 	"GS_STR_QUICKSTART_FORORGANIZERS_GOSCHEDULE",
 	"GS_STR_QUICKSTART_FORORGANIZERS_ADDMODTOSERV",
 	"GS_STR_QUICKSTART_FORORGANIZERS_SUBMITMOD",
+	"GS_STR_QUICKSTART_FORORGANIZERS_READY",
 	"GS_STR_QUICKSTART_FORPLAYERS_START",
 	"GS_STR_QUICKSTART_FORPLAYERS_SHOWSERV",
 	"GS_STR_QUICKSTART_FORPLAYERS_WAITINSTALL",
@@ -36,15 +37,17 @@ $strings = [
 	"GS_STR_QUICKSTART_FORPLAYERS_HAVEFUN"
 ];
 $images = [
-	"mainmenu",
-	"addnewserver",
-	"schedule",
-	"assignmod",
-	"addnewmod",
-	"serverdisplay",
-	"downloadmods",
-	"installing",
-	"connect"
+	"1_mainmenu",
+	"2_addnewserver",
+	"3_schedule",
+	"4_assignmod",
+	"5_addnewmod",
+	"",
+	"6_serverdisplay",
+	"7_downloadmods",
+	"8_installing",
+	"9_connect",
+	""
 ];
 
 foreach ($strings as $i=>$string) {
@@ -64,13 +67,13 @@ foreach ($strings as $i=>$string) {
 	if ($string == "GS_STR_QUICKSTART_FORORGANIZERS_LOGIN")
 		$arguments = ["<a href='users/login.php' target='_blank'>Steam / Discord / VK / Google / Facebook</a>"];
 
-	$image_name = "images/" . ($i+1) . "_" . $images[$i] . "_" . substr($lang["THIS_CODE"],0,2) . ".png";
+	$image_name = "images/" . $images[$i] . "_" . substr($lang["THIS_CODE"],0,2) . ".png";
 	if (!file_exists($image_name))
 		$image_name = substr($image_name,0,-3) . "jpg";
 	
 	echo "<p align=\"center\">".lang($string, $arguments)."</p>";
 	
-	if ($i < count($images))
+	if (!empty($images[$i]))
 	echo "
 	<div class=\"text-center\">
 		<img src=\"$image_name\" alt=\"{$images[$i]}\" class=\"img-thumbnail blackborder\">

@@ -77,23 +77,28 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->label_size = 2;
 	$form->input_size = 10;
 	
+	if ($form->hidden["display_form"] == "Edit")
+		$form->title=lang("GS_STR_MOD_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+	else
+		$form->title=lang("GS_STR_INDEX_ADDNEW_MOD");
+	
 	$mod_type_select = [];
 	for($i=0; $i<4; $i++)
 		$mod_type_select[] = [lang("GS_STR_MOD_TYPE{$i}")." - ".lang("GS_STR_MOD_TYPE{$i}_DESC"),"{$i}"];
 	
 	$description_hint =  lang("GS_STR_MOD_DESCRIPTION_HINT"). ". <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
 	
-	$form->add_text("name"       , lang("GS_STR_MOD_FOLDER")      , lang("GS_STR_MOD_FOLDER_HINT")     , "@ww4mod25");
-	$form->add_text("description", lang("GS_STR_MOD_DESCRIPTION") , $description_hint                  , lang("GS_STR_MOD_DESCRIPTION_EXAMPLE"));
-	$form->add_select("type"     , lang("GS_STR_MOD_TYPE")        , ""                                 , $mod_type_select, "0");
-	$form->add_select("access"   , lang("GS_STR_MOD_ACCESS")      , lang("GS_STR_MOD_ACCESS_HINT")     , [[lang("GS_STR_MOD_PUBLIC"),"1"], [lang("GS_STR_MOD_PRIVATE"),"0"]], "1", "radio");
-	$form->add_select("forcename", lang("GS_STR_MOD_FORCENAME")   , lang("GS_STR_MOD_FORCENAME_HINT")  , [[lang("GS_STR_DISABLED"),"0"], [lang("GS_STR_ENABLED"),"1"]], "0", "radio");
-	$form->add_text("scripttext" , lang("GS_STR_MOD_INSTALLATION"), $install_hint                      , $install_example, "", -1);
+	$form->add_text("name"       , lang("GS_STR_MOD_FOLDER")             , lang("GS_STR_MOD_FOLDER_HINT")     , "@ww4mod25");
+	$form->add_text("description", lang("GS_STR_MOD_DESCRIPTION")        , $description_hint                  , lang("GS_STR_MOD_DESCRIPTION_EXAMPLE"));
+	$form->add_select("type"     , lang("GS_STR_MOD_TYPE")               , ""                                 , $mod_type_select, "0");
+	$form->add_text("access"     , lang("GS_STR_MOD_ACCESS")             , lang("GS_STR_MOD_ACCESS_HINT"));
+	$form->add_select("forcename", lang("GS_STR_MOD_FORCENAME")          , lang("GS_STR_MOD_FORCENAME_HINT")  , [[lang("GS_STR_DISABLED"),"0"], [lang("GS_STR_ENABLED"),"1"]], "0", "radio");
+	$form->add_text("scripttext" , lang("GS_STR_MOD_INSTALLATION_SCRIPT"), $install_hint                      , $install_example, "", -1);
 	$form->add_emptyspan("convertlink_field", "id=\"convertlink_field_group\"");
-	$form->add_text("size"       , lang("GS_STR_MOD_DOWNLOADSIZE"), "", "128");
-	$form->add_select("sizetype" , "", "", GS_SIZE_TYPES, "MB");
-	$form->add_text("alias"      , lang("GS_STR_MOD_ALIAS")       , lang("GS_STR_MOD_ALIAS_DESC",["<a target=\"_blank\" href=\"install_scripts#alias\">","</a>"]), "@ww4mod21 @ww4mod");
-	$form->add_select("is_mp"    , lang("GS_STR_MOD_MPCOMP")      , lang("GS_STR_MOD_MPCOMP_HINT")     , [[lang("GS_STR_MOD_MPCOMP_YES"),"1"], [lang("GS_STR_MOD_MPCOMP_NO"),"0"]], "1", "radio");
+	$form->add_text("size"       , lang("GS_STR_MOD_DOWNLOADSIZE")       , "", "128");
+	$form->add_select("sizetype" , ""                                    , "", GS_SIZE_TYPES, "MB");
+	$form->add_text("alias"      , lang("GS_STR_MOD_ALIAS")              , lang("GS_STR_MOD_ALIAS_DESC",["<a target=\"_blank\" href=\"install_scripts#alias\">","</a>"]), "@ww4mod21 @ww4mod");
+	$form->add_select("is_mp"    , lang("GS_STR_MOD_MPCOMP")             , lang("GS_STR_MOD_MPCOMP_HINT")     , [[lang("GS_STR_MOD_MPCOMP_YES"),"1"], [lang("GS_STR_MOD_MPCOMP_NO"),"0"]], "1", "radio");
 	
 	if ($form->hidden["display_form"] == "Add New") {
 		$form->include_file("usersc/js/gs_functions.js");
@@ -106,7 +111,8 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	// If user wants to update mod entry
 	if (in_array($form->hidden["action"], ["Edit","Add New"])) {
 		$data = &$form->save_input();
-		$data["name"] = preg_replace('/\s+/', '', $data["name"]);	// remove whitespace
+		$data["name"]   = preg_replace('/\s+/', '', $data["name"]);				// remove whitespace
+		$data["access"] = preg_replace("/[^A-Za-z0-9 ]/", '', $data["access"]);	// remove non-alphanumeric
 		
 		// Validate file name
 		$custom_errors = [];
@@ -126,6 +132,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 		$form->add_validation_rules(["size"]       , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]   , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
 		$form->add_validation_rules(["alias"]      , ["max"=>GS_MAX_MSG_INPUT_LENGTH, "required"=>false]);
+		$form->add_validation_rules(["access"]     , ["max"=>GS_MAX_CODE_INPUT_LENGTH, "required"=>false]);
 
 
 		// Send data to table
@@ -198,6 +205,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$id, "type"=>($form->hidden["action"]=="Add New" ? GS_LOG_MOD_ADDED : GS_LOG_MOD_UPDATED), "added"=>date("Y-m-d H:i:s")]);
 				
 				$form->hidden["display_name"] = $data["name"];
+				$form->title                  = lang("GS_STR_MOD_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
 			}
 		}
 	} else
@@ -208,7 +216,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	if ($form->hidden["display_form"] == "Edit")
 		$form->change_control(["convertlink_field", "scripttext", "size", "sizetype"], "remove");
 	
-	$form->add_button("action", $form->hidden["display_form"], lang(GS_FORM_ACTIONS[$form->hidden["display_form"]]), "btn-mods btn-lg");
+	$form->add_button("action", $form->hidden["display_form"], lang($form->hidden["display_form"]=="Edit" ? "GS_STR_SERVER_SUBMIT" : "GS_STR_INDEX_ADDNEW_MOD"), "btn-mods btn-lg");
 }	
 
 
@@ -226,7 +234,7 @@ if ($form->hidden["display_form"] == "Update")
 	$form->size       = 12;
 	$form->label_size = 2;
 	$form->input_size = 10;
-	
+	$form->title      = lang("GS_STR_MOD_UPDATE_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
 	
 	// Display buttons for navigating between sub-sections
 	forEach(GS_FORM_ACTIONS_MODUPDATE as $section=>$section_name) {
@@ -237,72 +245,72 @@ if ($form->hidden["display_form"] == "Update")
 		$form->change_control([-1,-2], ["Inline"=>-3]);
 	}
 	
-	// Display controls for the current section	
 	$form->add_space(1);
-
-	if ($form->hidden["display_subform"] == "Add")
-		$form->add_text("version", lang("GS_STR_MOD_NEWVER"), lang("GS_STR_MOD_NEWVER_HINT"), "");
 	
-	if ($form->hidden["display_subform"] == "Edit")
-		$form->add_select("version", lang("GS_STR_SERVER_VERSION"), "", []);
-	
+	// Display controls for the current section	
 	if ($form->hidden["display_subform"] == "Link") {
-		$form->add_select("Link"   , lang("GS_STR_MOD_LINK"), "", []);
+		$form->add_select("Link"   , lang("GS_STR_MOD_LINK")     , "", []);
 		$form->add_text("fromver"  , lang("GS_STR_MOD_LINK_FROM"), lang("GS_STR_MOD_LINK_FROM_HINT"), "v < 1.2");
-		$form->add_select("version", lang("GS_STR_MOD_LINK_TO"), lang("GS_STR_MOD_LINK_TO_HINT"), []);
+		$form->add_select("version", lang("GS_STR_MOD_LINK_TO")  , lang("GS_STR_MOD_LINK_TO_HINT")  , []);
+	} else {
+		$form->add_select("version"  , lang("GS_STR_MOD_SELECT_VER"), "", []);
+		$form->add_text("version_new", lang("GS_STR_MOD_NEW_NUM")   , lang("GS_STR_MOD_NEW_NUM_HINT"), "");
+		$form->change_control("version_new", ["Group"=>"ID=\"version_new_group\""]);
 	}
 	
-	$form->add_select("script", lang("GS_STR_MOD_INSTALLATION"), "", []);
+	// Script editing controls
+	$form->add_select("script", lang("GS_STR_MOD_INSTALLATION_SCRIPT"), "", []);
 	$form->add_text("scripttext", "", $install_hint, $install_example, "", -1);
 	$form->add_emptyspan("convertlink_field", "id=\"convertlink_field_group\"");
 	$form->add_text("size", lang("GS_STR_MOD_DOWNLOADSIZE"), "", "128");
 	$form->add_select("sizetype", "", "", GS_SIZE_TYPES, "MB");
-	$form->add_emptyspan("feedback");
-	$form->add_html($js_modal);
-	
-	
-	if (in_array($form->hidden["display_subform"], ["Add", "Edit"])) {
-		$description_hint = lang("GS_STR_MOD_PATCHNOTES_HINT") . " <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
-		$form->add_text("changelog", lang("GS_STR_MOD_PATCHNOTES"), $description_hint, lang("GS_STR_MOD_PATCHNOTES_EXAMPLE"), "", -1);
-	}
-
-	$form->add_button("action", $form->hidden["display_subform"], lang(GS_FORM_ACTIONS_MODUPDATE[$form->hidden["display_subform"]]), "btn-mods btn-lg", "SubmitButton");
-		
-	// Button to remove a link between versions
-	if ($form->hidden["display_subform"] == "Link") {
-		$form->add_space();
-		$form->add_button("action", "DeleteLink", lang("GS_STR_INDEX_DELETE"), "btn-danger btn-sm", "SubmitButton");
-	}
-	
-	$form->add_html("<br><br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a><br><br><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/2fs4hbYZ1VY?start=82&end=154\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>");
 	$form->change_control(["size", "sizetype"], ["Inline"=>3]);
+	$form->add_html($js_modal);
+		
+	// Patch notes input
+	if ($form->hidden["display_subform"] != "Link")
+		$form->add_text(
+			"changelog", 
+			lang("GS_STR_MOD_PATCHNOTES"), 
+			lang("GS_STR_MOD_PATCHNOTES_HINT")." <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>", 
+			lang("GS_STR_MOD_PATCHNOTES_EXAMPLE"), 
+			"", 
+			-1
+		);
+
+	// Submit button
+	$form->add_button("action", $form->hidden["display_subform"], lang(GS_FORM_ACTIONS_MODUPDATE[$form->hidden["display_subform"]]."_SUBMIT"), "btn-mods btn-lg", "SubmitButton");
+		
+	// Button to remove the link between versions
+	if ($form->hidden["display_subform"] == "Link") {
+		$form->add_button("action", "DeleteLink", lang("GS_STR_MOD_LINK_REMOVE"), "btn-danger btn-sm", "SubmitButtonDelete", "STYLE=\"display:none;\"");
+		$form->change_control([-1,-2], ["Inline"=>3]);
+		$form->change_control(-1, ["DivInline"=>"STYLE=\"display:inline;position:absolute;bottom:0;\""]);
+	}
+	
+	$form->add_html("<br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a><br><br><br><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/2fs4hbYZ1VY?start=82&end=154\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>");
 	
 
-	
 	// If user wants to update database
 	if (array_search($form->hidden["action"], array_keys(GS_FORM_ACTIONS_MODUPDATE)) !== FALSE) {
 		$data              = &$form->save_input();
-		$undefined_indexes = ["fromver", "script", "version", "scripttext", "Link", "changelog"];
+		$undefined_indexes = ["fromver", "script", "version_new", "version", "scripttext", "Link", "changelog"];
 		
 		foreach ($undefined_indexes as $index)
 			if (!isset($data[$index]))
 				$data[$index] = "";
 			
-		$highest       = NULL;
-		$updateid      = NULL;
 		$is_ok         = false;
+		$updateid      = NULL;
 		$custom_errors = [];
 	
 		// Get the highest version number for this mod
-		if (in_array($form->hidden["display_subform"],["Add","Link"])) {
-			$highest = $db->cell("gs_mods_updates.MAX(version)",["modid","=",$id]);
-			
-			if (isset($highest))
-				$highest = floatval(sprintf("%01.3f", $highest));
-			else {
-				$form->alert(lang("GS_STR_MOD_RECENTVER_ERROR"));
-				$is_ok = false;
-			}
+		$highest = $db->cell("gs_mods_updates.MAX(version)",["modid","=",$id]);
+		if (isset($highest))
+			$highest = floatval(sprintf("%01.3f", $highest));
+		else {
+			$form->alert(lang("GS_STR_MOD_RECENTVER_ERROR"));
+			$is_ok = false;
 		}
 		
 		// Validate jump rule
@@ -313,11 +321,10 @@ if ($form->hidden["display_form"] == "Update")
 			$is_ok = true;
 		
 		// Size number - three digits after dot and no trailing zeros
-		if (is_numeric($data["version"])) {
-			$data["version"] = floatval(sprintf("%01.3f", $data["version"]));
-			$data["version"] = strval($data["version"]);
+		if (is_numeric($data["version_new"])) {
+			$data["version_new"] = floatval(sprintf("%01.3f", $data["version_new"]));
+			$data["version_new"] = strval($data["version_new"]);
 		}
-		
 		
 		// Find update id by version number
 		if ($form->hidden["display_subform"] == "Link") {
@@ -329,91 +336,94 @@ if ($form->hidden["display_form"] == "Update")
 			}
 		}
 
+		// Set up validation	
+		// If the user is copying script from the other record - ignore script text in validation
+		$form->init_validation(["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $data["script"]!=-1 ? ["scripttext", "size", "sizetype"] : []);
 		
-		// Set up validation
-		$exclude      = [];
-		$unique_array = ["gs_mods_updates",["and", ["modid","=",$id], ["version","LIKE",$data["version"]]]];
-		
-		// If user is copying script from other record - ignore script text in validation
-		if ($data["script"]!=-1  &&  $form->hidden["display_subform"]!="Modify")
-			$exclude = ["scripttext", "size", "sizetype"];		
-
-		$form->init_validation     (["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $exclude);
 		$form->add_validation_rules(["scripttext"], ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
 		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>false]);
 		$form->add_validation_rules(["size"]      , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]  , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
 
-		if ($form->hidden["display_subform"] == "Add")
-			$form->add_validation_rules(["version"], [">"=>$highest, "unique"=>$unique_array]);
-		
 		if ($form->hidden["display_subform"] == "Link") {
 			$form->add_validation_rules(["fromver"]   , ["max"=>GS_MAX_MSG_INPUT_LENGTH]);
 			$form->add_validation_rules(["scripttext"], ["required"=>false]);
-		}
+		} else
+			// If adding a new version then verify its number
+			if ($data["version"] == -1)
+				$form->add_validation_rules(["version_new"], [">"=>$highest, "unique"=>["gs_mods_updates",["and", ["modid","=",$id], ["version","LIKE",$data["version_new"]]]]]);
 
 
 		if ($form->validate($custom_errors,lang("GS_STR_ERROR_FORMDATA"))  &&  $is_ok) {
-			// Set up two arrays for inserting to two db tables
+			// Set up three arrays for inserting data to three different db tables
 			$update_fields = [
-				"modid"     => $id,
-				"scriptid"  => $data["script"],
-				"version"   => $data["version"],
-				"changelog" => $data["changelog"]
+				"modid"      => $id,
+				"scriptid"   => $data["script"],
+				"version"    => $data["version"]==-1 ? $data["version_new"] : $data["version"],
+				"changelog"  => $data["changelog"],
+				"modified"   => date("Y-m-d H:i:s"),
+				"modifiedby" => $uid
 			];
 
 			$script_fields = [
-				"size"     => "{$data["size"]} {$data["sizetype"]}",
-				"script"   => $data["scripttext"]
+				"size"       => "{$data["size"]} {$data["sizetype"]}",
+				"script"     => $data["scripttext"],
+				"modified"   => date("Y-m-d H:i:s"),
+				"modifiedby" => $uid
 			];
 
 			$link_fields = [
 				"updateid"     => $updateid,
 				"scriptid"     => $data["script"],
 				"fromver"      => $data["fromver"],
-				"alwaysnewest" => $data["version"] == "-1"
+				"alwaysnewest" => $data["version"] == "-1",
+				"modified"     => date("Y-m-d H:i:s"),
+				"modifiedby"   => $uid
 			];
 
-			$script_fields["modified"]   = date("Y-m-d H:i:s");
-			$script_fields["modifiedby"] = $uid;
-			
-			// Update script
-			if ($form->hidden["display_subform"] == "Modify") {
-				$scriptid = $db->cell("gs_mods_scripts.id",["uniqueid","=",$data["script"]]);
-
-				if (isset($scriptid)) {
-					$result = $form->feedback(
-						$db->update("gs_mods_scripts", $scriptid, $script_fields),
-						lang("GS_STR_MOD_SCRIPT_UPDATED"),
-						lang("GS_STR_MOD_SCRIPT_UPDATED_ERROR")
-					);
-
-					if ($result)
-						$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$scriptid, "type"=>GS_LOG_MOD_SCRIPT_UPDATED, "added"=>date("Y-m-d H:i:s")]);
-				} else
-					$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));		
-			} else {
-				// Add new script
-				if ($data["script"] == -1) {
-					$script_fields["uniqueid"]  = substr(strtolower(Hash::unique()), rand(0,56), 8);
-					$script_fields["createdby"] = $uid;
-					$data["script"]             = $script_fields["uniqueid"];
-					
-					if ($db->insert("gs_mods_scripts", $script_fields)) {
-						$update_fields["scriptid"] = $db->lastId();
-						$link_fields["scriptid"]   = $db->lastId();
-						$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_MOD_SCRIPT_ADDED, "added"=>date("Y-m-d H:i:s")]);
-					} else
-						$form->alert(lang("GS_STR_MOD_SCRIPT_ADDED_ERROR"));
-				} else { 
-					// Get script ID
-					$update_fields["scriptid"] = $db->cell("gs_mods_scripts.id", ["uniqueid","=",$data["script"]]);
-					$link_fields["scriptid"]   = $update_fields["scriptid"];
-				}
+			// Add a new installation script
+			if ($data["script"] == -1) {
+				$script_fields["uniqueid"]  = substr(strtolower(Hash::unique()), rand(0,56), 8);
+				$script_fields["createdby"] = $uid;
+				$data["script"]             = $script_fields["uniqueid"];
 				
-				if (isset($update_fields["scriptid"])  &&  $update_fields["scriptid"]!=-1) {
-					// Add new update
-					if ($form->hidden["display_subform"] == "Add") {
+				$result = $form->feedback(
+					$db->insert("gs_mods_scripts", $script_fields),
+					lang("GS_STR_MOD_SCRIPT_ADDED"),
+					lang("GS_STR_MOD_SCRIPT_ADDED_ERROR")
+				);
+
+				if ($result) {
+					$update_fields["scriptid"] = $db->lastId();
+					$link_fields["scriptid"]   = $db->lastId();
+					$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_MOD_SCRIPT_ADDED, "added"=>date("Y-m-d H:i:s")]);
+				} else
+					$form->alert(lang("GS_STR_MOD_SCRIPT_ADDED_ERROR"));
+			} else {
+				// Update script
+				if ($db->get("gs_mods_scripts",["uniqueid","=",$data["script"]])) {
+					$script_row                = $db->results(true)[0];
+					$update_fields["scriptid"] = $script_row["id"];
+					$link_fields["scriptid"]   = $script_row["id"];
+					
+					if (($script_row["script"] != $script_fields["script"]) || ($script_row["size"] != $script_fields["size"])) {
+						$result = $form->feedback(
+							$db->update("gs_mods_scripts", $script_row["id"], $script_fields),
+							lang("GS_STR_MOD_SCRIPT_UPDATED"),
+							lang("GS_STR_MOD_SCRIPT_UPDATED_ERROR")
+						);
+
+						if ($result)
+							$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$script_row["id"], "type"=>GS_LOG_MOD_SCRIPT_UPDATED, "added"=>date("Y-m-d H:i:s")]);
+					}
+				} else
+					$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
+			}
+			
+			if (isset($update_fields["scriptid"])  &&  $update_fields["scriptid"]!=-1) {
+				if ($form->hidden["display_subform"] != "Link") {
+					// Add a new mod version
+					if ($data["version"] == -1) {
 						$update_fields["createdby"] = $uid;
 						
 						$result = $form->feedback(
@@ -422,74 +432,67 @@ if ($form->hidden["display_form"] == "Update")
 							lang("GS_STR_MOD_VERSION_ADDED_ERROR")
 						);
 						
-						if ($result)
+						if ($result) {
+							$data["version"] = $data["version_new"];
 							$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_MOD_VERSION_ADDED, "added"=>date("Y-m-d H:i:s")]);
-					}
-					
-					$update_fields["modified"]   = date("Y-m-d H:i:s");
-					$update_fields["modifiedby"] = $uid;
-					
-					// Edit update
-					if ($form->hidden["display_subform"] == "Edit") {
-						$recordID = $db->cell("gs_mods_updates.id",["and",["version","LIKE",$data["version"]],["modid","=",$id]]);
-						
-						if (isset($recordID)) {
-							$result = $form->feedback(
-								$db->update("gs_mods_updates", $recordID, $update_fields),
-								lang("GS_STR_MOD_VERSION_UPDATED"),
-								lang("GS_STR_MOD_VERSION_UPDATED_ERROR")
-							);
+						}
+					} else {
+						// Edit existing mod version
+						if ($db->get("gs_mods_updates",["and",["version","LIKE",$data["version"]],["modid","=",$id]])) {
+							$update_row = $db->results(true)[0];
 							
-							if ($result)
-								$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$recordID, "type"=>GS_LOG_MOD_VERSION_UPDATED, "added"=>date("Y-m-d H:i:s")]);
+							if (($update_row["scriptid"] != $update_fields["scriptid"]) || ($update_row["changelog"] != $update_fields["changelog"])) {							
+								$result = $form->feedback(
+									$db->update("gs_mods_updates", $update_row["id"], $update_fields),
+									lang("GS_STR_MOD_VERSION_UPDATED"),
+									lang("GS_STR_MOD_VERSION_UPDATED_ERROR")
+								);
+								
+								if ($result)
+									$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$update_row["id"], "type"=>GS_LOG_MOD_VERSION_UPDATED, "added"=>date("Y-m-d H:i:s")]);
+							}
 						} else
 							$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));							
 					}
-
-					// Add new link
-					if ($form->hidden["display_subform"] == "Link") {
-						$new_link = false;
+				} else {					
+					// Add new version jump
+					if ($data["Link"] == -1) {
+						$link_fields["uniqueid"]  = substr(strtolower(Hash::unique()), rand(0,56), 8);
+						$link_fields["createdby"] = $uid;
+						$data["Link"]             = $link_fields["uniqueid"];
 						
-						$link_fields["modified"]   = date("Y-m-d H:i:s");
-						$link_fields["modifiedby"] = $uid;
-
-						if ($data["Link"] == -1) {
-							$link_fields["uniqueid"]  = substr(strtolower(Hash::unique()), rand(0,56), 8);
-							$link_fields["createdby"] = $uid;
-							$new_link                 = true;
-							$data["Link"]             = $link_fields["uniqueid"];
-						}
+						$result = $form->feedback(
+							$db->insert("gs_mods_links", $link_fields),
+							lang("GS_STR_MOD_LINK_ADDED"),
+							lang("GS_STR_MOD_LINK_ADDED_ERROR")
+						);
 						
-						if ($new_link) {
-							$result = $form->feedback(
-								$db->insert("gs_mods_links", $link_fields),
-								lang("GS_STR_MOD_LINK_ADDED"),
-								lang("GS_STR_MOD_LINK_ADDED_ERROR")
-							);
+						if ($result)
+							$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_MOD_LINK_ADDED, "added"=>date("Y-m-d H:i:s")]);
+					} else {
+						// Edit existing version jump						
+						if ($db->get("gs_mods_links",["uniqueid","LIKE",$data["Link"]])) {
+							$link_row = $db->results(true)[0];
 							
-							if ($result)
-								$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$db->lastId(), "type"=>GS_LOG_MOD_LINK_ADDED, "added"=>date("Y-m-d H:i:s")]);
-						} else {
-							$recordID = $db->cell("gs_mods_links.id",["uniqueid","LIKE",$data["Link"]]);
-							
-							if (isset($recordID)) {
+							if (($link_row["updateid"] != $link_fields["updateid"]) || ($link_row["scriptid"] != $link_fields["scriptid"]) || ($link_row["fromver"] != $link_fields["fromver"]) || ($link_row["alwaysnewest"] != $link_fields["alwaysnewest"])) {
 								$result = $form->feedback(
-									$db->update("gs_mods_links", $recordID, $link_fields),
+									$db->update("gs_mods_links", $link_row["id"], $link_fields),
 									lang("GS_STR_MOD_LINK_UPDATED"),
 									lang("GS_STR_MOD_LINK_UPDATED_ERROR")
 								);
 								
 								if ($result)
-									$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$recordID, "type"=>GS_LOG_MOD_LINK_UPDATED, "added"=>date("Y-m-d H:i:s")]);
-							} else
-								$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));		
-						}
+									$db->insert("gs_log", ["userid"=>$uid, "itemid"=>$link_row["id"], "type"=>GS_LOG_MOD_LINK_UPDATED, "added"=>date("Y-m-d H:i:s")]);
+							}
+						} else
+							$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));		
 					}
 				}
 			}
 		}
-	}		
+	}
 	
+	// If user wants to delete a jump
 	if ($form->hidden["action"] == "DeleteLink") {
 		$data = &$form->save_input();
 		if ($data["Link"] != "-1") {
@@ -511,6 +514,8 @@ if ($form->hidden["display_form"] == "Update")
 		} else 
 			$form->alert(lang("GS_STR_MOD_LINK_INVALID_ERROR"));
 	}
+	
+	
 	
 	// Get all updates for this mod
 	$sql = "
@@ -544,7 +549,7 @@ if ($form->hidden["display_form"] == "Update")
 	$js_update_list = ["name"=>"Update_List"    , "data"=>[]];
 	$js_script_list = ["name"=>"Script_Contents", "data"=>[]];
 	$changelog      = "";
-
+       
 	foreach ($updates as $update) {
 		$size = explode(' ', $update["size"]);
 
@@ -557,18 +562,20 @@ if ($form->hidden["display_form"] == "Update")
 			"uniqueid"   => $update["uniqueid"],
 			"changelog"  => $update["changelog"]
 		];
-		$js_script_list["data"][] = [
-			"uniqueid"   => $update["uniqueid"],
-			"script"     => $update["script"],
-			"sizenumber" => $size[0],
-			"sizetype"   => $size[1]
-		];
 
 		// Make a list of existing scripts
 		if (isset($script_list[$update["uniqueid"]]))
 			$script_list[$update["uniqueid"]][] = "$fromver ".lang("GS_STR_MOD_TO")." {$update["version"]}";
-		else
+		else {
 			$script_list[$update["uniqueid"]]   = ["$fromver ".lang("GS_STR_MOD_TO")." {$update["version"]}"];
+			
+			$js_script_list["data"][] = [
+				"uniqueid"   => $update["uniqueid"],
+				"script"     => $update["script"],
+				"sizenumber" => $size[0],
+				"sizetype"   => $size[1]
+			];
+		}
 
 		if ($update["version"] > $highest)
 			$highest = $update["version"];
@@ -576,134 +583,127 @@ if ($form->hidden["display_form"] == "Update")
 		$fromver   = $update["version"];
 		$changelog = html_entity_decode($update["changelog"], ENT_QUOTES);
 	}
+
+	$to_version = array_reverse($to_version);   
+	$to_version = array_merge([[lang($form->hidden["display_subform"]=="Link" ? "GS_STR_MOD_LINK_TO_NEWEST" : "GS_STR_MOD_ADD_NEW_VER"), "-1"]], $to_version);
 	
 	$form->add_js_var($js_update_list);
 	
-	if ($form->hidden["display_subform"] == "Link")
-		$to_version[] = [lang("GS_STR_MOD_LINK_TO_NEWEST"), "-1"];
 	
+	// Get all version jumps for this mod
+	$sql = "
+		SELECT 
+			gs_mods_links.*, 
+			gs_mods_updates.version, 
+			gs_mods_scripts.size, 
+			gs_mods_scripts.script, 
+			gs_mods_scripts.uniqueid as scriptUniqueID 
+			
+		FROM  
+			gs_mods_links, 
+			gs_mods_updates, 
+			gs_mods_scripts 
+			
+		WHERE 
+			gs_mods_updates.modid  = ?                  AND 
+			gs_mods_links.updateid = gs_mods_updates.id AND 
+			gs_mods_links.scriptid = gs_mods_scripts.id AND
+			gs_mods_links.removed  = 0
+			
+		ORDER BY 
+			gs_mods_updates.version
+	";
+
+	if ($db->query($sql,[$id])->error())
+		$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
+	
+	$links        = $db->query($sql,[$id])->results(true);
+	$links_select = [[lang("GS_STR_MOD_ADD_NEW_LINK"), "-1", "SELECTED"]];
+	$js_link_list = ["name"=>"Links_List", "data"=>[]];
+
+	foreach ($links as $link) {
+		$condition        = str_replace(["&lt;","&gt;"], ["<",">"], $link["fromver"]);
+		$link_description = "$condition " . lang("GS_STR_MOD_TO") . " " . ($link["alwaysnewest"] ? lang("GS_STR_MOD_NEWEST") : $link["version"]);
+		$links_select[]   = [$link_description, $link["uniqueid"]];
+		$size             = explode(' ', $link["size"]);
+
+		$js_link_list["data"][] = [
+			"uniqueid"       => $link["uniqueid"],
+			"fromver"        => $link["fromver"],
+			"version"        => $link["alwaysnewest"] ? "-1" : $link["version"],
+			"scriptUniqueID" => $link["scriptUniqueID"]
+		];
+		
+		$already_on_the_list = false;
+		
+		foreach($js_script_list["data"] as $index=>$subarray)
+			if ($subarray["uniqueid"] == $link["scriptUniqueID"]) {
+				$already_on_the_list = true;
+				break;
+			}
+		
+		if (!$already_on_the_list)
+				$js_script_list["data"][] = [
+					"uniqueid"   => $link["scriptUniqueID"],
+					"script"     => $link["script"],
+					"sizenumber" => $size[0],
+					"sizetype"   => $size[1]
+				];
+			
+		if (isset($script_list[$link["scriptUniqueID"]]))
+			$script_list[$link["scriptUniqueID"]][] = "$condition ".lang("GS_STR_MOD_TO")." {$link["version"]}";
+		else
+			$script_list[$link["scriptUniqueID"]]   = ["$condition ".lang("GS_STR_MOD_TO")." {$link["version"]}"];
+	}
+
 
 		
 
 	// Make a new list of scripts that doesn't have duplicated id numbers
-	$scripts_select = [$form->hidden["display_subform"]=="Modify" ? [lang("GS_STR_MOD_PICK_ONE"), "-1", "SELECTED"] : [lang("GS_STR_MOD_ADD_NEW_SCRIPT"), "-1"]];
-	
+	$scripts_select = array_merge([[lang("GS_STR_MOD_ADD_NEW_SCRIPT"), "-1"]], GS_script_list_to_script_select($script_list,"",$form->hidden["display_subform"]));
 
+	// Pick a javascript function depending on the form section
+	$js_script_select  = "GS_installation_script_select('script', ['scripttext','size','sizetype'], {$js_script_list["name"]});";	
+	$js_version_select = "";
+	$js_jump_select    = "";
 	
-	$scripts_select = array_merge($scripts_select, GS_script_list_to_script_select($script_list,"",$form->hidden["display_subform"]));
-
-	
-	// Pick javascript function depending on the form section
-	$js_script_select  = "GS_handle_installation_script_form('script',['scripttextinput','sizetextinput','convertlink_field_group'], 'feedback', {$js_script_list["name"]});";	
-	$js_version_select = "";	
-	
-	if ($form->hidden["display_subform"] == "Edit")
-		$js_version_select = "GS_match_installation_script_to_version('version', 'script', 'changelog', 'changelogtextinput', {$js_update_list["name"]});";
-	
-	if ($form->hidden["display_subform"] == "Modify")
-		$js_script_select = "GS_handle_edit_script_form('script', ['scripttext','size','sizetype','convertlink_field_group'], 'SubmitButton', {$js_script_list["name"]})";
-
-
+	if ($form->hidden["display_subform"] != "Link")
+		$js_version_select = "GS_version_select('version', 'script', 'changelog', 'changelogtextinput', 'version_new_group', ['SubmitButton','".lang("GS_STR_MOD_SECTION_VERSION_SUBMIT")."','".lang("GS_STR_MOD_SECTION_VERSION_EDIT_SUBMIT")."'], {$js_update_list["name"]});";
+	else
+		$js_jump_select = "GS_jump_select('Link', ['SubmitButton','SubmitButtonDelete','".lang("GS_STR_MOD_SECTION_JUMP_SUBMIT")."','".lang("GS_STR_MOD_SECTION_JUMP_EDIT_SUBMIT")."'], ['fromver','version','script'], {$js_link_list["name"]});";
 
 	// If adding a new version then suggest version number higher than the current one
-	if ($form->hidden["display_subform"] == "Add") {
-		if (isset($data["version"])  &&  $data["version"] <= $highest)	// if number in the input field is obsolete then remove it
-			unset($data["version"]);
+	if ($form->hidden["display_subform"] != "Link") {
+		if (isset($data["version_new"])  &&  $data["version_new"]<=$highest)	// if number in the input field is obsolete then remove it
+			unset($data["version_new"]);
 
 		$suggested = strlen($highest)>3 ? 0.01 : 0.1;
-		$form->change_control("version" , ["Default"=>floatval(sprintf("%01.3f", $highest+$suggested))]);
+		$form->change_control("version_new" , ["Default"=>floatval(sprintf("%01.3f", $highest+$suggested))]);
 	}
 
-	if (in_array($form->hidden["display_subform"],["Edit","Link"]))
-		$form->change_control("version", ["Default"=>$to_version[count($to_version)-1], "Options"=>$to_version, "Property"=>"onChange=\"{$js_version_select} {$js_script_select}\""]);
+	// Default selection: "add a new version" and "add a new script"
+	$form->change_control("version", ["Default"=>$to_version[0], "Options"=>$to_version, "Property"=>"onChange=\"{$js_version_select} {$js_script_select}\""]);
+	$form->change_control("script" , ["Default"=>$scripts_select[count($scripts_select)-1][1]]);
 	
-	if (in_array($form->hidden["display_subform"],["Add","Edit","Link"]))
-		$form->change_control("script", ["Default"=>$scripts_select[count($scripts_select)-1][1]]);
-	
-	if ($form->hidden["display_subform"] == "Edit")
-		$form->change_control("changelog", ["Default"=>$changelog]);
-	
-	
-	// Get all links
-	if (in_array($form->hidden["display_subform"], ["Modify","Link"])) {
-		$sql = "
-			SELECT 
-				gs_mods_links.*, 
-				gs_mods_updates.version, 
-				gs_mods_scripts.size, 
-				gs_mods_scripts.script, 
-				gs_mods_scripts.uniqueid as scriptUniqueID 
-				
-			FROM  
-				gs_mods_links, 
-				gs_mods_updates, 
-				gs_mods_scripts 
-				
-			WHERE 
-				gs_mods_updates.modid  = ?                  AND 
-				gs_mods_links.updateid = gs_mods_updates.id AND 
-				gs_mods_links.scriptid = gs_mods_scripts.id AND
-				gs_mods_links.removed  = 0
-				
-			ORDER BY 
-				gs_mods_updates.version
-		";
-
-		if ($db->query($sql,[$id])->error())
-			$form->fail(lang("GS_STR_ERROR_GET_DB_RECORD"));
-		
-		$links        = $db->query($sql,[$id])->results(true);
-		$links_select = [[lang("GS_STR_MOD_ADD_NEW_LINK"), "-1", "SELECTED"]];
-		$js_link_list = ["name"=>"Links_List", "data"=>[]];
-
-		foreach ($links as $link) {
-			$condition      = str_replace(["&lt;","&gt;"], ["<",">"], $link["fromver"]);
-			$links_select[] = ["$condition ".lang("GS_STR_MOD_TO")." {$link["version"]}", $link["uniqueid"]];
-			$size           = explode(' ', $link["size"]);
-
-			$js_link_list["data"][] = [
-				"uniqueid"       => $link["uniqueid"],
-				"fromver"        => $link["fromver"],
-				"version"        => $link["alwaysnewest"] ? "-1" : $link["version"],
-				"scriptUniqueID" => $link["scriptUniqueID"]
-			];
-			$js_script_list["data"][] = [
-				"uniqueid"   => $link["scriptUniqueID"],
-				"script"     => $link["script"],
-				"sizenumber" => $size[0],
-				"sizetype"   => $size[1]
-			];
-			
-			// Make a list of existing scripts
-			if (isset($script_list[$link["scriptUniqueID"]]))
-				$script_list[$link["scriptUniqueID"]][] = "$condition ".lang("GS_STR_MOD_TO")." {$link["version"]}";
-			else
-				$script_list[$link["scriptUniqueID"]]   = ["$condition ".lang("GS_STR_MOD_TO")." {$link["version"]}"];
-			
-		}
-
-		array_splice($scripts_select, 1);
-		$scripts_select = array_merge($scripts_select, GS_script_list_to_script_select($script_list,""/*"link"*/,$form->hidden["display_subform"]));
-		
+	// Default selection: "add a new jump"
+	if ($form->hidden["display_subform"] == "Link") {
 		$form->add_js_var($js_link_list);
-		$form->change_control("Link"  , ["Options"=>$links_select, "Property"=>"onChange=\"GS_handle_link_selection('Link', ['fromver','version','script'], {$js_link_list["name"]});  {$js_script_select}\""]);	
+		$form->change_control("Link"  , ["Options"=>$links_select, "Property"=>"onChange=\"{$js_jump_select} {$js_script_select}\""]);	
 		$form->change_control("script", ["Default"=>""]);	
 		$scripts_select[0][] = "SELECTED";
 	}
-	
-	
-	
-	$form->change_control("script"     , ["Options"=>$scripts_select, "Property"=>"onChange=\"{$js_script_select}\""]);
-	$form->change_control("scripttext" , ["Group"=>"ID=\"scripttextinput\""]);
-	$form->change_control("size"       , ["Group"=>"ID=\"sizetextinput\""]);
-	$form->change_control("changelog"  , ["Group"=>"ID=\"changelogtextinput\""]);
+
+	$form->change_control("script"    , ["Options"=>$scripts_select, "Property"=>"onChange=\"{$js_script_select}\""]);
+	$form->change_control("scripttext", ["Group"=>"ID=\"scripttextinput\""]);
+	$form->change_control("size"      , ["Group"=>"ID=\"sizetextinput\""]);
+	$form->change_control("changelog" , ["Group"=>"ID=\"changelogtextinput\""]);
 	
 	// Include javascript
 	$form->include_file("usersc/js/gs_functions.js");
 	$form->add_html("
 		<SCRIPT TYPE=\"text/javascript\">
 			var {$js_script_list["name"]} = ".json_encode($js_script_list["data"]).";
-			{$js_script_select}
+			{$js_version_select} {$js_script_select} {$js_jump_select}
 		</SCRIPT>
 	");
 }
@@ -753,27 +753,13 @@ if ($form->hidden["display_form"] == "Delete") {
 		";
 				
 		$db->query($sql,[$id]);
-		$count = count($db->results(true));
-		$ending = "";
+		$count  = count($db->results(true));
 		
-		if ($count > 0) {
-			$used_by = lang_plural2($count, lang("GS_STR_DELETE_MOD_USED"));
-			$used_by = str_replace("\$count", $count, $used_by);
-			$form->add_html($used_by . ". " . lang("GS_STR_DELETE_MOD_SURE") . "<br><br><br>");
-		}
+		if ($count > 0)
+			$form->add_html(GS_lang("GS_STR_DELETE_MOD_USED", [$count]) . ". " . lang("GS_STR_DELETE_MOD_SURE") . "<br><br><br>");
 	}
 	
 	GS_record_delete($record_type, $record_table, $form, $id, $uid);
-}
-
-
-
-
-$section_title = lang(GS_FORM_ACTIONS[$form->hidden["display_form"]]) . " " . lang("GS_STR_MOD");
-
-switch ($form->hidden["display_form"]) {
-	case "Update"   : $section_title=lang("GS_STR_INDEX_UPDATE"); break;
-	case "Share"    : $section_title=lang("GS_STR_SERVER_SHAREMOD_TITLE"); break;
 }
 
 require_once "footer.php";

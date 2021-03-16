@@ -31,18 +31,16 @@ $exclude_list = [
 	GS_LOG_MOD_LINK_UPDATED,
 	GS_LOG_MOD_LINK_DELETED
 ];
-$table = GS_get_activity_log(100, $exclude_list, false);
+$table = GS_get_activity_log(100, $exclude_list, false, GS_get_common_input());
 
 echo "
 <br>
 
-<div class=\"jumbotron\">
-	<h2>".lang("GS_STR_INDEX_RECENT")."</h2>
-</div>
+<div class=\"gs_section_title\">".lang("GS_STR_INDEX_RECENT")."</div>
 
 <div class=\"row\">		
 <div class=\"col-lg-12\">
-<div class=\"panel panel-default\">
+<div class=\"panel panel-default gs_section_title_border\">
 <div class=\"panel-body servers_background\" style=\"display:flex;\">
 <table style=\"width:100%\">
 ";

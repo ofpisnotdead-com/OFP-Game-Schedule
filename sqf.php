@@ -3,15 +3,14 @@ require_once "minimal_init.php";
 require_once "common.php";
 
 $input      = GS_get_common_input();
-$input_mode = isset($_GET['mode'])     ? $_GET['mode']     : "schedule";
-$language   = isset($_GET['language']) ? $_GET['language'] : "English";
+$input_mode = isset($_GET['mode']) ? $_GET['mode'] : "schedule";
 $db         = DB::getInstance();
 $output     = "";
 
 if ($db) {
 	// Handle schedule request
 	if (in_array($input_mode,["schedule","lastmodified"])) {
-		$servers = GS_list_servers($input["server"], $input["password"], GS_REQTYPE_GAME, GS_fwatch_date_to_timestamp(GS_FWATCH_LAST_UPDATE), $language);
+		$servers = GS_list_servers($input["server"], $input["password"], GS_REQTYPE_GAME, GS_fwatch_date_to_timestamp(GS_FWATCH_LAST_UPDATE), $input["language"]);
 		$mods    = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_GAME, $servers["lastmodified"]);
 
 		// If user wants the last modification date
@@ -74,11 +73,17 @@ if ($db) {
 
 	// Handle request for mod installation script
 	if ($input_mode == "install") {
-		$output .= "install_version " . GS_VERSION . "\n";
 		$mods    = GS_list_mods([], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_GAME, 0);
+		$output .= !empty($mods["info"]) ? "install_version ".GS_VERSION : "";
 		
-		foreach ($mods["info"] as $mod)
-			$output .= $mod["script"];
+		foreach ($mods["info"] as $id=>$mod) {
+			$output .= "\n" . $mod["script"];
+
+			if ($_SERVER['HTTP_USER_AGENT'] == "Wget/1.19.4 (mingw32)") {
+				$column_name = $mod["userver"] ? "dls_upd" : "dls_new";
+				$db->query("UPDATE gs_mods SET $column_name=$column_name+1 WHERE id=$id");
+			}
+		}
 	}
 	
 	if ($input_mode == "mods") {

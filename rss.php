@@ -66,6 +66,9 @@ foreach($table as $row) {
 	
 	if (isset($row["mod_changelog"]))
 		$description .= "<br>".nl2br($row["mod_changelog"]);
+		
+	if (isset($row["installversion"]))
+		$description = "<a href=\"install_scripts#changelog{$row["installversion"]}\">".lang("GS_STR_SHOW_CHANGELOG")."</a>";
 	
 	$output .= "
 		<item>

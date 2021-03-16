@@ -146,7 +146,7 @@ function GS_make_event_editable(list, data, form_inputs, edit_button_id, languag
 				}
 }
 
-// Show/hide tables based on curretn select
+// Show/hide mod tables based on current category selection
 function GS_display_mod_types_table(list, data) {
 	for (var i=0; i<list.length; i++) {
 		var mod_table           = document.getElementById(data[i]);
@@ -228,7 +228,7 @@ function GS_table_rows_swap(direction, row_id, field_id) {
 
 /* edit_mod.php */
 
-//https://stackoverflow.com/questions/5796718/html-entity-decode#9609450
+// https://stackoverflow.com/questions/5796718/html-entity-decode#9609450
 var GS_decode_entities = (function() {
 	// this prevents any overhead from creating the object each time
 	var element = document.createElement('div');
@@ -249,12 +249,100 @@ var GS_decode_entities = (function() {
 	return GS_decode_html_entities;
 })();
 
-//https://stackoverflow.com/questions/1144783/how-to-replace-all-occurrences-of-a-string-in-javascript
-function GS_replace_all(str, find, replace) {
-    return str.replace(new RegExp(find, 'g'), replace);
+// When user selects mod version from the list then display its properties
+function GS_version_select(version_select_id, script_select_id, changelog_field_id, changelog_group_id, new_version_id, submit_button_array, data) {
+	var version_select   = document.getElementById(version_select_id);
+	var selected_version = version_select.options[version_select.selectedIndex].value;
+	var changelog_group  = document.getElementById(changelog_group_id);
+	var new_version      = document.getElementById(new_version_id);
+	var submit_button    = document.getElementById(submit_button_array[0]);
+	
+	// If selected "add a new version"
+	if (selected_version == -1) {
+		new_version.style.display     = "block";
+		changelog_group.style.display = "block";
+		submit_button.innerHTML       = submit_button_array[1];
+	} else {
+		new_version.style.display     = "none";
+		submit_button.innerHTML       = submit_button_array[2];
+
+		// Find currently selected version in the data array
+		for (var i=0; i<data.length; i++) {
+			if (selected_version == data[i]["version"]) {
+				var script_select   = document.getElementById(script_select_id);
+				script_select.value = data[i]["uniqueid"];
+				
+				// Show patch notes if not first version
+				if (i != 0) {
+					changelog_group.style.display = "block";
+					var changelog_field           = document.getElementById(changelog_field_id);
+					changelog_field.value         = GS_decode_entities(data[i]["changelog"]);
+					changelog_field.style.height  = "auto";
+					var buffer                    = changelog_field.style.height != changelog_field.scrollHeight ? 10 : 0;
+					changelog_field.style.height  = changelog_field.scrollHeight + buffer + "px";
+				} else
+					changelog_group.style.display = "none";
+			}
+		}
+	}
 }
 
-//https://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+// When user selects a script from the list then display its contents
+function GS_installation_script_select(script_select_id, form_inputs, data) {
+	var script_select = document.getElementById(script_select_id);
+
+	// Search for selected script id in the data array and then fill form inputs with data
+	if (!script_select.options[0].selected) {
+		var selected_script_id = script_select.options[script_select.selectedIndex].value;
+		
+		for (var i=0; i<data.length; i++) {
+			if (selected_script_id == data[i]["uniqueid"]) {
+				var data_keys = Object.keys(data[0]);
+				
+				for (var j=0; j<form_inputs.length; j++) {
+					var input   = document.getElementById(form_inputs[j]);
+					input.value = GS_decode_entities(data[i][data_keys[j+1]]);
+					
+					if (j == 0) {
+						input.style.height = 'auto';
+						var extra_height   = 0;
+						
+						if (input.style.height != input.scrollHeight)
+							extra_height = 20;
+						
+						input.style.height = input.scrollHeight+extra_height+'px';
+					}
+				}
+			}
+		}
+	}
+}
+
+// When user selects a version jump from the list then display its properties
+function GS_jump_select(link_list_id, submit_button_array, form_inputs, data) {
+	var link_list     = document.getElementById(link_list_id);
+	var submit_button = document.getElementById(submit_button_array[0]);
+	var delete_button = document.getElementById(submit_button_array[1]);
+	var current_link  = link_list.options[link_list.selectedIndex].value;
+	var data_keys     = Object.keys(data[0]);
+	
+	if (link_list.options[0].selected) {
+		submit_button.innerHTML     = submit_button_array[2];
+		delete_button.style.display = "none";
+	} else {
+		submit_button.innerHTML     = submit_button_array[3];
+		delete_button.style.display = "inline-block";
+
+		for (var i=0; i<data.length; i++)
+			if (current_link == data[i]["uniqueid"])
+				for (var j=0; j<form_inputs.length; j++) {
+					var input   = document.getElementById(form_inputs[j]);
+					input.value = GS_decode_entities(data[i][data_keys[j+1]]);
+				}
+	}	
+}
+
+// https://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
 function GS_count_occurrences(string, subString, allowOverlapping) {
     string    += "";
     subString += "";
@@ -277,108 +365,6 @@ function GS_count_occurrences(string, subString, allowOverlapping) {
     }
 
     return n;
-}
-
-// Display form to add new installation script or hide it and display selected script instead
-function GS_handle_installation_script_form(script_list_id, form_inputs, preview_field_id, data) {
-	var script_list   = document.getElementById(script_list_id);
-	var preview_field = document.getElementById(preview_field_id);
-	var add_new       = script_list.options[0].selected;
-
-	// Show/hide inputs
-	for (var i=0; i<form_inputs.length; i++) {
-		var input           = document.getElementById(form_inputs[i]);
-		input.style.display = add_new ? "block" : "none";
-	}
-	
-	// Preview selected script under the select list
-	if (add_new)
-		preview_field.innerHTML = "";
-	else
-		for (var i=0; i<data.length; i++)
-			if (script_list.options[script_list.selectedIndex].value == data[i]["uniqueid"])
-				preview_field.innerHTML = "<span style=\"font-family:monospace;\">" + GS_replace_all(data[i]["script"], "\r\n", "<br>") + "</span><br><br>" + data[i]["sizenumber"] + " " + data[i]["sizetype"];
-}
-
-// Display installation script assigned to the selected mod version
-function GS_match_installation_script_to_version(version_list_id, script_list_id, changelog_field_id, changelog_group_id, data) {
-	var version_list    = document.getElementById(version_list_id);
-	var script_list     = document.getElementById(script_list_id);
-	var changelog_field = document.getElementById(changelog_field_id);
-	var changelog_group = document.getElementById(changelog_group_id);
-	var current_version = version_list.options[version_list.selectedIndex].text;
-
-	// Find currently selected version in the data array
-	for (var i=0; i<data.length; i++) {
-		if (current_version == data[i]["version"]) {
-			script_list.value = data[i]["uniqueid"];
-			
-			// Show patch notes
-			if (i > 0) {
-				changelog_group.style.display = "block";
-				changelog_field.value         = GS_decode_entities(data[i]["changelog"]);
-				changelog_field.style.height  = "auto";
-				var buffer                    = changelog_field.style.height != changelog_field.scrollHeight ? 10 : 0;
-				changelog_field.style.height  = changelog_field.scrollHeight + buffer + "px";
-			} else
-				changelog_group.style.display = "none";
-		}
-	}
-}
-
-// Display installation script (in the edit form) assigned to the selected mod version
-function GS_handle_edit_script_form(version_list_id, form_inputs, submit_button_id, data) {
-	var version_list    = document.getElementById(version_list_id);
-	var submit_button   = document.getElementById(submit_button_id);
-	var dummy_option    = version_list.options[0].selected;
-	var current_version = version_list.options[version_list.selectedIndex].value;
-	var controls        = [submit_button];
-	var data_keys       = Object.keys(data[0]);
-
-	// Make a list of form controls
-	for (var i=0; i<form_inputs.length; i++)
-		controls.push(document.getElementById(form_inputs[i]));
-
-	// Disable controls if a dummy option is selected
-	for (var i=0; i<controls.length; i++)
-		controls[i].disabled = dummy_option;
-
-	if (dummy_option)
-		for (var i=0; i<form_inputs.length; i++) {
-			var input   = document.getElementById(form_inputs[i]);
-			input.value = "";
-		}
-	else
-		for (var i=0; i<data.length; i++)
-			if (current_version == data[i]["uniqueid"])
-				for (var j=0; j<form_inputs.length; j++) {
-					var input   = document.getElementById(form_inputs[j]);
-					input.value = GS_decode_entities(data[i][data_keys[j+1]]);
-					
-					if (j == 0) {
-						input.style.height = 'auto';
-						var extra_height   = 0;
-						
-						if (input.style.height != input.scrollHeight)
-							extra_height = 20;
-						
-						input.style.height = input.scrollHeight+extra_height+'px';
-					}
-				}
-}
-
-// Display details about the selected mod version link
-function GS_handle_link_selection(link_list_id, form_inputs, data) {
-	var link_list    = document.getElementById(link_list_id);
-	var current_link = link_list.options[link_list.selectedIndex].value;
-	var data_keys    = Object.keys(data[0]);
-	
-	for (var i=0; i<data.length; i++)
-		if (current_link == data[i]["uniqueid"])
-			for (var j=0; j<form_inputs.length; j++) {
-				var input   = document.getElementById(form_inputs[j]);
-				input.value = GS_decode_entities(data[i][data_keys[j+1]]);
-			}
 }
 
 // Handle modal that is used to convert URL when writing an installation script
@@ -586,6 +572,7 @@ function GS_activate_convertlink_modal() {
 
 
 
+
 /* common.php */
 
 // Disable form input
@@ -657,6 +644,7 @@ function GS_confirm_transfer_ownership(checkboxes_name, message) {
 
 
 
+
 /* index.php */
 
 // Localize event dates when displaying server info
@@ -723,6 +711,7 @@ function GS_convert_server_events(starttime, duration, types, started, stringtab
 		all_tags[i].innerHTML = new_text;
 	}
 }
+
 
 
 

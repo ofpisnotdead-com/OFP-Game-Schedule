@@ -8,29 +8,29 @@ require_once "common.php";
 	<div class="container">
 
 <?php
+if (!isset($user) || (isset($user) && !$user->isLoggedIn()))
+	languageSwitcher();
+
+	
 // Get servers and mods info from database
 $input         = GS_get_common_input();
 $input_onlylog = isset($_GET['onlychangelog']) ? $_GET['onlychangelog'] : 0;
 $servers       = GS_list_servers($input["server"], $input["password"], GS_REQTYPE_WEBSITE, 0, $lang["THIS_LANGUAGE"], $user);
 $mods          = GS_list_mods($servers["mods"], array_keys($input["modver"]), $input["modver"], $input["password"], GS_REQTYPE_WEBSITE, 0, $user);
+$csrf          = Session::get(Config::get('session/token_name'));
 
 
 
 // Display servers
-echo "<DIV CLASS=\"row\">" . GS_format_server_info($servers, $mods, 12, 1, $input["server"]) . "</div>";
-
-if (!empty($servers["info"]))
-	echo 
-	"<div class=\"jumbotron\">
-		<h2><a href=\"quickstart#players\">".lang("GS_STR_QUICKSTART_HOWTO_CONNECT")."</a></h2>
-	</div>";
+echo "<DIV CLASS=\"row\">" . GS_format_server_info($servers, $mods, 12, 1, $input["server"], 1) . "</div>";
 
 
 
 echo "<div class=\"row\">";
-$user_list  = [];
-$js_addedon = [];
-$Parsedown  = new Parsedown();
+$user_list        = [];
+$js_addedon       = [];
+$Parsedown        = new Parsedown();
+$navigation_forms = [];
 
 // Get user names from user id list
 $db  = DB::getInstance();
@@ -47,9 +47,26 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 		continue;
 
 	$mod = $mods["info"][$id];
+	
+	echo "<div class=\"col-lg-12\">";
+	
+	// Add links to edit page if user has the right to edit this mod
+	if (!empty($mods["rights"][$id])) {
+		$navigation_menu = new Generated_Form([], $csrf, "edit_mod.php", false);
+		$navigation_menu->hidden["uniqueid"]     = $uniqueid;
+		$navigation_menu->hidden["display_name"] = $mod["name"];
+		$navigation_menu->label_size             = 0;
+		
+		foreach ($mods["rights"][$id] as $key=>$value)
+			if ($value  &&  $key!="Add New") {
+				$navigation_menu->add_button("display_form", $key, lang(GS_FORM_ACTIONS[$key]), "btn-mods btn-xs");
+				$navigation_menu->change_control(-1, ["Inline"=>-1, "LabelClass"=>" "]);
+			}
+
+		echo $navigation_menu->display();
+	}
 
 	echo "
-	<div class=\"col-lg-12\">
 		<div class=\"panel panel-default\">
 			<div class=\"panel-body mods_background\" style=\"display:flex;\">
 				<div style=\"flex-grow:2\">
@@ -61,18 +78,23 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 		"description" => lang("GS_STR_MOD_DESCRIPTION"),
 		"type"        => lang("GS_STR_MOD_TYPE"),
 		"version"     => lang("GS_STR_SERVER_VERSION"),
-		"size"        => lang("GS_STR_MOD_DOWNLOADSIZE")
+		"size"        => lang("GS_STR_MOD_DOWNLOADSIZE"),
+		"forcename"   => lang("GS_STR_MOD_FORCENAME"),
+		"is_mp"       => lang("GS_STR_MOD_MPCOMP"),
+		"access"      => lang("GS_STR_MOD_ACCESS")
 	];
 	
 	foreach ($keys as $key=>$name) {
 		$value = "";
-		
+
 		switch($key) {
 			case "type"        : $value=lang("GS_STR_MOD_TYPE{$mod["type"]}"); break;
 			case "description" : $value=$Parsedown->line($mod[$key]); break;
+			case "is_mp"       : if($mod[$key]=="0")$value=lang("GS_STR_MOD_MPCOMP_NO");else $value=""; break;
+			case "forcename"   : if($mod[$key]=="true")$value=lang("GS_STR_ENABLED");else $value=""; break;
 			default            : $value=$mod[$key];
 		}
-		
+
 		$value = str_replace("&amp;#039;", "'", $value);
 		
 		if (!empty($value))
@@ -91,9 +113,9 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 	
 	echo "</div>
 	<div>
-		<a href=\"show.php?mod={$mod["uniqueid"]}\"><span class=\"glyphicon glyphicon-link\"></span></a>
+		<a href=\"show.php?mod={$mod["uniqueid"]}".($mod["access"]!="" ? "&password={$mod["access"]}" : "")."\"><span class=\"glyphicon glyphicon-link\"></span></a>
 		<br>
-		<a href=\"rss.php?mod={$mod["uniqueid"]}\"><span class=\"fa fa-rss\"></span></a>
+		<a href=\"rss.php?mod={$mod["uniqueid"]}".($mod["access"]!="" ? "&password={$mod["access"]}" : "")."\"><span class=\"fa fa-rss\"></span></a>
 	</div>
 
 	</div></div>";
@@ -113,8 +135,10 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 		foreach($mod["allversions"] as $version)
 			echo "<option value=\"$version\"". ($input["modver"][$mod["uniqueid"]]==$version ? " selected=\"selected\"" : "") .">$version</option>";
 			
-		echo "</select></p>";
+		echo "</select>";
 	}
+	
+	echo "<a style=\"cursor:pointer; font-weight:bold; font-size:medium; margin-left:10em;\" href=\"https://youtu.be/KSK_H8Dc4oo\" target=\"_blank\">".lang("GS_STR_QUICKSTART_HOWTO_INSTALL")."</a></p>";
 	
 	// Show mod updates
 	foreach($mod["updates"] as $update_index=>$update) {
@@ -217,14 +241,6 @@ if (!empty($js_addedon)) {
 }
 
 echo "</div>";
-
-
-
-if (!empty($_GET['mod']))
-	echo 
-	"<div class=\"jumbotron\">
-		<h2><a href=\"https://youtu.be/KSK_H8Dc4oo\">".lang("GS_STR_QUICKSTART_HOWTO_INSTALL")."</a></h2>
-	</div>";
 	
 if (isset($user) && $user->isLoggedIn())
 	languageSwitcher();

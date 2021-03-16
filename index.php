@@ -14,7 +14,7 @@ require_once $abs_us_root.$us_url_root.'users/includes/template/prep.php';
 	<div class="container">
 <?php
 require_once "common.php";
-$csrf = Token::generate();
+$csrf = Session::get(Config::get('session/token_name'));
 
 if (isset($user) && $user->isLoggedIn()) ;
 	else languageSwitcher();
@@ -119,7 +119,7 @@ if(isset($user) && $user->isLoggedIn()){
 		
 		if ($gs_my_permission_level != GS_PERM_ADMIN  &&  $my_item_count < $limit) {
 			$form = new Generated_Form([], $csrf, $php_script, false, "form-inline");
-			$form->add_button("display_form", "Add New", lang("GS_STR_INDEX_ADDNEW"), "btn-$button_class btn-sm");
+			$form->add_button("display_form", "Add New", lang($record_type=="server" ? "GS_STR_INDEX_ADDNEW_SERVER" : "GS_STR_INDEX_ADDNEW_MOD"), "btn-$button_class btn-sm");
 			$display_my .= $form->display();
 		}
 		
@@ -147,28 +147,22 @@ if(isset($user) && $user->isLoggedIn()){
 		<p align=\"center\" class=\"text-muted\">".lang("GS_STR_INDEX_DESCRIPTION")."</p>
 		<h3 align=\"center\"><a href=\"quickstart\">".lang("GS_STR_INDEX_QUICKSTART")."</a></h3>
 	</div>
-	<div class=\"jumbotron\">
-		<h2>".lang("GS_STR_INDEX_UPCOMING")."</h2>
-	</div>
-	";
+	
+	<div class=\"gs_section_title\">".lang("GS_STR_INDEX_UPCOMING")."</div>";
 }
 	
 
 // Get servers and mods
-$servers = GS_list_servers(["current"], [], GS_REQTYPE_WEBSITE, 0);
+$servers = GS_list_servers(["current"], [], GS_REQTYPE_WEBSITE, 0, $lang["THIS_LANGUAGE"], $user);
 $mods    = GS_list_mods($servers["mods"], [], [], [], GS_REQTYPE_WEBSITE, $servers["lastmodified"]);
 
 // Show servers
 echo "<div class=\"row\">" . GS_format_server_info($servers, $mods, 12) . "</div>";
 
-if (isset($user) && $user->isLoggedIn()) {
+if (isset($user) && $user->isLoggedIn())
 	echo "<hr style=\"margin-bottom: 40px;\">";
-} else {
-	echo "<br>
-	<div class=\"jumbotron\">
-		<h2>".lang("GS_STR_INDEX_ALLMODS")."</h2>
-	</div>";
-}
+else
+	echo "<br><div class=\"gs_section_title gs_section_title_mods\">".lang("GS_STR_INDEX_ALLMODS")."</div>";
 	
 $sql = "
 	SELECT 
@@ -181,7 +175,7 @@ $sql = "
 		gs_mods
 		
 	WHERE
-		gs_mods.removed = 0 AND gs_mods.access = 1
+		gs_mods.removed = 0 AND gs_mods.access = ''
 		
 	ORDER BY 
 		gs_mods.name ASC
@@ -215,7 +209,7 @@ foreach ($items as $item) {
 }
 
 echo "
-<div class=\"panel panel-default\">
+<div class=\"panel panel-default gs_section_title_border\">
 <div class=\"panel-body mods_background\" style=\"display:flex;\">
 <table style=\"table-layout:fixed;width:100%\">";
 
@@ -240,14 +234,10 @@ echo "</table>
 </div>
 </div>";
 
-if (isset($user) && $user->isLoggedIn()) {
+if (isset($user) && $user->isLoggedIn())
 	echo "<hr style=\"margin-bottom: 40px;\">";
-} else {
-	echo "<br>
-	<div class=\"jumbotron\">
-		<h2>".lang("GS_STR_INDEX_RECENT")."</h2>
-	</div>";
-}
+else
+	echo "<br><div class=\"gs_section_title\">".lang("GS_STR_INDEX_RECENT")."</div>";
 
 $exclude_list = [
 	GS_LOG_SERVER_UPDATED,
@@ -269,7 +259,7 @@ $exclude_list = [
 
 echo "	<div class=\"row\">		
 			<div class=\"col-lg-12\">
-				<div class=\"panel panel-default\">
+				<div class=\"panel panel-default gs_section_title_border\">
 					<div class=\"panel-body servers_background\" style=\"display:flex;\">
 					<table style=\"width:100%\">
 ";

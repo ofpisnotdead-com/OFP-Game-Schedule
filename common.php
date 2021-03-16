@@ -1,6 +1,6 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2021,2,11,4,22,9,25,228,60,FALSE]");
-define("GS_VERSION", 0.57);
+define("GS_FWATCH_LAST_UPDATE","[2021,3,6,6,1,30,8,957,60,FALSE]");
+define("GS_VERSION", 0.59);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
 define("GS_DECRYPT_KEY", 0);
@@ -16,7 +16,7 @@ define("GS_FORM_ACTIONS", [
 	"Mods"     => "GS_STR_INDEX_MODS", 
 	"Share"    => "GS_STR_INDEX_SHARE", 
 	"Delete"   => "GS_STR_INDEX_DELETE", 
-	"Update"   => "GS_STR_MOD_INSTALLATION",
+	"Update"   => "GS_STR_INDEX_INSTALLATION",
 ]);
 
 define("GS_FORM_ACTIONS_BY_PAGE", [
@@ -27,10 +27,8 @@ define("GS_FORM_ACTIONS_BY_PAGE", [
 define("GS_FORM_ACTIONS_NON_SHAREABLE", ["Add New", "Share", "Delete"]);
 
 define("GS_FORM_ACTIONS_MODUPDATE", [
-	"Add"    => "GS_STR_MOD_NEWVER",
-	"Edit"   => "GS_STR_MOD_EDITVER",
-	"Modify" => "GS_STR_MOD_EDITSCRIPT",
-	"Link"   => "GS_STR_MOD_JUMP"
+	"Add"    => "GS_STR_MOD_SECTION_VERSION",
+	"Link"   => "GS_STR_MOD_SECTION_JUMP"
 ]);
 
 // List of VOIP software
@@ -162,6 +160,9 @@ define("GS_REQTYPE_WEBSITE", 0);
 define("GS_REQTYPE_GAME", 1);
 define("GS_REQTYPE_GAME_DOWNLOAD_MODS", 2);
 
+// Available languages on the website
+define("GS_LANGUAGES", ["game"=>["English","Russian","Polish"], "file"=>["en-US","ru-RU","pl-PL"]]);
+
 
 
 // Functions
@@ -187,7 +188,7 @@ function GS_script_list_to_script_select($script_list, $name, $section) {
 			if ($i==3  &&  $max>4) {
 				$others       = $max - $i - 1;
 				$plural       = $others == 1 ? "" : "s";
-				$option_name .= " ".lang("GS_STR_MOD_AND")." {$others} other{$plural}";
+				$option_name .= " " . lang("GS_STR_MOD_AND") . " " . GS_lang("GS_STR_MOD_X_OTHERS", [$others]);
 				break;
 			}
 		}
@@ -199,7 +200,7 @@ function GS_script_list_to_script_select($script_list, $name, $section) {
 }
 
 // Convert list of usernames to the list of records id
-function GS_username_to_id($userlist, &$userlist_id) {
+function GS_username_to_id($userlist) {
 	$sql = "
 		SELECT 
 			users.id, 
@@ -273,6 +274,8 @@ function GS_record_sharing($record_type, $record_table, $record_column, &$form, 
 	$checkbox_JS = "GS_limit_permissions_choice('permissions[]');";
 	$confirm_msg = lang($record_type == "server" ? "GS_STR_SHARE_TRANSFER_CONFIRM_SERVER" : "GS_STR_SHARE_TRANSFER_CONFIRM_MOD");
 
+	$form->title = lang($record_type=="server" ? "GS_STR_SERVER_SHARESERVER_PAGE_TITLE" : "GS_STR_SERVER_SHAREMOD_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+
 	$form->add_select("username", lang("GEN_UNAME"), "", [], "", "datalist", "placeholder=\"bob45\"");
 	$form->add_select("permissions", lang("GS_STR_SHARE_PERMISSIONS"), lang("GS_STR_SHARE_TRANSFER_HINT"), $permissions_select, "", "checkbox", "onClick=\"{$checkbox_JS}\"");
 	$form->add_button("action", $form->hidden["display_form"], lang("GS_STR_SHARE_GRANT"), "btn-primary", "", "onClick=\"return GS_confirm_transfer_ownership('permissions[]', '{$confirm_msg}')\"");	
@@ -290,7 +293,7 @@ function GS_record_sharing($record_type, $record_table, $record_column, &$form, 
 			foreach ($permissions as $permission)
 				$set .= ", gs_{$record_table}_admins.right_".strtolower($permission)." = 0";
 
-			$userlist_id = GS_username_to_id($userlist, $userlist_id);
+			$userlist_id = GS_username_to_id($userlist);
 			if (!empty($userlist_id)) {
 				// Get id of the records that are going to be modificated for logging purposes
 				$records_id_list = [];
@@ -472,8 +475,8 @@ function GS_record_sharing($record_type, $record_table, $record_column, &$form, 
 
 				$form->feedback(
 					$result, 
-					($new_guy ? lang("GS_STR_SHARE_GRANTED")." {$data["username"]}" : lang("GS_STR_SHARE_UPDATED")),
-					($new_guy ? lang("GS_STR_SHARE_GRANTED_ERROR")                  : lang("GS_STR_SHARE_UPDATED_ERROR"))
+					($new_guy ? lang("GS_STR_SHARE_GRANTED", [$data["username"]]) : lang("GS_STR_SHARE_UPDATED")),
+					($new_guy ? lang("GS_STR_SHARE_GRANTED_ERROR")                : lang("GS_STR_SHARE_UPDATED_ERROR"))
 				);
 
 				if ($result) {
@@ -560,6 +563,8 @@ function GS_record_sharing($record_type, $record_table, $record_column, &$form, 
 function GS_record_delete($record_type, $record_table, &$form, $id, $uid) {
 	$db = DB::getInstance();
 	$record_type_localized = ucfirst(lang("GS_STR_".strtoupper($record_type)));
+
+	$form->title = lang("GS_STR_DELETE_PAGE_TITLE", [strtolower(lang("GS_STR_".strtoupper($record_type))), "<B>{$form->hidden["display_name"]}</B>"]);
 	
 	$form->add_button("action", "Go Back", lang("GS_STR_DELETE_GOBACK"), "btn-success btn-lg");
 	
@@ -568,8 +573,8 @@ function GS_record_delete($record_type, $record_table, &$form, $id, $uid) {
 		
 		$form->feedback(
 			$result,
-			"$record_type_localized " . lang("GS_STR_DELETE_DONE"),
-			lang("GS_STR_DELETE_DONE_ERROR")." $record_type_localized"
+			lang("GS_STR_DELETE_DONE", [$record_type_localized]),
+			lang("GS_STR_DELETE_DONE_ERROR", [$record_type_localized])
 		);
 		
 		if ($result)	
@@ -908,7 +913,7 @@ function GS_decrypt($string, $decrypt_key, $modulus_key) {
 
 // List servers with upcoming events
 function GS_list_servers($server_id_list, $password, $request_type, $last_modified, $language="English", $user=NULL) {
-	$output          = ["info"=>[], "mods"=>[], "id"=>[], "lastmodified"=>$last_modified];
+	$output          = ["info"=>[], "mods"=>[], "id"=>[], "lastmodified"=>$last_modified, "rights"=>[]];
 	$specific_server = "";
 	$ignore_outdated = true;
 	
@@ -975,19 +980,27 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 	if (!$db->query($sql,$server_id_list)->error()) {
 		$last_id    = -1;
 		$table_rows = $db->results(true);
-		
+
 		// First check for private servers
 		$private_servers = [];
-		
-		foreach($table_rows as $row)
+		$all_id          = [];
+
+		foreach($table_rows as $row) {
+			$all_id[] = $row["id"];
+
 			if ($row["access"]!="" && array_search($row["access"],$password)===FALSE)
 				$private_servers[] = $row["id"];
+		}
 
 		// Check if logged-in user can preview these mods
-		if (!empty($private_servers) && isset($user) && $user->isLoggedIn()) {
+		if ($request_type==GS_REQTYPE_WEBSITE && isset($user) && $user->isLoggedIn()) {
 			$sql = "
 			SELECT 
-				gs_serv_admins.serverid
+				gs_serv_admins.serverid,
+				gs_serv_admins.right_edit,
+				gs_serv_admins.right_schedule,
+				gs_serv_admins.right_mods,
+				gs_serv_admins.isowner
 				
 			FROM 
 				gs_serv, 
@@ -996,14 +1009,28 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			WHERE 
 				gs_serv.id            = gs_serv_admins.serverid AND
 				gs_serv_admins.userid = ".$user->data()->id." AND
-				gs_serv.id in (". implode(',',$private_servers) .") AND
+				gs_serv.id in (". implode(',',$all_id) .") AND
 				(gs_serv_admins.isowner=1 OR gs_serv_admins.right_edit=1 OR gs_serv_admins.right_schedule=1 OR gs_serv_admins.right_mods=1)
 			";
-			
-			if (!$db->query($sql)->error())
-				foreach($db->results(true) as $row)
-					$private_servers = array_diff($private_servers, $row["serverid"]);
-		}	
+
+			if (!$db->query($sql)->error()) {
+				foreach($db->results(true) as $row) {
+					$permission_to = [];
+					
+					foreach (GS_FORM_ACTIONS_BY_PAGE["server"] as $name) {
+						$column_name = "right_".strtolower($name);
+						
+						if ($row["isowner"] == "1")
+							$permission_to[$name] = true;
+						else
+							$permission_to[$name] = isset($row[$column_name]) ? intval($row[$column_name]) : false;
+					}
+
+					$output["rights"][$row["serverid"]] = $permission_to;
+					$private_servers                    = array_diff($private_servers, [$row["serverid"]]);
+				}
+			}
+		}
 		
 		
 		// For every server
@@ -1117,7 +1144,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 							case "website"           :
 							case "message"           : 
 							case "location"          : 
-							case "name"              : $new_value="\"\"".GS_convert_cyrillic($value, $language!="Russian")."\"\""; break;
+							case "name"              : $new_value="\"\"".GS_convert_utf8_to_windows($value, $language)."\"\""; break;
 							case "equalmodreq"       : $new_value=$value=="1" ? "true" : "false"; break;
 							case "version"           : $new_value="$value"; break;
 							case "logo"              : $new_value="\"\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$value}\"\""; break;
@@ -1251,7 +1278,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 
 // List mods details
 function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $password, $request_type, $last_modified, $user=NULL) {
-	$output          = ["info"=>[], "id"=>[], "lastmodified"=>$last_modified, "userlist"=>[]];
+	$output          = ["info"=>[], "id"=>[], "lastmodified"=>$last_modified, "userlist"=>[], "rights"=>[]];
 	$mods_links      = [];
 	$mods_updates    = [];
 	$where_condition = "";
@@ -1346,10 +1373,14 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 			
 			// First check for private mods
 			$private_mods = [];
+			$all_id       = [];
 			
-			foreach($table_rows as $row)
-				if ($row["access"] == 0 && !in_array($row["id"],$mods_id_list) && !in_array($row["id"],$private_mods))
+			foreach($table_rows as $row) {
+				$all_id[] = $row["id"];
+				
+				if ($row["access"]!="" && !in_array($row["id"],$mods_id_list) && !in_array($row["id"],$private_mods) && array_search($row["access"],$password)===FALSE)
 					$private_mods[] = $row["id"];
+			}
 			
 			if (!empty($private_mods)) {
 				// Check if these private mods are used on any servers
@@ -1375,29 +1406,45 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 						foreach($db->results(true) as $row)
 							$private_mods = array_diff($private_mods, $row["id"]);
 				}
+			}
 				
-				// Check if logged-in user can preview these mods
-				if (isset($user) && $user->isLoggedIn()) {
-					$sql = "
-					SELECT 
-						gs_mods_admins.modid
-						
-					FROM 
-						gs_mods, 
-						gs_mods_admins
-						
-					WHERE 
-						gs_mods.id            = gs_mods_admins.modid AND
-						gs_mods_admins.userid = ".$user->data()->id." AND
-						gs_mods.id in (". implode(',',$private_mods) .") AND
-						(gs_mods_admins.isowner=1 OR gs_mods_admins.right_edit=1 OR gs_mods_admins.right_update=1)
-					";
+			// Check if logged-in user can preview these mods
+			if ($request_type==GS_REQTYPE_WEBSITE && isset($user) && $user->isLoggedIn()) {
+				$sql = "
+				SELECT 
+					gs_mods_admins.modid,
+					gs_mods_admins.right_edit,
+					gs_mods_admins.right_update,
+					gs_mods_admins.isowner
 					
-					// If so then allow to display it
-					if (!$db->query($sql)->error())
-						foreach($db->results(true) as $row)
-							$private_mods = array_diff($private_mods, $row["modid"]);
-				}
+				FROM 
+					gs_mods, 
+					gs_mods_admins
+					
+				WHERE 
+					gs_mods.id            = gs_mods_admins.modid AND
+					gs_mods_admins.userid = ".$user->data()->id." AND
+					gs_mods.id in (". implode(',',$all_id) .") AND
+					(gs_mods_admins.isowner=1 OR gs_mods_admins.right_edit=1 OR gs_mods_admins.right_update=1)
+				";
+
+				// If so then allow to display it
+				if (!$db->query($sql)->error())
+					foreach($db->results(true) as $row) {
+						$permission_to = [];
+						
+						foreach (GS_FORM_ACTIONS_BY_PAGE["mod"] as $name) {
+							$column_name = "right_".strtolower($name);
+							
+							if ($row["isowner"] == "1")
+								$permission_to[$name] = true;
+							else
+								$permission_to[$name] = isset($row[$column_name]) ? intval($row[$column_name]) : false;
+						}
+
+						$output["rights"][$row["modid"]] = $permission_to;
+						$private_mods                    = array_diff($private_mods, [$row["modid"]]);
+					}
 			}
 
 
@@ -1409,9 +1456,8 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				$id      = $row["id"];
 				$version = $row["version"];
 				
-				if ($row["access"] == 0)
-					if (in_array($id,$private_mods))
-						continue;
+				if (in_array($id,$private_mods))
+					continue;
 
 				if ($last_id != $id) {
 					if ($request_type == GS_REQTYPE_GAME) {
@@ -1468,6 +1514,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$output["info"][$id]["allversions"] = [];
 					$output["info"][$id]["admin"]       = $row["admin"];
 					$output["info"][$id]["adminsince"]  = $row["adminsince"];
+					$output["info"][$id]["access"]      = $row["access"];
 					
 					if (!in_array($row["createdby"], $output["userlist"]))
 						$output["userlist"][] = $row["createdby"];
@@ -1510,19 +1557,21 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				// Look for a valid jump between versions
 				foreach ($mods_links[$id] as $link) {
 					if (!$link["removed"]) {
-						$parse_result = $link["alwaysnewest"] ? true : GS_parse_jump_rule($link["fromver"], $current_version, $link["version"]);
+						$destination_version = $link["version"];
+						
+						if ($link["alwaysnewest"]) {
+							$keys                = array_keys($updates);
+							$newest              = $updates[$keys[count($keys)-1]];
+							$destination_version = $newest["version"];
+						}
+						
+						$parse_result = GS_parse_jump_rule($link["fromver"], $current_version, $destination_version);
 
 						if ($parse_result === TRUE) {
-							$toversion = $link["version"];
+							$toversion = $destination_version;
 							$script_id = $link["scriptid2"];
 							$size      = $link["size2"];
-							$script    = $link["script2"];
-							
-							if ($link["alwaysnewest"]) {
-								$keys      = array_keys($updates);
-								$newest    = $updates[$keys[count($keys)-1]];
-								$toversion = $newest["version"];
-							}
+							$script    = $link["script2"];							
 							
 							// Find date of the update that is being jumped to
 							for($i=0; $i<count($updates); $i++)
@@ -1634,9 +1683,25 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 			if ($request_type == GS_REQTYPE_GAME) {
 				$output["info"][$id]["sqf"]    .= "_mod_version={$current_version};_mod_size=\"\"{$formatted_download_size}\"\";_mod_sizearray=[" . implode(",",$download_size) . "];";
 				$output["info"][$id]["version"] = $current_version;
+				$output["info"][$id]["userver"] = $input_version;
 				
-				for ($i=0; $i<count($output["info"][$id]["updates"]); $i++)
-					$output["info"][$id]["script"] .= "\nbegin_ver {$output["info"][$id]["updates"][$i]["version"]} ".strtotime($output["info"][$id]["updates"][$i]["date"])."\n" . $output["info"][$id]["updates"][$i]["script"];
+				for ($i=0; $i<count($output["info"][$id]["updates"]); $i++) {
+					// html_entity_decode was already run before so &amp;#xA9; has been converted to &#xA9;
+					// If I run it again I don't get what I want even when I specify the charset so I'm converting it manually:
+					$script_decoded = $output["info"][$id]["updates"][$i]["script"];
+					$index          = FALSE;
+					$offset         = 0;
+					
+					while (($index=strpos($script_decoded, "&#x", $offset)) !== FALSE) {
+						if ($script_decoded[$index+5] == ";") {
+							$hex_number     = substr($script_decoded, $index+3, 2);
+							$script_decoded = substr_replace($script_decoded, chr(intval($hex_number, 16)), $index, 6);
+						}
+						$offset = $index + 1;
+					}
+
+					$output["info"][$id]["script"] .= "\nbegin_ver {$output["info"][$id]["updates"][$i]["version"]} ".strtotime($output["info"][$id]["updates"][$i]["date"])."\n" . $script_decoded;
+				}
 			}
 		}
 	}
@@ -1647,13 +1712,22 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 // Handle url query string
 function GS_get_common_input() {
 	$input      = ["modver"=>[]];
-	$input_keys = ["server", "mod", "ver", "password", "listid"];
+	$input_keys = ["server", "mod", "ver", "password", "listid", "user"];
 
 	foreach($input_keys as $key)
 		$input[$key] = isset($_GET[$key]) ? explode(",",$_GET[$key]) : [];
 
 	foreach($input["mod"] as $key=>$value)
-		$input["modver"][$value] = isset($input["ver"][$key]) ? $input["ver"][$key] : 0;		
+		$input["modver"][$value] = isset($input["ver"][$key]) ? $input["ver"][$key] : 0;
+	
+	$input["language"] = GS_LANGUAGES["game"][0];
+	
+	if (isset($_GET['language'])) {
+		$index = array_search($_GET['language'], GS_LANGUAGES["game"]);
+		
+		if ($index !== FALSE)
+			$input["language"] = GS_LANGUAGES["game"][$index];
+	}
 	
 	return $input;
 }
@@ -1670,7 +1744,7 @@ function GS_get_current_url($add_https=true, $add_path=true) {
 }
 
 // Read array with servers and output html
-function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=false, $server_order=[]) {
+function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=false, $server_order=[], $add_how_to_join=false) {
 	$html         = "";
 	$js_starttime = [];
 	$js_duration  = [];
@@ -1714,8 +1788,25 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 		$current_type      = [];
 		$current_started   = [];
 		
+		$html .= "<div class=\"col-lg-$box_size\">";
+		
+		// Add links to edit page if user has the right to edit this mod
+		if (!empty($servers["rights"][$id])) {
+			$navigation_menu = new Generated_Form([], Session::get(Config::get('session/token_name')), "edit_server.php", false);
+			$navigation_menu->hidden["uniqueid"]     = $uniqueid;
+			$navigation_menu->hidden["display_name"] = $server["name"];
+			$navigation_menu->label_size             = 0;
+			
+			foreach ($servers["rights"][$id] as $key=>$value)
+				if ($value  &&  $key!="Add New") {
+					$navigation_menu->add_button("display_form", $key, lang(GS_FORM_ACTIONS[$key]), "btn-primary btn-xs");
+					$navigation_menu->change_control(-1, ["Inline"=>-1, "LabelClass"=>" "]);
+				}
+
+			$html .= $navigation_menu->display();
+		}
+		
 		$html .= "
-		<div class=\"col-lg-$box_size\">
 			<div class=\"panel panel-default\">
 				<div class=\"panel-body servers_background\" style=\"display:flex;\">
 					<div style=\"flex-grow:2\">
@@ -1730,7 +1821,7 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 			"game time"         => lang("GS_STR_SERVER_GAMETIME"),
 			"languages"         => lang("GS_STR_SERVER_LANGUAGES"),
 			"location"          => lang("GS_STR_SERVER_LOCATION"), 
-			"voice"				=> lang("GS_STR_SERVER_VOICE_SOFT"),
+			"voice"				=> lang("GS_STR_SERVER_VOICE_PROGRAM"),
 			"website"           => lang("GS_STR_SERVER_WEBSITE"), 
 			"message"           => lang("GS_STR_SERVER_MESSAGE"),
 			"access"            => lang("GS_STR_SERVER_ACCESSCODE")
@@ -1810,18 +1901,22 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 		$html .= "</div>
 		<div>
 			
-			<a href=\"show.php?server={$server["uniqueid"]}\"><span class=\"glyphicon glyphicon-link\"></span></a>
+			<a href=\"show.php?server={$server["uniqueid"]}".($server["access"]!="" ? "&password={$server["access"]}" : "")."\"><span class=\"glyphicon glyphicon-link\"></span></a>
 			<br>
-			<a href=\"rss.php?server={$server["uniqueid"]}\"><span class=\"fa fa-rss\"></span></a>
+			<a href=\"rss.php?server={$server["uniqueid"]}".($server["access"]!="" ? "&password={$server["access"]}" : "")."\"><span class=\"fa fa-rss\"></span></a>
 		</div>
 		
 		</div></div></div>";
+		
+		if ($add_how_to_join)
+			$html .= "<p style=\"text-align:center;\"><a style=\"cursor:pointer; font-weight:bold; font-size:large;\" href=\"quickstart#players\" target=\"_blank\">".lang("GS_STR_QUICKSTART_HOWTO_CONNECT")."</a></p>";
 	}
 	
 	$locale_file = "en-gb";
 	
 	switch(lang("THIS_CODE")) {
 		case "ru-RU" : $locale_file="ru"; break;
+		case "pl-PL" : $locale_file="pl"; break;
 	}
 
 	$localized_strings = [
@@ -1852,14 +1947,14 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 }
 
 // Get and format data from the log table
-function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
+function GS_get_activity_log($limit, $exclude_type, $show_private, $input=["password"=>[], "user"=>[]]) {
 	$db      = DB::getInstance();
 	$max     = $db->cell("gs_log.count(*)");
 	$offset  = 0;
 	$buffer  = 100;
 	$output  = [];
 	$last_id = -1;
-	
+	global $gs_permission_level;
 	$detailed_server_mod_change = !in_array(GS_LOG_SERVER_MOD_CHANGED, $exclude_type);
 	
 	if (!isset($max))
@@ -1870,10 +1965,14 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 		
 		if (!empty($exclude_type))
 			$sql .= " WHERE gs_log.type NOT IN (". substr( str_repeat(",?",count($exclude_type)), 1) . ")";
+			
+		if (!empty($input["user"])) {
+			$input["user"] = GS_username_to_id($input["user"]);
+			$sql .= (empty($exclude_type) ? " WHERE" : " AND") . " gs_log.userid IN (". substr( str_repeat(",?",count($input["user"])), 1) . ")";
+		}
 		
-		$sql .= " ORDER BY ID DESC LIMIT $offset, $buffer";
-		
-		$logs    = $db->query($sql,$exclude_type)->results(true);
+		$sql    .= " ORDER BY ID DESC LIMIT $offset, $buffer";
+		$logs    = $db->query($sql,array_merge($exclude_type,$input["user"]))->results(true);
 		$offset += $buffer;
 		
 		if ($db->error())
@@ -2014,7 +2113,8 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 			GS_LOG_MOD_LINK_ADDED        => "GS_STR_LOG_MOD_LINK_ADDED",
 			GS_LOG_MOD_LINK_UPDATED      => "GS_STR_LOG_MOD_LINK_UPDATED",
 			GS_LOG_MOD_LINK_DELETED      => "GS_STR_LOG_MOD_LINK_DELETED",
-			GS_LOG_SERVER_MOD_CHANGED    => "GS_STR_LOG_SERVER_MOD_CHANGED"
+			GS_LOG_SERVER_MOD_CHANGED    => "GS_STR_LOG_SERVER_MOD_CHANGED",
+			GS_LOG_INSTALLER_UPDATE      => "GS_STR_LOG_INSTALLER_UPDATED"
 		];
 
 		// Second pass - format data from the log
@@ -2131,12 +2231,18 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 					$versions[]   = $update["version"];
 					$mod_id       = $update["modid"];
 				} break;
+				
+				case GS_LOG_INSTALLER_UPDATE : {
+					$version_number              = $data["gs_announce"][$log["itemid"]]["text"];
+					$lang_arguments              = ["<a href=\"install_scripts#changelog$version_number\">", "</a>", $version_number];
+					$table_row["installversion"] = $version_number;
+				} break;
 			}
 			
 			if (isset($server_id)) {
 				$server         = $data["gs_serv"][$server_id];
 				$server_name    = ($server["name"]!="" ? $server["name"] : $server["uniqueid"]);
-				$server_private = $server["access"] != "";
+				$server_private = $server["access"]!="" && array_search($server["access"],$input["password"])===FALSE;
 				
 				$table_row["server_id"]   = $server["uniqueid"];
 				$table_row["server_name"] = $server_name;
@@ -2145,7 +2251,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 			if (isset($mod_id)) {
 				$mod         = $data["gs_mods"][$mod_id];
 				$mod_name    = $mod["name"];
-				$mod_private = !$mod["access"];
+				$mod_private = $mod["access"]!="" && array_search($mod["access"],$input["password"])===FALSE;
 				
 				$table_row["mod_id"]   = $mod["uniqueid"];
 				$table_row["mod_name"] = $mod_name;
@@ -2271,9 +2377,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 				$valid_row = false;
 
 			$table_row["description"] = lang($operation_name, $lang_arguments);
-			
-			if ($log["type"] == GS_LOG_INSTALLER_UPDATE)
-				$table_row["description"]=$data["gs_announce"][$log["itemid"]]["text"];
+                
 
 			// Check record privacy before adding to the list
 			if (
@@ -2294,7 +2398,7 @@ function GS_get_activity_log($limit, $exclude_type, $show_private, $input=[]) {
 }
 
 // Translate with plural form
-function GS_lang($string_name, $number_array) {
+function GS_lang($string_name, $number_array, $bold=0) {
 	if (substr($string_name, 0, 7) != "GS_STR_")
 		return $string_name;
 	
@@ -2358,30 +2462,132 @@ function GS_lang($string_name, $number_array) {
 			case 0 : $ending.=$endings[$type]["567890"][0]; break;
 		}
 	}
+	
+	if ($current == "pl-PL") {
+		$words = explode(" ", str_replace("%m2%","",$string));
+		$word  = count($words)>1 ? mb_strtolower($words[count($words)-1]) : "";
+		$type  = "feminine";
+		
+		$pl_words = [
+			"neuter"     => [""],
+			"masculine"  => ["mod","serwer"],
+			"masculine2" => ["użytkownik"],
+			"masculine3" => ["inn"],
+			"feminine"   => ["ses"]
+		];
+		
+		$endings = [
+			"neuter"     => [
+				"1"      => ["",""],
+				"234"    => ["",""],
+				"567890" => [""]
+			],
+			"masculine"  => [
+				"1"      => ["","ów"],
+				"234"    => ["y","ów"],
+				"567890" => ["ów"]
+			],
+			"masculine2" => [
+				"1"      => ["a","ów"],
+				"234"    => ["ów","ów"],
+				"567890" => ["ów"]
+			],
+			"masculine3" => [
+				"1"      => ["y","ych"],
+				"234"    => ["e","ych"],
+				"567890" => ["ych"]
+			],
+			"feminine"  => [
+				"1"      => ["ję","ji"],
+				"234"    => ["je","ji"],
+				"567890" => ["ji"]
+			],
+		];
+		
+		foreach($pl_words as $current_type=>$list)
+			if (in_array($word,$list))
+				$type = $current_type;
 
+		switch(substr($number,-1)) {
+			case 1 : if ($number==1) $ending.=$endings[$type]["1"][0]; else $ending.=$endings[$type]["1"][1]; break;
+			case 2 : 
+			case 3 : 
+			case 4 : if ($number<10 || $number>20) $ending.=$endings[$type]["234"][0]; else $ending.=$endings[$type]["234"][1]; break;
+			case 5 : 
+			case 6 : 
+			case 7 : 
+			case 8 : 
+			case 9 : 
+			case 0 : $ending.=$endings[$type]["567890"][0]; break;
+		}
+	}
+	
+	if ($bold)
+		$ending = "<b>$ending</b>";
+	
 	return str_replace("%m2%",$ending,$string);
 }
 
-// Transform UTF8 characters to Windows-1251
-function GS_convert_cyrillic($input, $to_latin=false) {
+// Convert Unicode characters to the Windows code page
+function GS_convert_utf8_to_windows($input, $language="Windows") {
 	if (mb_strlen($input) == strlen($input))
 		return $input;
 
-	$utf8        = ["а","б","в","г","д","е","ё","ж","з","и","й","к","л","м","н","о","п","р","с","т","у","ф","х","ц","ч" ,"ш" ,"щ","ъ","ы","ь","э","ю","я","А","Б","В","Г","Д","Е","Ё","Ж","З","И","Й","К","Л","М","Н","О","П","Р","С","Т","У","Ф","Х","Ц","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю","Я"];
-	$windows1251 = ["\xE0","\xE1","\xE2","\xE3","\xE4","\xE5","\xB8","\xE6","\xE7","\xE8","\xE9","\xEA","\xEB","\xEC","\xED","\xEE","\xEF","\xF0","\xF1","\xF2","\xF3","\xF4","\xF5","\xF6","\xF7","\xF8","\xF9","\xFA","\xFB","\xFC","\xFD","\xFE","\xFF","\xC0","\xC1","\xC2","\xC3","\xC4","\xC5","\xA8","\xC6","\xC7","\xC8","\xC9","\xCA","\xCB","\xCC","\xCD","\xCE","\xCF","\xD0","\xD1","\xD2","\xD3","\xD4","\xD5","\xD6","\xD7","\xD8","\xD9","\xDA","\xDB","\xDC","\xDD","\xDE","\xDF"];
-	$latin       = ["a","b","v","g","d","ye","yo","zh","z","i","y","k","l","m","n","o","p","r","s","t","u","f","h","ts","ch","sh","shsh","","i","","e","yu","ya","A","B","V","G","D","YE","YO","ZH","Z","I","Y","K","L","M","N","O","P","R","S","T","U","F","H","TS","CH","SH","SHSH","","I","","E","YU","YA"];
+	$unicode = [
+		#Cyrillic
+		"а","б","в","г","д","е","ё","ж","з","и","й","к","л","м","н","о","п","р","с","т","у","ф","х","ц","ч","ш","щ","ъ","ы","ь","э","ю","я",
+		"А","Б","В","Г","Д","Е","Ё","Ж","З","И","Й","К","Л","М","Н","О","П","Р","С","Т","У","Ф","Х","Ц","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю","Я",
+		#Polish
+		"ą","ć","ę","ł","ń","ó","ś","ź","ż",
+		"Ą","Ć","Ę","Ł","Ń","Ó","Ś","Ź","Ż"
+	];
+		
+	$windows = [
+		"English" => [
+			#Cyrillic phonetically
+			"a","b","v","g","d","ye","yo","zh","z","i","y","k","l","m","n","o","p","r","s","t","u","f","h","ts","ch","sh","shsh","","i","","e","yu","ya",
+			"A","B","V","G","D","YE","YO","ZH","Z","I","Y","K","L","M","N","O","P","R","S","T","U","F","H","TS","CH","SH","SHSH","","I","","E","YU","YA",
+			#Polish without diacritics
+			"a","c","e","l","n","o","s","z","z",
+			"A","C","E","L","N","O","S","z","z"
+		],
+		
+		"Russian" => [
+			#Cyrillic in Windows-1251
+			"\xE0","\xE1","\xE2","\xE3","\xE4","\xE5","\xB8","\xE6","\xE7","\xE8","\xE9","\xEA","\xEB","\xEC","\xED","\xEE","\xEF","\xF0","\xF1","\xF2","\xF3","\xF4","\xF5","\xF6","\xF7","\xF8","\xF9","\xFA","\xFB","\xFC","\xFD","\xFE","\xFF",
+			"\xC0","\xC1","\xC2","\xC3","\xC4","\xC5","\xA8","\xC6","\xC7","\xC8","\xC9","\xCA","\xCB","\xCC","\xCD","\xCE","\xCF","\xD0","\xD1","\xD2","\xD3","\xD4","\xD5","\xD6","\xD7","\xD8","\xD9","\xDA","\xDB","\xDC","\xDD","\xDE","\xDF", 
+			#Polish without diacritics
+			"a","c","e","l","n","o","s","z","z",
+			"A","C","E","L","N","O","S","z","z"
+		],
+
+		"Polish" => [
+			#Cyrillic phonetically
+			"a","b","w","g","d","ie","io","\xBF","z","i","ij","k","l","m","n","o","p","r","s","t","u","f","h","c","\xE6","sz","si","","y","","e","ju","ja",
+			"A","B","W","G","D","IE","IO","\xAF","Z","I","ij","K","L","M","N","O","P","R","S","T","U","F","H","C","\xC6","sz","si","","y","","E","JU","JA",
+			#Polish in Windows-1250
+			"\xB9","\xE6","\xEA","\xB3","\xF1","\xF3","\x9C","\x9F","\xBF",
+			"\xA5","\xC6","\xCA","\xA3","\xD1","\xD3","\x8C","\x8F","\xAF"
+		],
+		
+		"Windows" => [
+			"\xE0","\xE1","\xE2","\xE3","\xE4","\xE5","\xB8","\xE6","\xE7","\xE8","\xE9","\xEA","\xEB","\xEC","\xED","\xEE","\xEF","\xF0","\xF1","\xF2","\xF3","\xF4","\xF5","\xF6","\xF7","\xF8","\xF9","\xFA","\xFB","\xFC","\xFD","\xFE","\xFF",
+			"\xC0","\xC1","\xC2","\xC3","\xC4","\xC5","\xA8","\xC6","\xC7","\xC8","\xC9","\xCA","\xCB","\xCC","\xCD","\xCE","\xCF","\xD0","\xD1","\xD2","\xD3","\xD4","\xD5","\xD6","\xD7","\xD8","\xD9","\xDA","\xDB","\xDC","\xDD","\xDE","\xDF", 
+			"\xB9","\xE6","\xEA","\xB3","\xF1","\xF3","\x9C","\x9F","\xBF",
+			"\xA5","\xC6","\xCA","\xA3","\xD1","\xD3","\x8C","\x8F","\xAF"
+		]
+	];
 	
-	$output      = "";
-	$length      = mb_strlen($input, 'UTF-8');
-	$letters     = [];
-	$array       = $to_latin ? "latin" : "windows1251";
 	
-	for ($i = 0; $i<$length; $i++) {
+	$output = "";
+	$length = mb_strlen($input, 'UTF-8');
+	
+	for ($i=0; $i<$length; $i++) {
 		$letter = mb_substr($input, $i, 1, 'UTF-8');
 		
 		if (mb_strlen($letter) != strlen($letter)) {
-			$index   = array_search($letter, $utf8);
-			$output .= $index!==false ? $$array[$index] : "";
+			$index   = array_search($letter, $unicode);			
+			$output .= $index!==false ? $windows[$language][$index] : "";
 		} else
 			$output .= $letter;
 	}
@@ -2392,35 +2598,38 @@ function GS_convert_cyrillic($input, $to_latin=false) {
 // Code highlighting for addon installer scripting language
 function GS_scripting_highlighting($code) {
 	$all_commands = [
-		"auto_install" => "auto_installation",
-		"download"     => "get",
-		"get"          => "get",
-		"unpack"       => "unpack",
-		"extract"      => "unpack",
-		"move"         => "move",
-		"copy"         => "move",
-		"makedir"      => "makedir",
-		"newfolder"    => "makedir",
-		"ask_run"      => "ask_run",
-		"ask_execute"  => "ask_run",
-		"begin_mod"    => "",
-		"delete"       => "delete",
-		"remove"       => "delete",
-		"rename"       => "rename",
-		"ask_download" => "ask_get",
-		"ask_get"      => "ask_get",
-		"if_version"   => "if_version",
-		"else"         => "if_version",
-		"endif"        => "if_version",
-		"makepbo"      => "makepbo",
-		"extractpbo"   => "unpbo",
-		"unpackpbo"    => "unpbo",
-		"unpbo"        => "unpbo",
-		"edit"         => "edit",
-		"begin_ver"    => "",
-		"alias"        => "alias",
-		"merge_with"   => "alias",
-		"filedate"     => "filedate"
+		"auto_install"    => "auto_installation",
+		"download"        => "get",
+		"get"             => "get",
+		"unpack"          => "unpack",
+		"extract"         => "unpack",
+		"move"            => "move",
+		"copy"            => "move",
+		"makedir"         => "makedir",
+		"newfolder"       => "makedir",
+		"ask_run"         => "ask_run",
+		"ask_execute"     => "ask_run",
+		"begin_mod"       => "",
+		"delete"          => "delete",
+		"remove"          => "delete",
+		"rename"          => "rename",
+		"ask_download"    => "ask_get",
+		"ask_get"         => "ask_get",
+		"if_version"      => "if_version",
+		"else"            => "if_version",
+		"endif"           => "if_version",
+		"makepbo"         => "makepbo",
+		"extractpbo"      => "unpbo",
+		"unpackpbo"       => "unpbo",
+		"unpbo"           => "unpbo",
+		"edit"            => "edit",
+		"begin_ver"       => "",
+		"alias"           => "alias",
+		"merge_with"      => "alias",
+		"filedate"        => "filedate",
+		"install_version" => "",
+		"exit"            => "exit",
+		"quit"            => "exit"
 	];
 	$command_switches_names = [
 		"/password:",
@@ -2429,7 +2638,8 @@ function GS_scripting_highlighting($code) {
 		"/keep_source",
 		"/insert",
 		"/newfile",
-		"/append"
+		"/append",
+		"/match_dir_only"
 	];
 	$word_begin            = -1;
 	$word_count            = 1;
@@ -2455,15 +2665,11 @@ function GS_scripting_highlighting($code) {
 		$end_of_word = $i==strlen($code) || ctype_space($code[$i]);
 		
 		// When quote
-		if ($code[$i]=="\"")
+		if ($code[$i]=="\""  ||  substr($code,$i,6)=="&quot;")
 			$in_quote = !$in_quote;
-		
-		if (substr($code,$i,6) == "&quot;") {
-			$in_quote = !$in_quote;
-		}
 		
 		// If beginning of an url block
-		if ($code[$i]=="{" && $word_begin<0) {
+		if ($code[$i]=="{"  &&  $word_begin<0) {
 			$url_block = true;
 	
 			// if bracket is the first thing in the line then it's auto installation
@@ -2478,7 +2684,7 @@ function GS_scripting_highlighting($code) {
 		}
 		
 		// If ending of an url block
-		if ($code[$i]=="}" && $url_block) {
+		if ($code[$i]=="}"  &&  $url_block) {
 			$end_of_word = true;
 			
 			// If there's space between last word and the closing bracket
@@ -2492,11 +2698,11 @@ function GS_scripting_highlighting($code) {
 		}
 		
 		// Remember beginning of the word
-		if (!$end_of_word && $word_begin<0) {
+		if (!$end_of_word  &&  $word_begin<0) {
 			$word_begin = $i;
 			
 			// If custom delimeter - jump to the end of the argument
-			if (substr($code,$i,2) == ">>" || substr($code,$i,8) == "&gt;&gt;") {
+			if (substr($code,$i,2)==">>"  ||  substr($code,$i,8)=="&gt;&gt;") {
 				$offset        = substr($code,$i,2) == ">>" ? 2 : 8;
 				$separator     = $code[$i + $offset];
 				$end           = strpos($code, $separator, $i+$offset+1);
@@ -2507,11 +2713,11 @@ function GS_scripting_highlighting($code) {
 		}
 
 		// When hit end of the word
-		if ($end_of_word && $word_begin>=0 && !$in_quote) {
+		if ($end_of_word  &&  $word_begin>=0  &&  !$in_quote) {
 			$word = substr($code, $word_begin, $i-$word_begin);
 				
 			// If first word in the line
-			if ($word_count == 1 && !$url_block) {
+			if ($word_count==1  &&  !$url_block) {
 				$command_id = -1;
 				$arg_count  = 1;
 				
@@ -2533,7 +2739,7 @@ function GS_scripting_highlighting($code) {
 					$instruction_line[]    = $word_line_num;
 					
 					// If command is an URL then add it to the url database
-					if ($command_id == 0) {
+					if ($is_url($word)) {
 						$url_line         = true;
 						$last_url_list_id = count($url_list_id);
 						$url_list[]       = $word;
@@ -2542,24 +2748,26 @@ function GS_scripting_highlighting($code) {
 					} else
 						$output .= "<a class=\"scripting_command\" href=\"install_scripts#{$all_commands[array_keys($all_commands)[$command_id]]}\" target=\"_blank\">$word</a>";
 				} else {
-					$end  = strpos($code,"\n", $i);
-					$i    = ($end===false ? strlen($code) : $end) - 1;
-					$word = substr($code, $word_begin, $i-$word_begin);
+					$end     = strpos($code,"\n", $i);
+					$i       = ($end===false ? strlen($code) : $end) - 1;
+					$word    = substr($code, $word_begin, $i-$word_begin);
 					$output .= "<span class=\"scripting_command_comment\">$word</span>";
 				}
 			} else {
 				// Check if URL starts here
-				if (!$url_line)
+				if (!$url_line  &&  $command_id!=15)
 					$url_line = $is_url($word);
 				
 				// Check if it's a valid command switch
-				$is_switch = false;
+				$is_switch   = false;
+				$colon       = strrpos($word, ":");
+				$switch_name = $colon!==FALSE ? substr($word,0,$colon+1) : $word;
 				
 				for ($j=0; $j<count($command_switches_names) && !$is_switch; $j++)
-					$is_switch = strcasecmp(substr($word,0,strlen($command_switches_names[$j])), $command_switches_names[$j]) == 0;
+					$is_switch = strcasecmp($switch_name, $command_switches_names[$j]) == 0;
 
 				// Add word to the URL database or the arguments database
-				if ($url_line && !$is_switch) {
+				if (!$is_switch && $url_line) {
 					if ($last_url_list_id == -1) {
 						$last_url_list_id = count($url_list_id);
 						$url_list[]       = $word;
@@ -2567,7 +2775,7 @@ function GS_scripting_highlighting($code) {
 						$output          .= "<a class=\"scripting_command_url\" href=\"$word\" target=\"_blank\">$word</a>";
 					} else {
 						$url_list[$last_url_list_id] .= " " . $word;
-						$output .= $word;
+						$output                      .= $word;
 					}
 				} else {
 					$instruction_arg[]    = $word;
@@ -2581,7 +2789,7 @@ function GS_scripting_highlighting($code) {
 			}
 			
 			// If ending of an url block
-			if ($code[$i] == "}" && $url_block) {
+			if ($code[$i]=="}"  &&  $url_block) {
 				$url_block = false;
 				$url_line  = false;
 			}
@@ -2591,7 +2799,7 @@ function GS_scripting_highlighting($code) {
 		}
 
 		// When new line			
-		if (!$in_quote && $code[$i]=="\n") {
+		if (!$in_quote  &&  $code[$i]=="\n") {
 			$arg_count        = 1;
 			$word_count       = 1;
 			$url_line         = false;

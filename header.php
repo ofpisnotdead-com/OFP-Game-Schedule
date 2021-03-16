@@ -16,6 +16,7 @@ if (!Input::exists())
 $uid = $user->data()->id;
 
 if (!Token::check($_POST["csrf"])) {
+	Token::generate();
 	echo "<div id=\"page-wrapper\"><div class=\"container\"><br><br><br><br><br><b>" . lang("GS_STR_ERROR_EXPIRED") . "</b><br><br><br>";
 	#dump($_POST);
 	die("</div></div>");
@@ -153,20 +154,21 @@ if (!$permission_to[$form->hidden["display_form"]]) {
 		$message = lang($record_type=="server" ? "GS_STR_SERVER_REMOVED_ERROR" : "GS_STR_MOD_REMOVED_ERROR");
 	
 	$form->fail($message);
-} else {
-	$button_class    = $record_type == "server" ? "primary" : "mods";
-	$navigation_menu = new Generated_Form([], $form->hidden["csrf"], NULL, false);
-	
-	$navigation_menu->hidden["uniqueid"]     = $form->hidden["uniqueid"];
-	$navigation_menu->hidden["display_name"] = $form->hidden["display_name"];
-	$navigation_menu->label_size             = 0;
-	
-	foreach ($permission_to as $key=>$value)
-		if ($value && $key!="Add New"  &&  $key!=$form->hidden["display_form"]  &&  $key!="Delete") {
-			$navigation_menu->add_button("display_form", $key, lang(GS_FORM_ACTIONS[$key]), "btn-$button_class btn-xs");
-			$navigation_menu->change_control(-1, ["Inline"=>-1, "LabelClass"=>" "]);
-		}
-}
+} else
+	if ($form->hidden["display_form"] != "Add New") {
+		$button_class    = $record_type == "server" ? "primary" : "mods";
+		$navigation_menu = new Generated_Form([], $form->hidden["csrf"], NULL, false);
+		
+		$navigation_menu->hidden["uniqueid"]     = $form->hidden["uniqueid"];
+		$navigation_menu->hidden["display_name"] = $form->hidden["display_name"];
+		$navigation_menu->label_size             = 0;
+		
+		foreach ($permission_to as $key=>$value)
+			if ($value && $key!="Add New"  &&  $key!=$form->hidden["display_form"]) {
+				$navigation_menu->add_button("display_form", $key, lang(GS_FORM_ACTIONS[$key]), "btn-$button_class btn-xs");
+				$navigation_menu->change_control(-1, ["Inline"=>-1, "LabelClass"=>" "]);
+			}
+	}
 
 ?>
 

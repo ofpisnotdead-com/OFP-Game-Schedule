@@ -1,9 +1,4 @@
 <?php
-if (isset($section_title))
-	$form->title = "$section_title &nbsp;";
-
-$form->title = $form->title . "<B>{$form->hidden["display_name"]}</B>";
-
 if (!empty($form->data["uniqueid"]))
 	$form->title .= '<span style="float:right;font-size:12px;">'.$form->data["uniqueid"].'</span>';
 

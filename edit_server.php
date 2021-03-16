@@ -10,20 +10,25 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 		$voice_links_combined .= "<a href='{$program_info["info"]}' target='_blank'>$program_name</a>, ";
 	$voice_links_combined = substr($voice_links_combined, 0, -2) . ". " . lang("GS_STR_SERVER_VOICE_HINT");
 	
-	$form->add_text("name"             , lang("GS_STR_SERVER_NAME")      , lang("GS_STR_SERVER_NAME_HINT")      , lang("GS_STR_SERVER_NAME_EXAMPLE"));
-	$form->add_text("ip"               , lang("GS_STR_SERVER_ADDRESS")   , lang("GS_STR_SERVER_ADDRESS_HINT")   , "192.168.1.101");
-	$form->add_text("port"             , lang("GS_STR_SERVER_PORT")      , lang("GS_STR_SERVER_PORT_HINT")      , "2302");
-	$form->add_text("password"         , lang("GS_STR_SERVER_PASSWORD")  , lang("GS_STR_SERVER_PASSWORD_HINT")  , "123", "", 0, "");
-	$form->add_text("access"           , lang("GS_STR_SERVER_ACCESSCODE"), lang("GS_STR_SERVER_ACCESSCODE_HINT"), "", "", 0, "");
-	$form->add_select("version"        , lang("GS_STR_SERVER_VERSION")   , lang("GS_STR_SERVER_VERSION_HINT")   , [["1.99",1.99], ["1.96",1.96], ["2.01",2.01]]);
-	$form->add_select("equalmodreq"    , lang("GS_STR_SERVER_EQUALMODS") , lang("GS_STR_SERVER_EQUALMODS_HINT") , [[lang("GS_STR_DISABLED"),0], [lang("GS_STR_ENABLED"),1]]);	
-	$form->add_text("maxcustomfilesize", lang("GS_STR_SERVER_CUSTOMFILE"), lang("GS_STR_SERVER_CUSTOMFILE_HINT"), "102400");
-	$form->add_text("languages"        , lang("GS_STR_SERVER_LANGUAGES") , lang("GS_STR_SERVER_LANGUAGES_HINT") , "English, Polski");
-	$form->add_text("location"         , lang("GS_STR_SERVER_LOCATION")  , lang("GS_STR_SERVER_LOCATION_HINT")  , "Poland");
-	$form->add_text("message"          , lang("GS_STR_SERVER_MESSAGE")   , lang("GS_STR_SERVER_MESSAGE_HINT")   , lang("GS_STR_SERVER_MESSAGE_EXAMPLE"), "", 3);
-	$form->add_text("website"          , lang("GS_STR_SERVER_WEBSITE")   , lang("GS_STR_SERVER_WEBSITE_HINT")   , GS_get_current_url(true, false));
-	$form->add_text("voice"            , lang("GS_STR_SERVER_VOICE")     , $voice_links_combined                , "ts3server://192.168.1.101?password=123");
-	$form->add_imagefile("logo"        , lang("GS_STR_SERVER_LOGO")      , lang("GS_STR_SERVER_LOGO_HINT")      , GS_LOGO_FOLDER, 10240*2);
+	if ($form->hidden["display_form"] == "Edit")
+		$form->title=lang("GS_STR_SERVER_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+	else
+		$form->title=lang("GS_STR_INDEX_ADDNEW_SERVER");
+		
+	$form->add_text("name"             , lang("GS_STR_SERVER_NAME")         , lang("GS_STR_SERVER_NAME_HINT")      , lang("GS_STR_SERVER_NAME_EXAMPLE"));
+	$form->add_text("ip"               , lang("GS_STR_SERVER_ADDRESS")      , lang("GS_STR_SERVER_ADDRESS_HINT")   , "192.168.1.101");
+	$form->add_text("port"             , lang("GS_STR_SERVER_PORT")         , lang("GS_STR_SERVER_PORT_HINT")      , "2302");
+	$form->add_text("password"         , lang("GS_STR_SERVER_PASSWORD")     , lang("GS_STR_SERVER_PASSWORD_HINT")  , "123", "", 0, "");
+	$form->add_text("access"           , lang("GS_STR_SERVER_ACCESSCODE")   , lang("GS_STR_SERVER_ACCESSCODE_HINT"), "", "", 0, "");
+	$form->add_select("version"        , lang("GS_STR_SERVER_VERSION")      , lang("GS_STR_SERVER_VERSION_HINT")   , [["1.99",1.99], ["1.96",1.96], ["2.01",2.01]]);
+	$form->add_select("equalmodreq"    , lang("GS_STR_SERVER_EQUALMODS")    , lang("GS_STR_SERVER_EQUALMODS_HINT") , [[lang("GS_STR_DISABLED"),0], [lang("GS_STR_ENABLED"),1]]);	
+	$form->add_text("maxcustomfilesize", lang("GS_STR_SERVER_CUSTOMFILE")   , lang("GS_STR_SERVER_CUSTOMFILE_HINT"), "102400");
+	$form->add_text("languages"        , lang("GS_STR_SERVER_LANGUAGES")    , lang("GS_STR_SERVER_LANGUAGES_HINT") , "English, Polski");
+	$form->add_text("location"         , lang("GS_STR_SERVER_LOCATION")     , lang("GS_STR_SERVER_LOCATION_HINT")  , "Poland");
+	$form->add_text("message"          , lang("GS_STR_SERVER_MESSAGE")      , lang("GS_STR_SERVER_MESSAGE_HINT")   , lang("GS_STR_SERVER_MESSAGE_EXAMPLE"), "", 3);
+	$form->add_text("website"          , lang("GS_STR_SERVER_WEBSITE")      , lang("GS_STR_SERVER_WEBSITE_HINT")   , GS_get_current_url(true, false));
+	$form->add_text("voice"            , lang("GS_STR_SERVER_VOICE_ADDRESS"), $voice_links_combined                , "ts3server://192.168.1.101?password=123");
+	$form->add_imagefile("logo"        , lang("GS_STR_SERVER_LOGO")         , lang("GS_STR_SERVER_LOGO_HINT")      , GS_LOGO_FOLDER, 10240*2);
 	
 	
 	// If user submitted form
@@ -34,6 +39,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$data["port"] = 0;
 		
 		$data["website"] = filter_var($data["website"], FILTER_SANITIZE_URL);
+		$data["access"]  = preg_replace("/[^A-Za-z0-9 ]/", '', $data["access"]);
 		
 		if (substr($data["voice"],0,30) == "https://discordapp.com/invite/")
 			$data["voice"] = "https://discord.gg/".substr($data["voice"],30);
@@ -80,12 +86,13 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$form->keep_image($result);
 			$form->feedback(
 				$result, 
-				lang($form->hidden["action"]=="Add New" ? "GS_STR_SERVER_ADDED" : "GS_STR_SERVER_UPDATED"),
+				lang($form->hidden["action"]=="Add New" ? "GS_STR_SERVER_ADDED"       : "GS_STR_SERVER_UPDATED"),
 				lang($form->hidden["action"]=="Add New" ? "GS_STR_SERVER_ADDED_ERROR" : "GS_STR_SERVER_UPDATED_ERROR")
 			);
 			
 			if ($result) {
 				$form->hidden["display_name"] = $data["name"]!="" ? $data["name"] : $data["ip"];
+				$form->title                  = lang("GS_STR_SERVER_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
 				
 				if ($form->hidden["action"] == "Add New") {
 					$id                           = $db->lastId();
@@ -110,7 +117,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	if (isset($form->data["port"])  &&  $form->data["port"] == 0)
 		$form->data["port"] = "";
 		
-	$form->add_button("action", $form->hidden["display_form"], lang(GS_FORM_ACTIONS[$form->hidden["display_form"]]), "btn-primary btn-lg");
+	$form->add_button("action", $form->hidden["display_form"], lang($form->hidden["display_form"]=="Edit" ? "GS_STR_SERVER_SUBMIT" : "GS_STR_INDEX_ADDNEW_SERVER"), "btn-primary btn-lg");
 }	
 
 
@@ -125,7 +132,8 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 // If user wants to add/remove playing times
 if ($form->hidden["display_form"] == "Schedule") 
 {
-	$form->size = 9;
+	$form->title = lang("GS_STR_SERVER_EVENT_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+	$form->size  = 9;
 	
 	// If user wants to remove entries
 	if ($form->hidden["action"] == "Cancel") {
@@ -219,7 +227,7 @@ if ($form->hidden["display_form"] == "Schedule")
 	$form->add_select("timezone"    , lang("GS_STR_SERVER_EVENT_TIMEZONE"), "", $timezone_select_list, $user_time_zone);
 	$form->add_select("type"        , lang("GS_STR_SERVER_EVENT_REPEAT")  , "", [[lang("GS_STR_SERVER_EVENT_REPEAT_SINGLE"),0], [lang("GS_STR_SERVER_EVENT_REPEAT_WEEKLY"),1], [lang("GS_STR_SERVER_EVENT_REPEAT_DAILY"),2]], 0);
 	$form->add_text("duration"      , lang("GS_STR_SERVER_EVENT_LENGTH")  , lang("GS_STR_SERVER_EVENT_MINUTES"), "60", 60);
-	$form->add_button("action"      , $form->hidden["display_form"]       , lang("GS_STR_INDEX_ADDNEW"), "btn-primary",  "SubmitButton");
+	$form->add_button("action"      , $form->hidden["display_form"]       , lang("GS_STR_SERVER_EVENT_SUBMIT"), "btn-primary",  "SubmitButton");
 	$form->add_button("action"      , "Edit"                              , lang("GS_STR_SERVER_EVENT_EDIT"), "btn-info", "EditButton", "STYLE=\"display:none\"");
 	$form->add_space();
 	$form->add_select("schedulelist", lang("GS_STR_SERVER_EVENT_CURRENT") , "", [], "", GS_PERMISSION_MAX_SERV_SCHEDULE[$gs_my_permission_level]);
@@ -393,6 +401,8 @@ if ($form->hidden["display_form"] == "Schedule")
 // If user wants to add/remove mods to the server
 if ($form->hidden["display_form"] == "Mods")
 {
+	$form->title = lang("GS_STR_SERVER_MOD_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+	
 	// If user wants to remove entries
 	if ($form->hidden["action"] == "Discard") {
 		$modlist = Input::get("modlist");
@@ -456,7 +466,7 @@ if ($form->hidden["display_form"] == "Mods")
 		WHERE
 			gs_mods.is_mp = 1 AND 
 			gs_mods.removed = 0 AND (
-				gs_mods.access              = 1 OR 
+				gs_mods.access              = '' OR 
 				gs_serv_mods.serverid       = ? OR 
 				gs_mods_admins.isowner      = 1 OR 
 				gs_mods_admins.right_edit   = 1 OR 
@@ -636,7 +646,7 @@ if ($form->hidden["display_form"] == "Mods")
 	$form->add_html($html);
 	$form->add_emptyspan($mod_parameter_field);
 	$form->add_html("<SCRIPT TYPE=\"text/javascript\">GS_mod_parameter_update('$currentmods_table_id','$mod_parameter_field')</SCRIPT>");
-	$form->add_button("action", "Assign", lang("GEN_SUBMIT"), "btn-mods");
+	$form->add_button("action", "Assign", lang("GS_STR_SERVER_MOD_SUBMIT"), "btn-mods");
 	$form->add_space(2);
 
 
@@ -722,17 +732,6 @@ if ($form->hidden["display_form"] == "Share")
 // If user wants to delete server
 if ($form->hidden["display_form"] == "Delete") 
 	GS_record_delete($record_type, $record_table, $form, $id, $uid);
-
-
-
-
-$section_title = lang(GS_FORM_ACTIONS[$form->hidden["display_form"]]) . " " . lang("GS_STR_SERVER");
-
-switch ($form->hidden["display_form"]) {
-	case "Schedule" : $section_title=lang("GS_STR_SERVER_EVENT_TITLE"); break;
-	case "Mods"     : $section_title=lang("GS_STR_SERVER_MOD_TITLE"); break;
-	case "Share"    : $section_title=lang("GS_STR_SERVER_SHARESERVER_TITLE"); break;
-}
 
 require_once "footer.php";
 ?>
