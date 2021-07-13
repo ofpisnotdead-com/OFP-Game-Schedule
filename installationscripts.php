@@ -271,7 +271,7 @@ MOVE  *  /match_dir_only");?></code></pre>
 
 <a name="makepbo"></a><hr class="betweencommands">
 <h3 class="commandtitle">MakePBO</h3>
-<pre><code>MAKEPBO  &lt;folder&gt;  /keep_source</code></pre>
+<pre><code>MAKEPBO  &lt;folder&gt;  /keep_source  /timestamp:</code></pre>
 <p>Creates PBO file (no compression) out of a directory in the modfolder and then removes the source. PBO file modification date will be set to the day the specific mod version was added.</p>
 
 <br><br>
@@ -284,13 +284,14 @@ MOVE  *  /match_dir_only");?></code></pre>
 
 <br><br>
 <p>Use this command without writing file name to pack the last addon extracted with <code>UnPBO</code>.</p>
+<p>Add switch <code>/timestamp:</code> for a custom file modification date (see <a href="#filedate">FILEDATE</a> command for details).</p>
 
 
 
 
 <a name="edit"></a><hr class="betweencommands">
 <h3 class="commandtitle">Edit</h3>
-<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append</code></pre>
+<pre><code>EDIT  &lt;file name&gt;  &lt;line number&gt;  &lt;text&gt;  /insert  /newfile  /append  /timestamp:</code></pre>
 <p>Replaces text line in the selected file from the modfolder.</p>
 <p>If new text already contains quotation marks then use a custom separator to avoid conflict. Start argument with <code>&gt;&gt;</code> and a chosen character. End it with the same character.</p>
 <p>File modification date will be set to the day the specific mod version was added.</p>
@@ -303,6 +304,7 @@ MOVE  *  /match_dir_only");?></code></pre>
 <p>Add switch <code>/insert</code> to add a new line instead of replacing. If the selected line number is zero or exceeds the number of lines in a file then the text will be added at the end.</p>
 <p>Add switch <code>/append</code> to append to the line instead of replacing.</p>
 <p>Add switch <code>/newfile</code> to create a new file. Existing file will be trashed.</p>
+<p>Add switch <code>/timestamp:</code> for a custom file modification date (see <a href="#filedate">FILEDATE</a> command for details).</p>
 <p>To access the last downloaded file use <code>&lt;download&gt;</code> or <code>&lt;dl&gt;</code> as the first argument.</p>
 
 
@@ -835,6 +837,16 @@ MOVE    Files\\WGL\\Anims.pbo  dta");
 	<div class="panel panel-default betweencommands">
 		<div class="panel-heading"><strong>Version History</strong></div>
 		<div class="panel-body">
+<a name="changelog0.6"></a>
+<br>
+<br>
+
+<strong>0.6</strong> (29.04.21)<br>
+<ul>
+<li><code>Edit</code> -  added <code>/timestamp:</code> switch</li>
+<li><code>MakePBO</code> -  added <code>/timestamp:</code> switch</li>
+</ul>
+
 <a name="changelog0.59"></a>
 <br>
 <br>

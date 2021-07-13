@@ -341,7 +341,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->init_validation(["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $data["script"]!=-1 ? ["scripttext", "size", "sizetype"] : []);
 		
 		$form->add_validation_rules(["scripttext"], ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
-		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>false]);
+		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>$form->hidden["display_subform"]!="Link"]);
 		$form->add_validation_rules(["size"]      , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]  , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
 
@@ -663,7 +663,7 @@ if ($form->hidden["display_form"] == "Update")
 	$scripts_select = array_merge([[lang("GS_STR_MOD_ADD_NEW_SCRIPT"), "-1"]], GS_script_list_to_script_select($script_list,"",$form->hidden["display_subform"]));
 
 	// Pick a javascript function depending on the form section
-	$js_script_select  = "GS_installation_script_select('script', ['scripttext','size','sizetype'], {$js_script_list["name"]});";	
+	$js_script_select  = "GS_installation_script_select('version', 'script', ['scripttext','size','sizetype'], {$js_script_list["name"]});";	
 	$js_version_select = "";
 	$js_jump_select    = "";
 	

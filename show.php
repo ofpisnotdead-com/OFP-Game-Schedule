@@ -166,26 +166,28 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 			}
 		
 		if ($number_of_notes > 0) {
-			echo "<hr style=\"margin-top:0px;margin-bottom:0px\"><div class=\"panel-body\" style=\"background-color:#fdffe1;\">";
-			
-			foreach($update["note"] as $note_index=>$note) {
-				echo "<p>";
+			if ($number_of_notes!=1 || $update["note_version"][0]!=1) {	//don't show notes on the first version of the mod
+				echo "<hr style=\"margin-top:0px;margin-bottom:0px\"><div class=\"panel-body\" style=\"background-color:#fdffe1;\">";
+				
+				foreach($update["note"] as $note_index=>$note) {
+					echo "<p>";
 
-				if ($number_of_notes > 1) {
-					echo "<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}<span style=\"float:right;\">";
-					
-					if ($update["note_author"][$note_index] != $mod["createdby"])
-						echo lang("GS_STR_ADDED_BY_ON",[$user_list[$update["note_author"][$note_index]],$update["note_date"][$note_index]]);
-					else
-						echo $update["note_date"][$note_index];
+					if ($number_of_notes > 1) {
+						echo "<span style=\"font-size:10px;\">{$update["note_version"][$note_index]}<span style=\"float:right;\">";
 						
-					echo "</span></span><br>";
-				}
+						if ($update["note_author"][$note_index] != $mod["createdby"])
+							echo lang("GS_STR_ADDED_BY_ON",[$user_list[$update["note_author"][$note_index]],$update["note_date"][$note_index]]);
+						else
+							echo $update["note_date"][$note_index];
+							
+						echo "</span></span><br>";
+					}
 
-				echo $Parsedown->line(html_entity_decode($note, ENT_QUOTES))."</p>";
+					echo $Parsedown->line(html_entity_decode($note, ENT_QUOTES))."</p>";
+				}
+				
+				echo "</div>";
 			}
-			
-			echo "</div>";
 		}
 		
 		echo "</div>";

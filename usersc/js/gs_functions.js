@@ -288,10 +288,12 @@ function GS_version_select(version_select_id, script_select_id, changelog_field_
 }
 
 // When user selects a script from the list then display its contents
-function GS_installation_script_select(script_select_id, form_inputs, data) {
-	var script_select = document.getElementById(script_select_id);
+function GS_installation_script_select(version_select_id, script_select_id, form_inputs, data) {
+	var version_select   = document.getElementById(version_select_id);
+	var selected_version = version_select.options[version_select.selectedIndex].value;
+	var script_select    = document.getElementById(script_select_id);
 
-	// Search for selected script id in the data array and then fill form inputs with data
+	// Search for the selected script id in the data array and then fill form inputs with data
 	if (!script_select.options[0].selected) {
 		var selected_script_id = script_select.options[script_select.selectedIndex].value;
 		
@@ -312,9 +314,24 @@ function GS_installation_script_select(script_select_id, form_inputs, data) {
 						
 						input.style.height = input.scrollHeight+extra_height+'px';
 					}
+					
+					// If user wants to "add a new version" then block inputs
+					input.disabled = selected_version == -1;
 				}
+				
 			}
 		}
+	} else {
+		// If user wants to add a new script then clear inputs
+		var text_field          = document.getElementById(form_inputs[0]);
+		text_field.value        = "";
+		text_field.style.height = 'auto';
+		
+		document.getElementById(form_inputs[1]).value = "1";
+		document.getElementById(form_inputs[2]).value = "KB";
+		
+		for (var i=0; i<form_inputs.length; i++)
+			document.getElementById(form_inputs[i]).disabled = 0;
 	}
 }
 
