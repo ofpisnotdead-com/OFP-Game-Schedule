@@ -173,6 +173,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				$mod_fields["createdby"]    = $uid;
 				$script_fields["uniqueid"]  = substr(strtolower(Hash::unique()), rand(0,56), 8);
 				$script_fields["createdby"] = $uid;
+				$update_fields["createdby"] = $uid;
 			}
 					
 			$mod_fields["id"] = $id;
@@ -341,7 +342,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->init_validation(["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $data["script"]!=-1 ? ["scripttext", "size", "sizetype"] : []);
 		
 		$form->add_validation_rules(["scripttext"], ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
-		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>$form->hidden["display_subform"]!="Link"]);
+		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>$form->hidden["display_subform"]!="Link" && $data["version"]!=1]);
 		$form->add_validation_rules(["size"]      , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]  , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
 

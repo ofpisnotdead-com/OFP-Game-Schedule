@@ -79,6 +79,7 @@ echo GS_scripting_highlighting("http://example.com/locked.rar  /password:123");?
 echo GS_scripting_highlighting("http://ofp-faguss.com/addon/winterofp/[coop]%20nogova%20virus%20-%20they%20hunger.noe_winter.7z");?></code></pre>
 			
 			<br>
+			<br>
 			<p>If a website requires you to go through intermediate pages in order to receive a direct link then write address to each one.</p>
 <pre><code><span class="fake_link">&lt;starting url&gt;</span>  &lt;optionally intermediate links&gt;  <span class="download_filename">&lt;file name&gt;</span></code></pre>
 			<p>You don't actually have to type in full intermediary URL but only the unique part that is easily searcheable in the page source code.
@@ -97,7 +98,8 @@ More information on how to find intermediate links on your own you'll find <a hr
 
 
 <br>
-<p>If you have backup links then place them between curly brackets.</p>
+<br>
+<p>If you have <b>backup links</b> then place them between curly brackets.</p>
 <pre><code><?php
 echo GS_scripting_highlighting("{
 	http://files.ofpisnotdead.com/files//ofpd/mods/fdfmod14_ww2.rar
@@ -105,7 +107,7 @@ echo GS_scripting_highlighting("{
 	https://www.gamefront.com/games/operation-flashpoint/file/fdf-mod  fdf-mod/download  expires=  fdfmod14_ww2.rar
 }");?></code></pre>
 <br>
-<p>To save disk space downloaded file is deleted when the next download starts. To have more than one file at once use <a href="#get">GET</a> command.</p>
+<p>To save disk space downloaded file is deleted when the next download starts. To keep it use <a href="#get">GET</a> command.</p>
 
 
 		</div>
