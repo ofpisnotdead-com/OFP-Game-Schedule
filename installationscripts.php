@@ -212,7 +212,7 @@ to the<br>
 
 <br><br>
 
-<p>Wildcards (<a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a>, <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
+<p>Wildcards (see <a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a> and <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
 <pre><code><?php echo GS_scripting_highlighting("MOVE  *.pbo  addons");?></code></pre>
 <p>To match both files and folders add <code>/match_dir</code> switch. To match exclusively folders use <code>/match_dir_only</code> instead.</p>
 <pre><code><?php echo GS_scripting_highlighting("MOVE  *  /match_dir
@@ -321,7 +321,7 @@ MOVE  *  /match_dir_only");?></code></pre>
 <p>Example:</p>
 <pre><code><?php echo GS_scripting_highlighting("DELETE  Install_win98_ME.bat");?></code></pre>
 <br><br>
-<p>Wildcards (<a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a>, <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
+<p>Wildcards (see <a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a> and <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
 <pre><code><?php echo GS_scripting_highlighting("DELETE  addons\\*.txt");?></code></pre>
 <p>To match both files and folders add <code>/match_dir</code> switch.</p>
 <pre><code><?php echo GS_scripting_highlighting("DELETE  temp\\*  /match_dir");?></code></pre>
@@ -360,12 +360,12 @@ ENDIF");?></code></pre>
 <a name="alias"></a><hr class="betweencommands">
 <h3 class="commandtitle">Merge_with, Alias</h3>
 <pre><code>MERGE_WITH  &lt;name1&gt; &lt;name2&gt; &lt;...&gt;</code></pre>
-<p>Enables auto installation, <code>Move</code> and <code>Copy</code> to merge specified folder with the modfolder being installed. Effect lasts until end of the current script (to make it work for all versions check the mod details page).</p>
+<p>Enables for the auto installation, <code>Move</code> and <code>Copy</code> to merge specified folder with the modfolder being installed. Effect lasts until end of the current script (to make it work for all versions use option from the mod details page).</p>
 <br><br>
-<p>For example: mod @wgl5 is being installed. Archive "CoC_UA110_Setup.exe" was downloaded which contains folders: @CoC and @wgl5. Normally auto installation will copy @wgl5 and ignore @CoC but if you'll write:</p>
+<p>For example: mod @wgl5 is being installed. Archive "CoC_UA110_Setup.exe" was downloaded which contains folders: @CoC and @wgl5. By default auto installation will copy @wgl5 and ignore @CoC but if you'll write:</p>
 <pre><code><?php echo GS_scripting_highlighting("MERGE_WITH  @CoC
 https://files.ofpisnotdead.com/files/ofpd/unofaddons2/CoC_UA110_Setup.exe");?></code></pre>
-<p>then auto installation won't skip @CoC but move its contents to the @wgl5 in the game directory.</p>
+<p>then the installer won't skip @CoC but move its contents to the @wgl5 in the game directory.</p>
 <p>Use this command without any arguments to clear all the names.</p>
 
 
@@ -379,7 +379,7 @@ https://files.ofpisnotdead.com/files/ofpd/unofaddons2/CoC_UA110_Setup.exe");?></
 <p>Example:</p>
 <pre><code><?php echo GS_scripting_highlighting("RENAME  addons\\lo_res_tex.pbo  lo_res_tex.pbx");?></code></pre>
 <br><br>
-<p>Wildcards (<a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a>, <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
+<p>Wildcards (see <a href="https://docs.microsoft.com/en-us/archive/blogs/jeremykuhne/wildcards-in-windows" target="_blank">MSDN</a> and <a href="https://superuser.com/questions/475874/how-does-the-windows-rename-command-interpret-wildcards" target="_blank">StackExchange</a>) can be used to match multiple files.</p>
 <pre><code><?php echo GS_scripting_highlighting("RENAME  addons\\*.pbo  *.pbx
 RENAME  addons\\*.pbo  ??????????????????_OLD*");?></code></pre>
 <p>To match both files and folders add <code>/match_dir</code> switch.</p>
@@ -408,7 +408,7 @@ MAKEDIR  dta\\hwtl");?></code></pre>
 <a name="filedate"></a><hr class="betweencommands">
 <h3 class="commandtitle">Filedate</h3>
 <pre><code>FILEDATE  &lt;file&gt;  &lt;date&gt;</code></pre>
-<p>Changes modification date of a seleted file in the modfolder. Date must be in GMT timezone, in ISO 8601 format (YYYY MM DD HH MM SS) or as Unix timestamp.</p>
+<p>Changes modification date of a seleted file in the modfolder. Acceptable formats are ISO 8601 (YYYY MM DD HH MM SS) or Unix timestamp. It must be in GMT timezone.</p>
 <br><br>
 <p>Example:</p>
 <pre><code><?php echo GS_scripting_highlighting("FILEDATE  addons\\example.pbo  2021-02-11T21:36:37");?></code></pre>

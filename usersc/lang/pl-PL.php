@@ -15,8 +15,10 @@ $lang = array_merge($lang,array(
 	"GS_STR_WEBSITE_TITLE" => "Rozkład Rozgrywek w OFP",
 	"GS_STR_WEBSITE_DESCRIPTION" => "Przygotuj grę sieciową w OFP",
 	"GS_STR_SHOW_CHANGELOG" => "Pokaż zmiany",
+	"GS_STR_MOD_UPDATES" => "Jak działają aktualizacje modów?",
 	
     #Drop-down menu in the navigation bar
+	"GS_STR_MENU_MODUPDATES" => "Aktualizacje Modów",
     "GS_STR_MENU_INSTALLSCRIPTS" => "Skrypty instalacyjne",
 	"GS_STR_MENU_QUICKSTART" => "Przewodnik",
 	"GS_STR_MENU_DEDICATED" => "Serwer dedykowany",
@@ -198,6 +200,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_PRIVATE" => "Prywatny",
 	"GS_STR_MOD_FORCENAME" => "Wymuś Nazwę",
 	"GS_STR_MOD_FORCENAME_HINT" => "Automatycznie przywróć oryginalną nazwę folderu jeśli gracz ją zmieni. Zadziała od następnej wersji modu",
+	"GS_STR_MOD_VERSION" => "Wersja",
+	"GS_STR_MOD_VERSION_HINT" => "Numer pierwszej wersji moda",
 	"GS_STR_MOD_INSTALLATION" => "Instalacja",
 	"GS_STR_MOD_INSTALLATION_SCRIPT" => "Skrypt instalacyjny",
 	"GS_STR_MOD_INSTALLATION_HINT" => "%m1%Instrukcje%m2% do instalatora. %m3%Przetestuj%m4% swój skrypt zanim go wyślesz",
@@ -247,7 +251,7 @@ $lang = array_merge($lang,array(
 
     #Add/Edit mod version section
 	"GS_STR_MOD_UPDATE_PAGE_TITLE" => "Instalacja moda %m1%",
-	"GS_STR_MOD_SECTION_VERSION" => "Nowa wersja",
+	"GS_STR_MOD_SECTION_VERSION" => "Wersje",
 	"GS_STR_MOD_SELECT_VER" => "Wybierz wersję",
 	"GS_STR_MOD_ADD_NEW_VER" => "Dodaj nową wersję",
 	"GS_STR_MOD_NEW_NUM" => "Nowy numer",

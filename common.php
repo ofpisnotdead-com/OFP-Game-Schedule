@@ -1,5 +1,5 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2021,7,9,5,16,36,0,746,120,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2021,7,19,1,17,46,34,510,120,FALSE]");
 define("GS_VERSION", 0.6);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
@@ -1449,8 +1449,9 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 
 
 			// Copy table rows to arrays
-			$last_id      = -1;
-			$last_version = 0;	
+			$last_id       = -1;
+			$last_version  = 0;
+			$first_version = 0;
 
 			foreach($table_rows as $row) {
 				$id      = $row["id"];
@@ -1461,7 +1462,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 
 				if ($last_id != $id) {
 					if ($request_type == GS_REQTYPE_GAME) {
-						$alias = $row["alias"]=="" ? "?" : $row["alias"];
+						$alias                         = $row["alias"]=="" ? "?" : $row["alias"];
 						$output["info"][$id]["sqf"]    = "_mod_name=\"\"{$row["name"]}\"\";_mod_forcename=".($row["forcename"]=="1" ? "true" : "false").";";
 						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]} \"$alias\"";
 						
@@ -1475,7 +1476,11 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$mods_links[$id]   = [];
 					$last_id           = $id;
 					$last_version      = 0;
+					$first_version     = 0;
 				}
+				
+				if ($first_version == 0)
+					$first_version = $version;
 
 				for ($i=1; $i<=4; $i++)
 					if (strtotime($row["modified$i"]) > $output["lastmodified"])
@@ -1499,22 +1504,23 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				}
 				
 				if ($request_type == GS_REQTYPE_WEBSITE) {
-					$output["info"][$id]["name"]        = $row["name"];
-					$output["info"][$id]["description"] = $row["description"];
-					$output["info"][$id]["version"]     = $version;
-					$output["info"][$id]["uniqueid"]    = $row["uniqueid"];
-					$output["info"][$id]["forcename"]   = $row["forcename"] == "1" ? "true" : "false";
-					$output["info"][$id]["type"]        = $row["type"];
-					$output["info"][$id]["createdby"]   = $row["createdby"];
-					$output["info"][$id]["modifiedby"]  = $row["modifiedby"];
-					$output["info"][$id]["created"]     = $row["created"];
-					$output["info"][$id]["modified"]    = $row["modified1"];
-					$output["info"][$id]["alias"]       = $row["alias"];
-					$output["info"][$id]["is_mp"]       = $row["is_mp"];
-					$output["info"][$id]["allversions"] = [];
-					$output["info"][$id]["admin"]       = $row["admin"];
-					$output["info"][$id]["adminsince"]  = $row["adminsince"];
-					$output["info"][$id]["access"]      = $row["access"];
+					$output["info"][$id]["name"]         = $row["name"];
+					$output["info"][$id]["description"]  = $row["description"];
+					$output["info"][$id]["version"]      = $version;
+					$output["info"][$id]["uniqueid"]     = $row["uniqueid"];
+					$output["info"][$id]["forcename"]    = $row["forcename"] == "1" ? "true" : "false";
+					$output["info"][$id]["type"]         = $row["type"];
+					$output["info"][$id]["createdby"]    = $row["createdby"];
+					$output["info"][$id]["modifiedby"]   = $row["modifiedby"];
+					$output["info"][$id]["created"]      = $row["created"];
+					$output["info"][$id]["modified"]     = $row["modified1"];
+					$output["info"][$id]["alias"]        = $row["alias"];
+					$output["info"][$id]["is_mp"]        = $row["is_mp"];
+					$output["info"][$id]["allversions"]  = [];
+					$output["info"][$id]["admin"]        = $row["admin"];
+					$output["info"][$id]["adminsince"]   = $row["adminsince"];
+					$output["info"][$id]["access"]       = $row["access"];
+					$output["info"][$id]["firstversion"] = $first_version;
 					
 					if (!in_array($row["createdby"], $output["userlist"]))
 						$output["userlist"][] = $row["createdby"];
@@ -1550,9 +1556,6 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				$script    = $update["script"];
 				$date      = $update["update_created"];
 				$changelog = nl2br(htmlspecialchars($update["changelog"]));
-
-				if ($update_num==0 && $input_onlylog && $changelog=="")
-					$changelog = "First release";
 
 				// Look for a valid jump between versions
 				foreach ($mods_links[$id] as $link) {

@@ -15,8 +15,10 @@ $lang = array_merge($lang,array(
 	"GS_STR_WEBSITE_TITLE" => "OFP Game Schedule",
 	"GS_STR_WEBSITE_DESCRIPTION" => "Organize OFP multiplayer sessions",
 "GS_STR_SHOW_CHANGELOG" => "View changelog",
+"GS_STR_MOD_UPDATES" => "How Do Mod Updates Work?",
 	
     #Drop-down menu in the navigation bar
+"GS_STR_MENU_MODUPDATES" => "Mod Updates",
 	"GS_STR_MENU_INSTALLSCRIPTS" => "Install Scripts",
 	"GS_STR_MENU_QUICKSTART" => "Quick Start",
 	"GS_STR_MENU_DEDICATED" => "Dedicated Server",
@@ -198,6 +200,8 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_PRIVATE" => "Private",
 	"GS_STR_MOD_FORCENAME" => "Force Original Name",
 "GS_STR_MOD_FORCENAME_HINT" => "Automatically bring back original folder name if player renames it. Enabled after the next mod update",
+"GS_STR_MOD_VERSION" => "Version",
+"GS_STR_MOD_VERSION_HINT" => "Number of the initial version of the mod",
 	"GS_STR_MOD_INSTALLATION" => "Installation",
     "GS_STR_MOD_INSTALLATION_SCRIPT" => "Installation script",
 	"GS_STR_MOD_INSTALLATION_HINT" => "%m1%Instructions%m2% for the installator. %m3%Test%m4% your script before submitting",

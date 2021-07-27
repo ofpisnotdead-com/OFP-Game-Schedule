@@ -93,6 +93,10 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->add_select("type"     , lang("GS_STR_MOD_TYPE")               , ""                                 , $mod_type_select, "0");
 	$form->add_text("access"     , lang("GS_STR_MOD_ACCESS")             , lang("GS_STR_MOD_ACCESS_HINT"));
 	$form->add_select("forcename", lang("GS_STR_MOD_FORCENAME")          , lang("GS_STR_MOD_FORCENAME_HINT")  , [[lang("GS_STR_DISABLED"),"0"], [lang("GS_STR_ENABLED"),"1"]], "0", "radio");
+	
+	if ($form->hidden["display_form"] == "Add New")
+		$form->add_text("version", lang("GS_STR_MOD_VERSION"), lang("GS_STR_MOD_VERSION_HINT"), "1", "1");
+	
 	$form->add_text("scripttext" , lang("GS_STR_MOD_INSTALLATION_SCRIPT"), $install_hint                      , $install_example, "", -1);
 	$form->add_emptyspan("convertlink_field", "id=\"convertlink_field_group\"");
 	$form->add_text("size"       , lang("GS_STR_MOD_DOWNLOADSIZE")       , "", "128");
@@ -128,6 +132,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 		
 		$form->init_validation     (["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $exclude);
 		$form->add_validation_rules(["description"], ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "unique"=>$unique_array]);
+		$form->add_validation_rules(["version"]    , [">"=>0]);
 		$form->add_validation_rules(["scripttext"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
 		$form->add_validation_rules(["size"]       , [">"=>0]);
 		$form->add_validation_rules(["sizetype"]   , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
@@ -162,7 +167,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$update_fields = [
 				"modid"       => -1,
 				"scriptid"    => -1,
-				"version"     => 1
+				"version"     => $data["version"]
 			];			
 			
 			$mod_fields["modified"]   = date("Y-m-d H:i:s");
@@ -235,7 +240,10 @@ if ($form->hidden["display_form"] == "Update")
 	$form->size       = 12;
 	$form->label_size = 2;
 	$form->input_size = 10;
-	$form->title      = lang("GS_STR_MOD_UPDATE_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+	$form->title      = lang("GS_STR_MOD_UPDATE_PAGE_TITLE", ["<b>{$form->hidden["display_name"]}</b>"]);
+	
+	$form->add_text("documentation_link", "");
+	$form->change_control(-1, ["Type"=>"Static", "Text"=>"<a target=\"_blank\" href=\"mod_updates\">".lang("GS_STR_MOD_UPDATES")."</a>"]);
 	
 	// Display buttons for navigating between sub-sections
 	forEach(GS_FORM_ACTIONS_MODUPDATE as $section=>$section_name) {
@@ -256,7 +264,7 @@ if ($form->hidden["display_form"] == "Update")
 	} else {
 		$form->add_select("version"  , lang("GS_STR_MOD_SELECT_VER"), "", []);
 		$form->add_text("version_new", lang("GS_STR_MOD_NEW_NUM")   , lang("GS_STR_MOD_NEW_NUM_HINT"), "");
-		$form->change_control("version_new", ["Group"=>"ID=\"version_new_group\""]);
+		$form->change_control("version_new", ["Group"=>"id=\"version_new_group\""]);
 	}
 	
 	// Script editing controls
@@ -289,7 +297,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->change_control(-1, ["DivInline"=>"STYLE=\"display:inline;position:absolute;bottom:0;\""]);
 	}
 	
-	$form->add_html("<br><a target=\"_blank\" HREF=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a><br><br><br><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/2fs4hbYZ1VY?start=82&end=154\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>");
+	$form->add_html("<br><a target=\"_blank\" href=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a>");
 	
 
 	// If user wants to update database
@@ -314,6 +322,15 @@ if ($form->hidden["display_form"] == "Update")
 			$is_ok = false;
 		}
 		
+		// Get the lowest version number for this mod
+		$lowest = $db->cell("gs_mods_updates.MIN(version)",["modid","=",$id]);
+		if (isset($lowest))
+			$lowest = floatval(sprintf("%01.3f", $lowest));
+		else {
+			$form->alert(lang("GS_STR_MOD_RECENTVER_ERROR"));
+			$is_ok = false;
+		}
+		
 		// Validate jump rule
 		$result = GS_parse_jump_rule($data["fromver"], 0, $data["version"]=="-1" ? $highest : $data["version"]);
 		if (is_string($result))
@@ -321,7 +338,7 @@ if ($form->hidden["display_form"] == "Update")
 		else
 			$is_ok = true;
 		
-		// Size number - three digits after dot and no trailing zeros
+		// Version number - three digits after dot and no trailing zeros
 		if (is_numeric($data["version_new"])) {
 			$data["version_new"] = floatval(sprintf("%01.3f", $data["version_new"]));
 			$data["version_new"] = strval($data["version_new"]);
@@ -336,14 +353,20 @@ if ($form->hidden["display_form"] == "Update")
 				$is_ok = false;
 			}
 		}
+		
+		// If download size is zero
+		if (empty($data["size"])) {
+			$data["size"]     = 1;
+			$data["sizetype"] = "KB";
+		}
 
 		// Set up validation	
 		// If the user is copying script from the other record - ignore script text in validation
-		$form->init_validation(["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $data["script"]!=-1 ? ["scripttext", "size", "sizetype"] : []);
-		
+		$form->init_validation(["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], $data["script"]!=-1 && $data["version"]==-1 ? ["scripttext", "size", "sizetype", "documentation_link"] : ["documentation_link"]);
+
 		$form->add_validation_rules(["scripttext"], ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "display"=>lang("GS_STR_MOD_INSTALLATION_SCRIPT")]);
-		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>$form->hidden["display_subform"]!="Link" && $data["version"]!=1]);
-		$form->add_validation_rules(["size"]      , [">"=>0]);
+		$form->add_validation_rules(["changelog"] , ["max"=>GS_MAX_SCRIPT_INPUT_LENGTH, "required"=>$form->hidden["display_subform"]!="Link" && $data["version"]!=$lowest]);
+		$form->add_validation_rules(["size"]      , [">="=>0, "required"=>false]);
 		$form->add_validation_rules(["sizetype"]  , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
 
 		if ($form->hidden["display_subform"] == "Link") {
@@ -407,7 +430,8 @@ if ($form->hidden["display_form"] == "Update")
 					$update_fields["scriptid"] = $script_row["id"];
 					$link_fields["scriptid"]   = $script_row["id"];
 					
-					if (($script_row["script"] != $script_fields["script"]) || ($script_row["size"] != $script_fields["size"])) {
+					// if script content is empty that means form controls were disabled. In that case ignore this section
+					if (!empty($data["scripttext"])  &&  ($script_row["script"] != $script_fields["script"] || $script_row["size"] != $script_fields["size"])) {
 						$result = $form->feedback(
 							$db->update("gs_mods_scripts", $script_row["id"], $script_fields),
 							lang("GS_STR_MOD_SCRIPT_UPDATED"),
@@ -552,7 +576,7 @@ if ($form->hidden["display_form"] == "Update")
 	$changelog      = "";
        
 	foreach ($updates as $update) {
-		$size = explode(' ', $update["size"]);
+		$size = explode(' ', trim($update["size"]));
 
 		// Make a list of all mod versions for linking
 		$to_version[] = $update["version"];
@@ -626,7 +650,7 @@ if ($form->hidden["display_form"] == "Update")
 		$condition        = str_replace(["&lt;","&gt;"], ["<",">"], $link["fromver"]);
 		$link_description = "$condition " . lang("GS_STR_MOD_TO") . " " . ($link["alwaysnewest"] ? lang("GS_STR_MOD_NEWEST") : $link["version"]);
 		$links_select[]   = [$link_description, $link["uniqueid"]];
-		$size             = explode(' ', $link["size"]);
+		$size             = explode(' ', trim($link["size"]));
 
 		$js_link_list["data"][] = [
 			"uniqueid"       => $link["uniqueid"],
@@ -683,7 +707,7 @@ if ($form->hidden["display_form"] == "Update")
 	}
 
 	// Default selection: "add a new version" and "add a new script"
-	$form->change_control("version", ["Default"=>$to_version[0], "Options"=>$to_version, "Property"=>"onChange=\"{$js_version_select} {$js_script_select}\""]);
+	$form->change_control("version", ["Default"=>($form->hidden["display_subform"]=="Link" ? $to_version[1] : $to_version[0]), "Options"=>$to_version, "Property"=>"onChange=\"{$js_version_select} {$js_script_select}\""]);
 	$form->change_control("script" , ["Default"=>$scripts_select[count($scripts_select)-1][1]]);
 	
 	// Default selection: "add a new jump"
@@ -691,7 +715,7 @@ if ($form->hidden["display_form"] == "Update")
 		$form->add_js_var($js_link_list);
 		$form->change_control("Link"  , ["Options"=>$links_select, "Property"=>"onChange=\"{$js_jump_select} {$js_script_select}\""]);	
 		$form->change_control("script", ["Default"=>""]);	
-		$scripts_select[0][] = "SELECTED";
+		$scripts_select[0][] = "selected";
 	}
 
 	$form->change_control("script"    , ["Options"=>$scripts_select, "Property"=>"onChange=\"{$js_script_select}\""]);
@@ -702,10 +726,10 @@ if ($form->hidden["display_form"] == "Update")
 	// Include javascript
 	$form->include_file("usersc/js/gs_functions.js");
 	$form->add_html("
-		<SCRIPT TYPE=\"text/javascript\">
+		<script type=\"text/javascript\">
 			var {$js_script_list["name"]} = ".json_encode($js_script_list["data"]).";
 			{$js_version_select} {$js_script_select} {$js_jump_select}
-		</SCRIPT>
+		</script>
 	");
 }
 

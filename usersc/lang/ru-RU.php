@@ -15,8 +15,10 @@ $lang = array_merge($lang, array(
 	"GS_STR_WEBSITE_TITLE" => "Расписание игр для OFP",
 	"GS_STR_WEBSITE_DESCRIPTION" => "Создайте свою многопользовательскую игру в OFP",
 "GS_STR_SHOW_CHANGELOG" => "Просмотреть историю изменений",
+"GS_STR_MOD_UPDATES" => "How Do Mod Updates Work?",
 	
-    #Drop-down menu in the navigation bar	
+    #Drop-down menu in the navigation bar
+	"GS_STR_MENU_MODUPDATES" => "Mod Updates",
 	"GS_STR_MENU_INSTALLSCRIPTS" => "Установите Скрипты",
 	"GS_STR_MENU_QUICKSTART" => "Краткое Руководство",
 	"GS_STR_MENU_DEDICATED" => "Выделенный Сервер",
@@ -198,6 +200,8 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_PRIVATE" => "Частный",
 	"GS_STR_MOD_FORCENAME" => "Оставить оригинальное название",
 	"GS_STR_MOD_FORCENAME_HINT" => "Замена названия папки на оригинальное в случае, если игрок его изменил. Вступает в силу после следующего обновления",
+	"GS_STR_MOD_VERSION" => "Версия",
+"GS_STR_MOD_VERSION_HINT" => "Number of the initial version of the mod",
 	"GS_STR_MOD_INSTALLATION" => "Установка",
 	"GS_STR_MOD_INSTALLATION_SCRIPT" => "Скрипт установки",
 	"GS_STR_MOD_INSTALLATION_HINT" => "%m1%Инструкции%m2% для настройки мастера установки. %m3%Протестируйте%m4% Ваш скрипт перед загрузкой",

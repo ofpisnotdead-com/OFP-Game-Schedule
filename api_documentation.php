@@ -32,6 +32,20 @@ if ($lang["THIS_CODE"] == "ru-RU") {
 	));
 }
 
+if ($lang["THIS_CODE"] == "pl-PL") {
+	$lang = array_merge($lang, array(
+		"GS_API_TITLE" => "API do Rozkładu Rozgrywek OFP",
+		"GS_API_OVERVIEW" => "Żeby otrzymać dane o serwerach i modach w formacie JSON wyślij zapytanie do <a href=\"%m1%\">%m1%</a> z następującymi argumentami:",
+		"GS_API_SERVER" => "identyfikator serwera. Alternatywnie napisz \"current\" żeby dostać dane o wszystkich publicznych serwerach z nadchodzącymi rozgrywkami albo \"all\" żeby dostać dane o wszystkich publicznych serwerach.",
+		"GS_API_MOD" => "identyfikator moda. Alternatywnie napisz \"all\" żeby otrzymać dane o wszystkich publicznych modach.",
+		"GS_API_VER" => "numer wersji moda. Informacje o instalacji zacznie się od podanej wersji. Domyślnie zero.",
+		"GS_API_PASSWORD" => "hasło wymagane do wyświetlenia prywatnego serwera lub prywatnego moda (dodanego do prywatnego serwera).",
+		"GS_API_NOTE_ARGS" => "W przypadku zbioru wartości porozdzielaj je przecinkami. \"ver\" jest listą równoległą do \"mod\".",
+		"GS_API_EXAMPLES" => "Przykłady:",
+		"GS_API_EXAMPLEPHP" => "Przykładowy skrypt PHP"
+	));
+}
+
 echo '
 <div id="page-wrapper">
 	<div class="container">
