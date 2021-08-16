@@ -38,7 +38,7 @@ if ($lang["THIS_CODE"] == "en-US") {
 		"GS_MU_SECTION4_PAR3" => "Let's assume that <code>patch2.zip</code> already contains all the changes from the <code>patch1.zip</code> and the latter is obsolete. It's possible to skip it so that players will download less data.",
 		"GS_MU_SECTION4_PAR4" => "Go to the \"Installation\" page. Select \"Jumps Between Versions\" on the top of the page. In the field \"From version\" you determine source of the jump. Type \"version = 1\" to target users with the first version of the mod. Select below \"Installation script: Same as in version 1.1 to 1.2\" which downloads <code>patch2.zip</code>. Click on \"Add New Jump\".",
         "GS_MU_SECTION4_PAR5" => "In the preview you'll see that new users will download <code>mod.zip</code> and then <code>patch2.zip</code>. File <code>patch1.zip</code> will be ignored.",
-		"GS_MU_SECTION4_PAR6" => "It's possible to provide both a single package for the new users and small patches for existing users (option #1 and #2).",
+		"GS_MU_SECTION4_PAR6" => "It's possible to provide both a single package (<code>mod_new.zip</code>) for the new users and small patches (<code>patch.zip</code>) for existing users (option #1 and #2).",
 		"GS_MU_SECTION4_PAR7" => "In the field \"From version\" write \"version = 0\" to target new users. From the list \"To version\" select \"Always to the newest one\". Write the new installation script below and click on the \"Add New Jump\".",
 		"GS_MU_SECTION4_PAR8" => "Now every time you add a new version this jump will be automatically adjusted. Don't forget to update <code>mod_new.zip</code>."
 	));
@@ -60,7 +60,7 @@ if ($lang["THIS_CODE"] == "pl-PL") {
 		"GS_MU_SECTION1_PAR5" => "<b>WARIANT #2:</b> Jeśli utworzyłeś nowe archiwum do ściągnięcia to wybierz \"Skrypt instalacyjny: dodaj nowy skrypt\" i wklej adres URL poniżej. Wpisz rozmiar pliku do ściągnięcia i opis zmian. Na koniec naciśnij na \"Dodaj Nową Wersję\".",
 		"GS_MU_SECTION1_PAR6" => "Użytkownicy, sprawdzając aktualizacje, ściągają najnowszy numer wersji moda i porównują go z numerem zapisanym w pliku identyfikacyjnym <code>__gs_id</code> znajdującym się w modfolderze. Jeśli ten ostatni jest mniejszy to wtedy pojawi się opcja uaktualnienia moda.",
 		"GS_MU_SECTION1_PAR7" => "Wybranie tej opcji rozpoczyna proces uaktualnienia. Strona łączy skrypty instalacyjne na podstawie brakującej liczby aktualizacji. Powtarzające się skrypty (wariant #1) są ignorowane w wyniku czego użytkownik ściągnie dany plik tylko raz (patrz przykład poniżej).",
-		"GS_MU_SECTION1_PAR8" => "Instalator ściąga wyżej wymienioną kompilację instrukcji i ją <a href=\"install_scripts\" target=\"_blank\">wykonuje</a>.",
+		"GS_MU_SECTION1_PAR8" => "Instalator ściąga wyżej wymienioną kompilację i <a href=\"install_scripts\" target=\"_blank\">wykonuje jej instrukcje</a>.",
 		
 		"GS_MU_SECTION2_PAR1" => "Oto przykład modu który wielokrotnie wykorzystuje ten sam skrypt instalacyjny (wariant #1).",
 		"GS_MU_SECTION2_PAR2" => "Wszystkie aktualizacje posługują się tym samym skryptem instalacyjnym więc użytkownik, niezależnie od posiadanej wersji, ściągnie plik <code>mod.zip</code> tylko raz by móc przejść do najnowszej wersji",
@@ -70,17 +70,17 @@ if ($lang["THIS_CODE"] == "pl-PL") {
 		"GS_MU_SECTION2_PAR6" => "Gracze którzy już posiadają ten mod ściągną jedną lub dwie łatki.",
 		
 		"GS_MU_SECTION3_PAR1" => "Żeby zmodyfikować wcześniej dodaną wersję przejdź do strony \"Instalacja\" i wybierz numer z listy wersji.",
-		"GS_MU_SECTION3_PAR2" => "Możesz dowolnie przypisywać skrypty instalacyjne do różnych wersji przy pomocy listy \"Skrypt instalacyjny\". Opcja \"Dodaj nowy skrypt\" zamieni obecny skrypt na nowy. Skrypty niepodpięte do jakiejkolwiek wersji zosaną usunięte.",
-		"GS_MU_SECTION3_PAR3" => "Treść skryptu instalacyjnego może tutaj zostać zmieniona. Pamiętaj że zmieni to proces instalacji dla wszystkich wersji które wykorzystują ten skrypt. Na przykład: zmieniłeś serwer na którym przechowujesz swoje pliki i chciałbyś teraz podmienić adresy URL. W przypadku pojedynczego skryptu (wariant #1) wystarczy że zmienisz go raz w którejkolwiek z wersji. Przy wielu skryptach (wariant #2) będziesz musiał poprawić każdy z nich pojedynczo.",
+		"GS_MU_SECTION3_PAR2" => "Możesz dowolnie przypisywać skrypty instalacyjne do różnych wersji przy pomocy listy \"Skrypt instalacyjny\". Opcja \"Dodaj nowy skrypt\" zamieni obecny skrypt na nowy. Skrypty niepodpięte do jakiejkolwiek wersji zostaną usunięte.",
+		"GS_MU_SECTION3_PAR3" => "Treść skryptu instalacyjnego może tutaj zostać zmieniona. Pamiętaj że zmodyfikuje to proces instalacji dla wszystkich wersji które wykorzystują ten skrypt. Na przykład: zmieniłeś serwer na którym przechowujesz swoje pliki i chciałbyś teraz podmienić adresy URL. W przypadku pojedynczego skryptu (wariant #1) wystarczy że zmienisz go raz w którejkolwiek z wersji. Przy wielu skryptach (wariant #2) będziesz musiał poprawić każdy z nich pojedynczo.",
 		"GS_MU_SECTION3_PAR4" => "Nie jest możliwe usuwanie wersji ponieważ prowadziłoby do sytuacji w której użytkownicy mają nowszą wersję moda niż baza danych na stronie.",
 		
-		"GS_MU_SECTION4_PAR1" => "Skoki służą do utworzenia alternatywnej scieżki instalacji dla nowych użytkowników lub tych, którzy posiadających starszą wersję moda.",
+		"GS_MU_SECTION4_PAR1" => "Skoki służą do utworzenia alternatywnej scieżki instalacji dla nowych użytkowników lub posiadaczy starszej wersji moda.",
 		"GS_MU_SECTION4_PAR2" => "Wrócmy do przykładu z wieloma skryptami instalacyjnymi (wariant #2).",
-		"GS_MU_SECTION4_PAR3" => "Załóżmy, że archiwum <code>patch2.zip</code> zawiera już wszystkie zmiany z <code>patch1.zip</code> i to ostatnie jest zbędne. Możliwe jest jego pominięcie by graczej mieli mniej danych do ściągania.",
+		"GS_MU_SECTION4_PAR3" => "Załóżmy, że archiwum <code>patch2.zip</code> zawiera już wszystkie zmiany z <code>patch1.zip</code> i to ostatnie jest zbędne. Możliwe jest jego pominięcie by graczej mieli mniej danych do ściągnięcia.",
 		"GS_MU_SECTION4_PAR4" => "Przejdź do strony \"Instalacja\". Wybierz \"Skoki pomiędzy wersjami\" na górze strony. W polu \"Z wersji\" wybierasz źródło skoku. Wpisz \"version = 1\" żeby zaadresować użytkowników z pierwszą wersją moda. Poniżej wybierz \"Skrypt instalacyjny: Taki sam jak w wersji 1.1 do 1.2\" który ściąga <code>patch2.zip</code>. Naciśnij na \"Dodaj nowy skok\".",
         "GS_MU_SECTION4_PAR5" => "W podglądzie zobaczysz że nowi użytkownicy ściągną <code>mod.zip</code> oraz <code>patch2.zip</code>. Plik <code>patch1.zip</code> zostanie pominięty.",
-		"GS_MU_SECTION4_PAR6" => "Możliwe jest dostarczanie jednej paczki dla nowych użytkowników i małych łatek dla obecnych użytkowników (wariant #1 i #2).",
-		"GS_MU_SECTION4_PAR7" => "W polu \"Z wersji\" wpisz \"version = 0\" żeby zaadresować użytkowników którzy jeszcze nie posiadają tego modu. Poniżej napisz nowy skrypt instalacyjny i naciśnij na \"Dodaj nowy skok\".",
+		"GS_MU_SECTION4_PAR6" => "Można również dostarczać jedną paczkę (<code>mod_new.zip</code>) dla nowych użytkowników i małe łatki (<code>patch.zip</code>) dla obecnych użytkowników (wariant #1 i #2).",
+		"GS_MU_SECTION4_PAR7" => "W polu \"Z wersji\" wpisz \"version = 0\" żeby zaadresować użytkowników którzy jeszcze nie posiadają tego modu. Z listy \"Do wersji\" wybierz \"Zawsze do najnowszej\". Poniżej napisz nowy skrypt instalacyjny i naciśnij na \"Dodaj nowy skok\".",
 		"GS_MU_SECTION4_PAR8" => "Od teraz, za każdym razem gdy dodasz nową wersję ten skok zostanie automatycznie dopasowany. Nie zapomnij uaktualnić <code>mod_new.zip</code>."
 	));
 }

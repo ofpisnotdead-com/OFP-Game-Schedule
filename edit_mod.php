@@ -83,7 +83,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 		$form->title=lang("GS_STR_INDEX_ADDNEW_MOD");
 	
 	$mod_type_select = [];
-	for($i=0; $i<4; $i++)
+	for($i=0; $i<=GS_MOD_TYPE_NUM; $i++)
 		$mod_type_select[] = [lang("GS_STR_MOD_TYPE{$i}")." - ".lang("GS_STR_MOD_TYPE{$i}_DESC"),"{$i}"];
 	
 	$description_hint =  lang("GS_STR_MOD_DESCRIPTION_HINT"). ". <a target=\"_blank\" href=\"https://www.markdownguide.org/cheat-sheet/\">Markdown</a>";
@@ -292,9 +292,9 @@ if ($form->hidden["display_form"] == "Update")
 		
 	// Button to remove the link between versions
 	if ($form->hidden["display_subform"] == "Link") {
-		$form->add_button("action", "DeleteLink", lang("GS_STR_MOD_LINK_REMOVE"), "btn-danger btn-sm", "SubmitButtonDelete", "STYLE=\"display:none;\"");
+		$form->add_button("action", "DeleteLink", lang("GS_STR_MOD_LINK_REMOVE"), "btn-danger btn-sm", "SubmitButtonDelete", "style=\"display:none;\"");
 		$form->change_control([-1,-2], ["Inline"=>3]);
-		$form->change_control(-1, ["DivInline"=>"STYLE=\"display:inline;position:absolute;bottom:0;\""]);
+		$form->change_control(-1, ["DivInline"=>"style=\"display:inline;position:absolute;bottom:0;\""]);
 	}
 	
 	$form->add_html("<br><a target=\"_blank\" href=\"show.php?mod={$form->hidden["uniqueid"]}\">".lang("GS_STR_MOD_PREVIEW_INST")."</a>");

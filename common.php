@@ -1,5 +1,5 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2021,7,19,1,17,46,34,510,120,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2021,8,16,1,17,35,21,821,120,FALSE]");
 define("GS_VERSION", 0.6);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
@@ -7,6 +7,7 @@ define("GS_DECRYPT_KEY", 0);
 define("GS_LOGO_FOLDER", "logo");	// Folder to save uploaded images in
 define("GS_OTHER_URL", []);			// Links to other schedule websites
 define("GS_SIZE_TYPES", ["KB", "MB", "GB"]);
+define("GS_MOD_TYPE_NUM", 4);		// Number of available mod types
 
 // Available actions for pages
 define("GS_FORM_ACTIONS", [

@@ -52,8 +52,8 @@ $Parsedown = new Parsedown();
 
 	// Sort mods
 	$mod_labels = [];
-	$anchors    = ["replacement", "addonpack", "supplement", "missionpack"];
-	for ($i=0; $i<4; $i++)
+	$anchors    = ["replacement", "addonpack", "supplement", "missionpack", "tools"];
+	for ($i=0; $i<=GS_MOD_TYPE_NUM; $i++)
 		$mod_labels[] = lang("GS_STR_MOD_TYPE{$i}");
 	
 	foreach ($mod_labels as $label)
@@ -71,7 +71,7 @@ $Parsedown = new Parsedown();
 	foreach ($mod_labels as $key=>$label) {
 		$label_description = "";
 		
-		for ($i=0; $i<4; $i++)
+		for ($i=0; $i<=GS_MOD_TYPE_NUM; $i++)
 			if ($label == lang("GS_STR_MOD_TYPE{$i}"))
 				$label_description = ucfirst(lang("GS_STR_MOD_TYPE{$i}_DESC"));
 
