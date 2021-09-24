@@ -6,9 +6,9 @@ UPDATE `settings` SET `us_css3` = '../usersc/css/custom.css' WHERE `settings`.`i
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 16, 2021 at 09:27 PM
+-- Generation Time: Sep 25, 2021 at 12:32 AM
 -- Server version: 10.2.36-MariaDB
--- PHP Version: 7.3.17
+-- PHP Version: 7.4.8
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -88,7 +88,10 @@ CREATE TABLE `gs_mods` (
   `alias` varchar(255) NOT NULL,
   `is_mp` tinyint(1) NOT NULL DEFAULT 1,
   `dls_new` int(11) NOT NULL DEFAULT 0,
-  `dls_upd` int(11) NOT NULL DEFAULT 0
+  `dls_upd` int(11) NOT NULL DEFAULT 0,
+  `website` text NOT NULL,
+  `logo` text NOT NULL,
+  `logohash` text NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -184,6 +187,7 @@ CREATE TABLE `gs_serv` (
   `message` varchar(255) NOT NULL,
   `website` varchar(100) NOT NULL,
   `logo` varchar(100) NOT NULL,
+  `logohash` text NOT NULL,
   `uniqueid` varchar(10) NOT NULL,
   `removed` tinyint(1) NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT current_timestamp(),

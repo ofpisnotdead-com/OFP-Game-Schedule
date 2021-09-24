@@ -69,13 +69,23 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 	echo "
 		<div class=\"panel panel-default\">
 			<div class=\"panel-body mods_background\" style=\"display:flex;\">
-				<div style=\"flex-grow:2\">
-				<h2 style=\"margin-top:0;\">{$mod["name"]}</h2>
-				<dl class=\"row\" style=\"margin-bottom:0;\">
-	";
+				<div style=\"flex-grow:2\">";
+
+	// Show image
+	if (!empty($mod["logo"]) && substr($mod["logo"], -3)!="paa")
+		echo "
+		<div style=\"margin-bottom: 10px;\">
+		<img style=\"vertical-align:middle\" src=\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$mod["logo"]}\">
+		<span class=\"gs_servermod_title\">{$mod["name"]}</span>
+		</div>";
+	else
+		echo "<h2 style=\"margin-top:0;\">{$mod["name"]}</h2>";
+	
+	echo "<dl class=\"row\" style=\"margin-bottom:0;\">";
 	
 	$keys = [
 		"description" => lang("GS_STR_MOD_DESCRIPTION"),
+		"website"     => lang("GS_STR_SERVER_WEBSITE"),
 		"type"        => lang("GS_STR_MOD_TYPE"),
 		"version"     => lang("GS_STR_SERVER_VERSION"),
 		"size"        => lang("GS_STR_MOD_DOWNLOADSIZE"),
@@ -91,8 +101,20 @@ foreach($input["mod"] as $input_index=>$uniqueid) {
 			case "type"        : $value=lang("GS_STR_MOD_TYPE{$mod["type"]}"); break;
 			case "description" : $value=$Parsedown->line($mod[$key]); break;
 			case "is_mp"       : if($mod[$key]=="0")$value=lang("GS_STR_MOD_MPCOMP_NO");else $value=""; break;
-			case "forcename"   : if($mod[$key]=="true")$value=lang("GS_STR_ENABLED");else $value=""; break;
-			default            : $value=$mod[$key];
+			case "forcename"   : if($mod[$key]=="true")$value=lang("GS_STR_ENABLED");else $value=""; break;			
+			
+			case "website" : {
+				if (!empty($mod[$key])) {
+					$domain = parse_url($mod[$key])["host"];
+					
+					if (substr($domain,0,4) == "www." )
+						$domain = substr($domain,4);
+					
+					$value = "<a href=\"{$mod[$key]}\" target=\"_blank\">$domain</a>";
+				}
+			} break;
+			
+			default : $value=$mod[$key];
 		}
 
 		$value = str_replace("&amp;#039;", "'", $value);

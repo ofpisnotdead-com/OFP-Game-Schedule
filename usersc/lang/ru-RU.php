@@ -75,6 +75,7 @@ $lang = array_merge($lang, array(
     "GS_STR_INDEX_DELETE" => "Удалить",
     "GS_STR_INDEX_UPDATE" => "Обновить",
 	"GS_STR_INDEX_INSTALLATION" => "Установка",
+"GS_STR_INDEX_LIMIT_REACHED" => "максимальное количество записей",
 	
     #Edit server details page
 	"GS_STR_SERVER" => "Сервер",
@@ -199,7 +200,7 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_PUBLIC" => "Общий",
 	"GS_STR_MOD_PRIVATE" => "Частный",
 	"GS_STR_MOD_FORCENAME" => "Оставить оригинальное название",
-	"GS_STR_MOD_FORCENAME_HINT" => "Замена названия папки на оригинальное в случае, если игрок его изменил. Вступает в силу после следующего обновления",
+	"GS_STR_MOD_FORCENAME_HINT" => "Замена названия папки на оригинальное в случае, если игрок его изменил",
 	"GS_STR_MOD_VERSION" => "Версия",
 "GS_STR_MOD_VERSION_HINT" => "Number of the initial version of the mod",
 	"GS_STR_MOD_INSTALLATION" => "Установка",
@@ -215,8 +216,8 @@ $lang = array_merge($lang, array(
 	"GS_STR_MOD_TYPE2_DESC" => "Дополнение к другим папкам с модами",
 	"GS_STR_MOD_TYPE3" => "Миссии",
 	"GS_STR_MOD_TYPE3_DESC" => "Пак, который содержит только миссии",
-"GS_STR_MOD_TYPE4" => "Tools",
-"GS_STR_MOD_TYPE4_DESC" => "Scripts for missionmaking",
+"GS_STR_MOD_TYPE4" => "Инструменты",
+"GS_STR_MOD_TYPE4_DESC" => "Скрипты для создания миссий",
 	"GS_STR_MOD_ALIAS" => "Другие названия мода",
 	"GS_STR_MOD_ALIAS_DESC" => "Работает так же, как и команда %m1%Alias%m2%, но для всей установки",
 	"GS_STR_MOD_MPCOMP" => "Совместимо с сетевой игрой",

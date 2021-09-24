@@ -9,6 +9,7 @@ if (!securePage($_SERVER['PHP_SELF']))
 
 require_once "common.php";
 $Parsedown = new Parsedown();
+languageSwitcher();
 ?>
 
 <DIV ID="page-wrapper">
@@ -26,6 +27,8 @@ $Parsedown = new Parsedown();
 			gs_mods.access,
 			gs_mods.type,
 			gs_mods.createdby,
+			gs_mods.website,
+			gs_mods.logo,
 			users.username AS addedby
 			
 		FROM 
@@ -84,9 +87,11 @@ $Parsedown = new Parsedown();
 		<h4>$label_description</h4>
 		<table class=\"table table-mods-striped table-bordered table-hover\">
 			<tr>
+				<th></th>
 				<th>".lang("GS_STR_MOD")."</th>
 				<th>".lang("GS_STR_MOD_DESCRIPTION")."</th>
 				<th>".ucfirst(lang("GS_STR_ADDED_BY"))."</th>
+				<th></th>
 				<th></th>
 			</tr>
 			";
@@ -97,12 +102,23 @@ $Parsedown = new Parsedown();
 			
 			$html .= "
 			<tr>
+				<td>";
+			
+			if (!empty($modfolders[$i]["logo"]) && substr($modfolders[$i]["logo"], -3)!="paa")
+				$html .= "<img width=64 height=64 src=\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$modfolders[$i]["logo"]}\">";
+				
+			$html .= "
+				</td>
 				<td><b>{$modfolders[$i]["name"]}</b></td>
 				<td>". $Parsedown->line($modfolders[$i]["description"]) ."</td>
 				<td>{$modfolders[$i]["addedby"]}</td>
 				<td><a target='_blank' href=\"show.php?mod={$modfolders[$i]["uniqueid"]}\"><span class=\"glyphicon glyphicon-link\"></span></a></td>
-			</tr>
-			";
+				<td>";
+				
+			if (!empty($modfolders[$i]["website"]))
+				$html .= "<a target='_blank' href=\"{$modfolders[$i]["website"]}\"><span class=\"glyphicon glyphicon-globe\"></span></a>";
+				
+			$html .= "</td></tr>";
 		}
 		
 		$html .= "</table></div><hr style=\"margin-top:50px;margin-bottom:50px;\">";
@@ -117,17 +133,9 @@ $Parsedown = new Parsedown();
 	foreach ($mod_labels as $key=>$label)
 		echo "<a align=\"center\" href=\"#".$anchors[$key]."\">$label</a>  &nbsp; ";
 	
-	echo "</p></div>";
+	echo "</p><h4><center><a href=\"https://youtu.be/KSK_H8Dc4oo\">".lang("GS_STR_QUICKSTART_HOWTO_INSTALL")."</a></center></h4></div>";
 	
 	echo $html;
-	
-echo 
-"<div class=\"jumbotron\">
-	<h2><a href=\"https://youtu.be/KSK_H8Dc4oo\">".lang("GS_STR_QUICKSTART_HOWTO_INSTALL")."</a></h2>
-</div>";
-
-if (isset($user) && $user->isLoggedIn())
-	languageSwitcher();
 ?>
 
 

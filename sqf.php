@@ -2,6 +2,60 @@
 require_once "minimal_init.php";
 require_once "common.php";
 
+function GS_output_mods_arrays(&$mods, $full=true) {
+	$db = DB::getInstance();
+	
+	// Get user names from user id list
+	$user_list = [];
+	$sql       = "SELECT users.username, users.id FROM users WHERE users.id IN (". substr(str_repeat(",?",count($mods["userlist"])), 1) . ")";
+
+	if (!$db->query($sql,$mods["userlist"])->error())
+		foreach($db->results(true) as $row)
+			$user_list[$row["id"]] = $row["username"];	
+				
+	$output                = "";
+	$arrays[]              = [];
+	$arrays["name"]        = "GS_MODS_NAME=[";
+	$arrays["version"]     = "GS_MODS_VER=[";
+	$arrays["forcename"]   = "GS_MODS_FORCENAME=[";
+	$arrays["size"]        = "GS_MODS_SIZE=[";
+	$arrays["sizearray"]   = "GS_MODS_SIZEARRAY=[";
+	
+	if ($full) {
+		$arrays["type"]        = "GS_MODS_TYPE=[";
+		$arrays["ismp"]        = "GS_MODS_ISMP=[";
+		$arrays["addedby"]     = "GS_MODS_ADDEDBY=[";
+		$arrays["description"] = "GS_MODS_DESCRIPTION=[";
+		$arrays["website"]     = "GS_MODS_WEBSITE=[";
+		$arrays["logo"]        = "GS_MODS_LOGO=[";
+		$arrays["logohash"]    = "GS_MODS_LOGOHASH=[";
+	}
+	
+	foreach ($mods["info"] as $mod) {
+		$arrays["name"]        .= "]+[\"{$mod["name"]}\"";
+		$arrays["version"]     .= "]+[{$mod["version"]}";
+		$arrays["forcename"]   .= "]+[{$mod["forcename"]}";
+		$arrays["size"]        .= "]+[\"{$mod["size"]}\"";
+		$arrays["sizearray"]   .= "]+[{$mod["sizearray"]}";
+		
+		if ($full) {
+			$arrays["type"]        .= "]+[{$mod["type"]}";
+			$arrays["ismp"]        .= "]+[{$mod["is_mp"]}";
+			$arrays["addedby"]     .= "]+[\"{$user_list[$mod["createdby"]]} (".date("d.m.y",strtotime($mod["created"])).")\"";
+			$arrays["description"] .= "]+[{$mod["description"]}";
+			$arrays["website"]     .= "]+[\"{$mod["website"]}\"";
+			$arrays["logo"]        .= empty($mod["logo"]) ? "]+[\"\"" : "]+[\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$mod["logo"]}\"";
+			$arrays["logohash"]    .= "]+[\"{$mod["logohash"]}\"";
+		}
+	}
+	
+	foreach ($arrays as $key=>$value)
+		if (!empty($key))
+			$output .= $value . "];";
+		
+	return $output;
+};
+
 $input      = GS_get_common_input();
 $input_mode = isset($_GET['mode']) ? $_GET['mode'] : "schedule";
 $db         = DB::getInstance();
@@ -41,17 +95,7 @@ if ($db) {
 				$output   .= "]+[[\"{$program_name}\",$is_invite,\"{$program_info["download"]}\"]";
 			}
 
-			$output .= "];GS_MODS_ID=[";
-
-			foreach ($mods["id"] as $id)
-				$output .= "]+[\"{$id}\"";
-
-			$output .= "];GS_MODS_INFO=[";
-
-			foreach ($mods["info"] as $mod)
-				$output .= "]+[\"{$mod["sqf"]}true\"";
-
-			$output .= "];GS_SERVERS=[";
+			$output .= "];" . GS_output_mods_arrays($mods, 0) . "GS_SERVERS=[";
 
 			foreach ($servers["info"] as $server) {
 				$output .= "]+[\"{$server["sqf"]}_server_game_times=[";
@@ -87,24 +131,19 @@ if ($db) {
 	}
 	
 	if ($input_mode == "mods") {
-		$mods = GS_list_mods([], $input["mod"], $input["modver"], $input["password"], GS_REQTYPE_GAME_DOWNLOAD_MODS, 0);
-		
-		$output .= "GS_FWATCH_LAST_UPDATE=". GS_FWATCH_LAST_UPDATE . "; SCHEDULE_LAST_UPDATE=GS_FWATCH_LAST_UPDATE; GS_VERSION=" . GS_VERSION . ";GS_URLS=[";
+		$mods = GS_list_mods([], $input["mod"], $input["modver"], $input["password"], GS_REQTYPE_GAME_DOWNLOAD_MODS, 0);		
+				
+		$output .= "GS_FWATCH_LAST_UPDATE=". GS_FWATCH_LAST_UPDATE . "; SCHEDULE_LAST_UPDATE=GS_FWATCH_LAST_UPDATE; GS_VERSION=" . GS_VERSION . "; GS_URLS=[";
 
 		foreach (GS_OTHER_URL as $url)
 			$output .= "]+[\"{$url}\"";
 
-		$output .= "];GS_MODS_ID=[";
+		$output .= "]; GS_MODS_ID=[";
 
 		foreach ($mods["id"] as $id)
 			$output .= "]+[\"{$id}\"";
 
-		$output .= "];GS_MODS_INFO=[";
-
-		foreach ($mods["info"] as $mod)
-			$output .= "]+[\"{$mod["sqf"]}\"";
-
-		$output .= "];true";
+		$output .= "];" . GS_output_mods_arrays($mods) . "true";
 	}
 	
 	echo $output;
