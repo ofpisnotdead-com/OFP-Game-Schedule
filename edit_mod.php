@@ -103,6 +103,8 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->add_select("sizetype" , ""                                    , "", GS_SIZE_TYPES, "MB");
 	$form->add_text("alias"      , lang("GS_STR_MOD_ALIAS")              , lang("GS_STR_MOD_ALIAS_DESC",["<a target=\"_blank\" href=\"install_scripts#alias\">","</a>"]), "@ww4mod21 @ww4mod");
 	$form->add_select("is_mp"    , lang("GS_STR_MOD_MPCOMP")             , lang("GS_STR_MOD_MPCOMP_HINT")     , [[lang("GS_STR_MOD_MPCOMP_YES"),"1"], [lang("GS_STR_MOD_MPCOMP_NO"),"0"]], "1", "radio");
+	$form->add_text("website"    , lang("GS_STR_SERVER_WEBSITE")         , ""                                 , GS_get_current_url(true, false));
+	$form->add_imagefile("logo"  , lang("GS_STR_SERVER_LOGO")            , lang("GS_STR_SERVER_LOGO_HINT")    , GS_LOGO_FOLDER, 10240*2.5);
 	
 	if ($form->hidden["display_form"] == "Add New") {
 		$form->include_file("usersc/js/gs_functions.js");
@@ -115,13 +117,18 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	// If user wants to update mod entry
 	if (in_array($form->hidden["action"], ["Edit","Add New"])) {
 		$data = &$form->save_input();
-		$data["name"]   = preg_replace('/\s+/', '', $data["name"]);				// remove whitespace
-		$data["access"] = preg_replace("/[^A-Za-z0-9 ]/", '', $data["access"]);	// remove non-alphanumeric
+		$data["name"]    = preg_replace('/\s+/', '', $data["name"]);				// remove whitespace
+		$data["access"]  = preg_replace("/[^A-Za-z0-9 ]/", '', $data["access"]);	// remove non-alphanumeric
+		$data["website"] = filter_var($data["website"], FILTER_SANITIZE_URL);
 		
 		// Validate file name
 		$custom_errors = [];
 		if (!GS_is_valid_windows_filename($data["name"]))
 			$custom_errors[] = [lang("GS_STR_MOD_NAME_ERROR"), "name"];
+		
+		// Validate website
+		if (!empty($data["website"])  &&  !filter_var($data["website"], FILTER_VALIDATE_URL))
+			$custom_errors[] = [lang("GS_STR_SERVER_URL_ERROR"), "website"];
 		
 		// Validate user input
 		$unique_array = ["gs_mods", ["and",["description","LIKE",$data["description"]],["removed","!=",1]]];
@@ -138,10 +145,13 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 		$form->add_validation_rules(["sizetype"]   , ["in"=>GS_SIZE_TYPES, "display"=>lang("GS_STR_MOD_DOWNLOADSIZE")]);
 		$form->add_validation_rules(["alias"]      , ["max"=>GS_MAX_MSG_INPUT_LENGTH, "required"=>false]);
 		$form->add_validation_rules(["access"]     , ["max"=>GS_MAX_CODE_INPUT_LENGTH, "required"=>false]);
+		$form->add_validation_rules(["website"]    , ["required"=>false]);
 
 
 		// Send data to table
-		if ($form->validate($custom_errors, lang("GS_STR_ERROR_FORMDATA"))) {	
+		if ($form->validate($custom_errors, lang("GS_STR_ERROR_FORMDATA"))) {
+			$form->upload_image();
+			
 			// Set up four arrays for inserting to four db tables
 			$mod_fields = [
 				"name"        => $data["name"],
@@ -150,7 +160,9 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				"forcename"   => $data["forcename"],
 				"type"        => $data["type"],
 				"alias"       => $data["alias"],
-				"is_mp"       => $data["is_mp"]
+				"is_mp"       => $data["is_mp"],
+				"website"     => $data["website"],
+				"logo"        => $data["logo"]
 			];
 			
 			$admin_fields = [
@@ -184,6 +196,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$mod_fields["id"] = $id;
 			$result           = $db->insert("gs_mods", $mod_fields, true);
 
+			$form->keep_image($result);
 			$form->feedback(
 				$result, 
 				lang($form->hidden["action"]=="Add New" ? "GS_STR_MOD_ADDED"       : "GS_STR_MOD_UPDATED"),
@@ -212,6 +225,9 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 				
 				$form->hidden["display_name"] = $data["name"];
 				$form->title                  = lang("GS_STR_MOD_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+				
+				// Update logo hash
+				$db->update("gs_mods", $id, ["logohash"=>empty($data["logo"]) ? "" : hash_file('crc32', $form->image_dir.$data["logo"])]);
 			}
 		}
 	} else

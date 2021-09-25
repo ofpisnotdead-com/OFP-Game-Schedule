@@ -28,7 +28,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 	$form->add_text("message"          , lang("GS_STR_SERVER_MESSAGE")      , lang("GS_STR_SERVER_MESSAGE_HINT")   , lang("GS_STR_SERVER_MESSAGE_EXAMPLE"), "", 3);
 	$form->add_text("website"          , lang("GS_STR_SERVER_WEBSITE")      , lang("GS_STR_SERVER_WEBSITE_HINT")   , GS_get_current_url(true, false));
 	$form->add_text("voice"            , lang("GS_STR_SERVER_VOICE_ADDRESS"), $voice_links_combined                , "ts3server://192.168.1.101?password=123");
-	$form->add_imagefile("logo"        , lang("GS_STR_SERVER_LOGO")         , lang("GS_STR_SERVER_LOGO_HINT")      , GS_LOGO_FOLDER, 10240*2);
+	$form->add_imagefile("logo"        , lang("GS_STR_SERVER_LOGO")         , lang("GS_STR_SERVER_LOGO_HINT")      , GS_LOGO_FOLDER, 10240*2.5);
 	
 	
 	// If user submitted form
@@ -45,7 +45,7 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			$data["voice"] = "https://discord.gg/".substr($data["voice"],30);
 		
 		// Validate user input				
-		$form->init_validation     (["max"=>GS_MAX_TXT_INPUT_LENGTH] );
+		$form->init_validation     (["max"=>GS_MAX_TXT_INPUT_LENGTH]);
 		$form->add_validation_rules(["ip"]                                    , ["required"=>true]);
 		$form->add_validation_rules(["message","voice"]                       , ["max"=>GS_MAX_MSG_INPUT_LENGTH]);	
 		$form->add_validation_rules(["access"]                                , ["max"=>GS_MAX_CODE_INPUT_LENGTH]);	
@@ -93,6 +93,9 @@ if (in_array($form->hidden["display_form"], ["Add New","Edit"]))
 			if ($result) {
 				$form->hidden["display_name"] = $data["name"]!="" ? $data["name"] : $data["ip"];
 				$form->title                  = lang("GS_STR_SERVER_PAGE_TITLE", ["<B>{$form->hidden["display_name"]}</B>"]);
+				
+				// Update logo hash
+				$db->update("gs_serv", $id, ["logohash"=>empty($data["logo"]) ? "" : hash_file('crc32', $form->image_dir.$data["logo"])]);
 				
 				if ($form->hidden["action"] == "Add New") {
 					$id                           = $db->lastId();
@@ -247,11 +250,11 @@ if ($form->hidden["display_form"] == "Schedule")
 			if ($data["duration"] > 1440)
 				$data["duration"] = 1440;
 
-			$form->init_validation     ( ["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], ["schedulelist"] );
-			$form->add_validation_rules( ["duration"] , [">"=>0, "is_int"=>true]);
-			$form->add_validation_rules( ["type"]     , [">="=>0, "<="=>2] );
-			$form->add_validation_rules( ["timezone"] , ["is_timezone"=>true] );
-			$form->add_validation_rules( ["starttime"], ["is_datetime"=>true] );
+			$form->init_validation(["max"=>GS_MAX_TXT_INPUT_LENGTH, "required"=>true], ["schedulelist"]);
+			$form->add_validation_rules(["duration"] , [">"=>0, "is_int"=>true]);
+			$form->add_validation_rules(["type"]     , [">="=>0, "<="=>2]);
+			$form->add_validation_rules(["timezone"] , ["is_timezone"=>true]);
+			$form->add_validation_rules(["starttime"], ["is_datetime"=>true]);
 			
 			if ($form->validate([], lang("GS_STR_ERROR_FORMDATA"))) {
 				$playing_time = [

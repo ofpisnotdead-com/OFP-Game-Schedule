@@ -115,13 +115,17 @@ if(isset($user) && $user->isLoggedIn()){
 			}
 		}
 	
-		$limit = $record_type=="server" ? GS_PERMISSION_MAX_SERVERS[$gs_my_permission_level] : GS_PERMISSION_MAX_MODS[$gs_my_permission_level];
+		$limit = $record_type=="server" ? GS_PERMISSION_MAX_SERVERS[$gs_my_permission_level] : GS_PERMISSION_MAX_MODS[$gs_my_permission_level];		
+		$form  = new Generated_Form([], $csrf, $php_script, false, "form-inline");
 		
-		if ($gs_my_permission_level != GS_PERM_ADMIN  &&  $my_item_count < $limit) {
-			$form = new Generated_Form([], $csrf, $php_script, false, "form-inline");
+		if ($my_item_count < $limit)
 			$form->add_button("display_form", "Add New", lang($record_type=="server" ? "GS_STR_INDEX_ADDNEW_SERVER" : "GS_STR_INDEX_ADDNEW_MOD"), "btn-$button_class btn-sm");
-			$display_my .= $form->display();
+		else {
+			$form->add_text("limitreached", "");
+			$form->change_control(-1, ["Type"=>"Static", "Text"=>lang("GS_STR_INDEX_LIMIT_REACHED")]);
 		}
+		
+		$display_my .= $form->display();
 		
 		
 		

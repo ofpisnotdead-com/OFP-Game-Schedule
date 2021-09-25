@@ -1,5 +1,5 @@
 <?php
-define("GS_FWATCH_LAST_UPDATE","[2021,8,16,1,17,35,21,821,120,FALSE]");
+define("GS_FWATCH_LAST_UPDATE","[2021,9,24,5,2,51,36,439,120,FALSE]");
 define("GS_VERSION", 0.6);
 define("GS_ENCRYPT_KEY", 0);
 define("GS_MODULUS_KEY", 0);
@@ -943,6 +943,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 			gs_serv.message,
 			gs_serv.website,
 			gs_serv.logo,
+			gs_serv.logohash,
 			gs_serv.uniqueid,
 			gs_serv.access,
 			gs_serv.maxcustomfilesize,
@@ -1149,6 +1150,7 @@ function GS_list_servers($server_id_list, $password, $request_type, $last_modifi
 							case "equalmodreq"       : $new_value=$value=="1" ? "true" : "false"; break;
 							case "version"           : $new_value="$value"; break;
 							case "logo"              : $new_value="\"\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$value}\"\""; break;
+							case "logohash"          : $new_value="\"\"{$value}\"\""; break;
 							case "maxcustomfilesize" : {
 								if ($add_value)
 									$output["info"][$id]["sqf"] .= "_server_maxcustombytes=\"\"$value\"\";";
@@ -1297,7 +1299,7 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 	}
 	
 	if (!empty($mods_uniqueid_list)) {
-		if ($mods_uniqueid_list[0] == "all")
+		if (in_array("all",$mods_uniqueid_list))
 			$where_condition = "gs_mods.removed=0";
 		else {
 			$argument_list    = array_merge($argument_list, $mods_uniqueid_list);
@@ -1321,6 +1323,10 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 				gs_mods.access,
 				gs_mods.alias,
 				gs_mods.is_mp,
+				gs_mods.type,
+				gs_mods.website,
+				gs_mods.logo,
+				gs_mods.logohash,
 				gs_mods_updates.version,
 				gs_mods_updates.created AS update_created,
 				gs_mods_updates.modified AS modified2,
@@ -1463,13 +1469,24 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 
 				if ($last_id != $id) {
 					if ($request_type == GS_REQTYPE_GAME) {
-						$alias                         = $row["alias"]=="" ? "?" : $row["alias"];
-						$output["info"][$id]["sqf"]    = "_mod_name=\"\"{$row["name"]}\"\";_mod_forcename=".($row["forcename"]=="1" ? "true" : "false").";";
-						$output["info"][$id]["script"] = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]} \"$alias\"";
+						$alias                            = $row["alias"]=="" ? "?" : $row["alias"];
+						$output["info"][$id]["name"]      = $row["name"];
+						$output["info"][$id]["type"]      = $row["type"];
+						$output["info"][$id]["createdby"] = $row["createdby"];
+						$output["info"][$id]["created"]   = $row["created"];
+						$output["info"][$id]["forcename"] = $row["forcename"] ? "true" : "false";
+						$output["info"][$id]["is_mp"]     = $row["is_mp"] ? "true" : "false";
+						$output["info"][$id]["script"]    = "begin_mod {$row["name"]} {$row["uniqueid"]} {$row["forcename"]} \"$alias\"";
+						$output["info"][$id]["website"]   = $row["website"];
+						$output["info"][$id]["logo"]      = $row["logo"];
+						$output["info"][$id]["logohash"]  = $row["logohash"];
+						
+						if (!in_array($row["createdby"], $output["userlist"]))
+							$output["userlist"][] = $row["createdby"];
 						
 						if ($add_description) {
 							$Parsedown = new Parsedown();
-							$output["info"][$id]["sqf"] .= "_mod_description=\"\"".str_replace("\"", "\"\"\"\"", html_entity_decode(strip_tags($Parsedown->line($row["description"])),ENT_QUOTES))."\"\";";
+							$output["info"][$id]["description"] = "\"".str_replace("\"", "\"\"\"\"", html_entity_decode(strip_tags($Parsedown->line($row["description"])),ENT_QUOTES))."\"";
 						}
 					}
 
@@ -1522,6 +1539,8 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 					$output["info"][$id]["adminsince"]   = $row["adminsince"];
 					$output["info"][$id]["access"]       = $row["access"];
 					$output["info"][$id]["firstversion"] = $first_version;
+					$output["info"][$id]["website"]      = $row["website"];
+					$output["info"][$id]["logo"]         = $row["logo"];
 					
 					if (!in_array($row["createdby"], $output["userlist"]))
 						$output["userlist"][] = $row["createdby"];
@@ -1685,7 +1704,8 @@ function GS_list_mods($mods_id_list, $mods_uniqueid_list, $user_mods_version, $p
 			}
 
 			if ($request_type == GS_REQTYPE_GAME) {
-				$output["info"][$id]["sqf"]    .= "_mod_version={$current_version};_mod_size=\"\"{$formatted_download_size}\"\";_mod_sizearray=[" . implode(",",$download_size) . "];";
+				$output["info"][$id]["size"]      = $formatted_download_size;
+				$output["info"][$id]["sizearray"] = "[" . implode(",", $download_size) . "]";	
 				$output["info"][$id]["version"] = $current_version;
 				$output["info"][$id]["userver"] = $input_version;
 				
@@ -1718,16 +1738,23 @@ function GS_get_common_input() {
 	$input      = ["modver"=>[]];
 	$input_keys = ["server", "mod", "ver", "password", "listid", "user"];
 
-	foreach($input_keys as $key)
+	foreach($input_keys as $key) {
 		$input[$key] = isset($_GET[$key]) ? explode(",",$_GET[$key]) : [];
+		
+		if (isset($_POST[$key]))
+			$input[$key] = array_merge($input[$key], explode(",",$_POST[$key]));
+	}
 
 	foreach($input["mod"] as $key=>$value)
 		$input["modver"][$value] = isset($input["ver"][$key]) ? $input["ver"][$key] : 0;
 	
 	$input["language"] = GS_LANGUAGES["game"][0];
 	
-	if (isset($_GET['language'])) {
-		$index = array_search($_GET['language'], GS_LANGUAGES["game"]);
+	if (isset($_GET["language"])  ||  isset($_POST["language"])) {
+		$index = array_search(
+			isset($_POST["language"]) ? $_POST["language"] : $_GET["language"], 
+			GS_LANGUAGES["game"]
+		);
 		
 		if ($index !== FALSE)
 			$input["language"] = GS_LANGUAGES["game"][$index];
@@ -1813,10 +1840,19 @@ function GS_format_server_info(&$servers, &$mods, $box_size, $extended_info=fals
 		$html .= "
 			<div class=\"panel panel-default\">
 				<div class=\"panel-body servers_background\" style=\"display:flex;\">
-					<div style=\"flex-grow:2\">
-					<h2 style=\"margin-top:0;\">$server_name</h2>
-					<dl class=\"row\" style=\"margin-bottom:0;\">
-		";
+					<div style=\"flex-grow:2\">";
+					
+		// Show image
+		if (!empty($server["logo"]) && substr($server["logo"], -3)!="paa")
+			$html .= "
+			<div style=\"margin-bottom: 10px;\">
+			<img style=\"vertical-align:middle\" src=\"".GS_get_current_url(false).GS_LOGO_FOLDER."/{$server["logo"]}\">
+			<span class=\"gs_servermod_title\">$server_name</span>
+			</div>";
+		else
+			$html .= "<h2 style=\"margin-top:0;\">$server_name</h2>";
+
+		$html .= "<dl class=\"row\" style=\"margin-bottom:0;\">";
 		
 		$keys = [
 			"version"           => lang("GS_STR_SERVER_VERSION"),

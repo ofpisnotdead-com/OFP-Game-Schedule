@@ -75,6 +75,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_INDEX_DELETE" => "Delete",
 	"GS_STR_INDEX_UPDATE" => "Update",
 	"GS_STR_INDEX_INSTALLATION" => "Installation",
+"GS_STR_INDEX_LIMIT_REACHED" => "Limit reached",
 	
     #Edit server details page
 	"GS_STR_SERVER" => "Server",
@@ -199,7 +200,7 @@ $lang = array_merge($lang,array(
 	"GS_STR_MOD_PUBLIC" => "Public",
 	"GS_STR_MOD_PRIVATE" => "Private",
 	"GS_STR_MOD_FORCENAME" => "Force Original Name",
-"GS_STR_MOD_FORCENAME_HINT" => "Automatically bring back original folder name if player renames it. Enabled after the next mod update",
+"GS_STR_MOD_FORCENAME_HINT" => "Automatically bring back original folder name if player renames it",
 "GS_STR_MOD_VERSION" => "Version",
 "GS_STR_MOD_VERSION_HINT" => "Number of the initial version of the mod",
 	"GS_STR_MOD_INSTALLATION" => "Installation",
